@@ -1,0 +1,7 @@
+add_subdirectory(cmake-parser)
+add_subdirectory(cpp-parser)
+add_subdirectory(json-parser)
+add_subdirectory(parser)
+add_subdirectory(serialization)
+add_subdirectory(test-platform)
+add_subdirectory(utility)

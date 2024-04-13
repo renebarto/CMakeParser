@@ -1,0 +1,27 @@
+{
+  "environments": [ {} ],
+  "configurations": [
+    {
+      "name": "x64-Debug",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "inheritEnvironments": [ "msvc_x64" ],
+      "buildRoot": "${projectDir}\\cmake-${name}",
+      "installRoot": "${projectDir}\\output\\install\\${name}",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "cmakeCommandArgs": "-DVERBOSE_BUILD=OFF -DCMAKE_BUILD_TYPE=Debug"
+    },
+    {
+      "name": "x64-Release",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "inheritEnvironments": [ "msvc_x64" ],
+      "buildRoot": "${projectDir}\\cmake-${name}",
+      "installRoot": "${projectDir}\\output\\install\\${name}",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "cmakeCommandArgs": "-DVERBOSE_BUILD=OFF -DCMAKE_BUILD_TYPE=Release"
+    }
+  ]
+}
