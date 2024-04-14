@@ -1,0 +1,18 @@
+cmake_minimum_required(VERSION 3.5.1)
+
+message(STATUS "\n## In directory: ${CMAKE_CURRENT_SOURCE_DIR}")
+
+set(SCRIPTS_DIR "" CACHE STRING "CMake scripts path")
+
+if ("${SCRIPTS_DIR}" STREQUAL "")
+    set(SCRIPTS_DIR "${CMAKE_SOURCE_DIR}/cmake")
+endif()
+
+list(APPEND CMAKE_MODULE_PATH ${SCRIPTS_DIR})
+
+message(STATUS "\n** Setting up project **\n--")
+
+project(CPP-Parser
+    VERSION ${MSI_NUMBER}
+    DESCRIPTION "This is the project for cpp-parser"
+)

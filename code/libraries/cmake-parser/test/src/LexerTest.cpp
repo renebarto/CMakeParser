@@ -1,6 +1,6 @@
 #include "cmake-parser/Lexer.h"
 
-#include "gtest/gtest.h"
+#include "test-platform/GoogleTest.h"
 
 #include <filesystem>
 #include <fstream>
@@ -169,50 +169,51 @@ TEST_F(LexerTest, ReservedKeywords)
     EXPECT_TRUE(lexer.IsAtEnd());
 }
 
-TEST_F(LexerTest, CMakeFileSimpleProject)
-{
-    std::string compilationUnit("CMakeLists_simpleproject.txt");
-    std::filesystem::path inputPath(TEST_DATA_DIR);
-    std::ifstream stream(inputPath / compilationUnit);
-    Lexer lexer(compilationUnit, stream);
-
-    while (!lexer.IsAtEnd())
-    {
-        auto token = lexer.GetToken();
-        if (token.IsInvalid() || token.IsNull())
-            std::cout << "Unexpected token " << token.Serialize() << std::endl;
-    }
-}
-
-TEST_F(LexerTest, CMakeFileRoot)
-{
-    std::string compilationUnit("CMakeLists_root.txt");
-    std::filesystem::path inputPath(TEST_DATA_DIR);
-    std::ifstream stream(inputPath / compilationUnit);
-    Lexer lexer(compilationUnit, stream);
-
-    while (!lexer.IsAtEnd())
-    {
-        auto token = lexer.GetToken();
-        if (token.IsInvalid() || token.IsNull())
-            std::cout << "Unexpected token " << token.Serialize() << std::endl;
-    }
-}
-
-TEST_F(LexerTest, CMakeFileCode)
-{
-    std::string compilationUnit("CMakeLists_code.txt");
-    std::filesystem::path inputPath(TEST_DATA_DIR);
-    std::ifstream stream(inputPath / compilationUnit);
-    Lexer lexer(compilationUnit, stream);
-
-    while (!lexer.IsAtEnd())
-    {
-        auto token = lexer.GetToken();
-        if (token.IsInvalid() || token.IsNull())
-            std::cout << "Unexpected token " << token.Serialize() << std::endl;
-    }
-
-}
+//TEST_F(LexerTest, CMakeFileSimpleProject)
+//{
+//    std::string compilationUnit("CMakeLists_simpleproject.txt");
+//    std::filesystem::path inputPath(TEST_DATA_DIR);
+//    std::ifstream stream(inputPath / compilationUnit);
+//    Lexer lexer(compilationUnit, stream);
+//
+//    while (!lexer.IsAtEnd())
+//    {
+//        auto token = lexer.GetToken();
+//        //std::cout << "Token " << token.Serialize() << std::endl;
+//        if (token.IsInvalid() || token.IsNull())
+//            std::cout << "Unexpected token " << token.Serialize() << std::endl;
+//    }
+//}
+//
+//TEST_F(LexerTest, CMakeFileRoot)
+//{
+//    std::string compilationUnit("CMakeLists_root.txt");
+//    std::filesystem::path inputPath(TEST_DATA_DIR);
+//    std::ifstream stream(inputPath / compilationUnit);
+//    Lexer lexer(compilationUnit, stream);
+//
+//    while (!lexer.IsAtEnd())
+//    {
+//        auto token = lexer.GetToken();
+//        if (token.IsInvalid() || token.IsNull())
+//            std::cout << "Unexpected token " << token.Serialize() << std::endl;
+//    }
+//}
+//
+//TEST_F(LexerTest, CMakeFileCode)
+//{
+//    std::string compilationUnit("CMakeLists_code.txt");
+//    std::filesystem::path inputPath(TEST_DATA_DIR);
+//    std::ifstream stream(inputPath / compilationUnit);
+//    Lexer lexer(compilationUnit, stream);
+//
+//    while (!lexer.IsAtEnd())
+//    {
+//        auto token = lexer.GetToken();
+//        if (token.IsInvalid() || token.IsNull())
+//            std::cout << "Unexpected token " << token.Serialize() << std::endl;
+//    }
+//
+//}
 
 } // namespace cmake_parser

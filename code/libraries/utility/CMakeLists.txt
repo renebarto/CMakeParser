@@ -48,14 +48,20 @@ set(PROJECT_LIBS
     )
 
 set(PROJECT_SOURCES 
+    src/CommandLine.cpp
+    src/Console.cpp
     src/Deserialization.cpp
+    src/FileHandling.cpp
     src/Serialization.cpp
     src/StringFunctions.cpp
     )
 set(PROJECT_INCLUDES_PRIVATE
     )
 set(PROJECT_INCLUDES_PUBLIC
+    include/utility/CommandLine.h
+    include/utility/Console.h
     include/utility/Deserialization.h
+    include/utility/FileHandling.h
     include/utility/Serialization.h
     include/utility/StringFunctions.h
     include/utility/TypeCast.h

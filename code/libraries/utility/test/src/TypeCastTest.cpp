@@ -1,16 +1,3 @@
-//------------------------------------------------------------------------------
-// Copyright   : Copyright(c) 2021 René Barto
-//
-// File        : TypeCastTest.cpp
-//
-// Namespace   : utility
-//
-// Class       : TypeCastTest
-//
-// Description :
-//
-//------------------------------------------------------------------------------
-
 #include "test-platform/GoogleTest.h"
 
 #include "utility/TypeCast.h"

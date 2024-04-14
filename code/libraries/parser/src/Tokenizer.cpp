@@ -129,7 +129,6 @@ Token Tokenizer::GetToken()
     {
         token = Token(TokenType::InvalidToken, currentTerm, startLocation, m_reader.GetLocation());
     }
-//    std::cout << token.Serialize() << std::endl;
     return token;
 }
 

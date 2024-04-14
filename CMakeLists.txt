@@ -2,7 +2,15 @@ cmake_minimum_required(VERSION 3.5.1)
 
 message(STATUS "\n## In directory: ${CMAKE_CURRENT_SOURCE_DIR}")
 
-option(VERBOSE_BUILD "Verbose build" ON)
+function(dump_all_vars)
+    get_cmake_property(_variableNames VARIABLES)
+    foreach (_variableName ${_variableNames})
+        message(STATUS "${_variableName}=${${_variableName}}")
+    endforeach()
+endfunction()
+
+dump_all_vars()
+
 set(SCRIPTS_DIR "" CACHE STRING "CMake scripts path")
 
 if ("${SCRIPTS_DIR}" STREQUAL "")
@@ -13,6 +21,7 @@ list(APPEND CMAKE_MODULE_PATH ${SCRIPTS_DIR})
 
 include(functions)
 include(macros)
+option(VERBOSE_BUILD "Verbose build" ON)
 
 message(STATUS "\n** Setting up project **\n--")
 

@@ -176,7 +176,7 @@ bool Parser::Expect(std::set<TokenTypes> oneOfTypes, Token& token)
     return true;
 }
 
-void Parser::OnNoMoreToken(const SourceLocation& location)
+void Parser::OnNoMoreToken(const SourceLocation& /*location*/)
 {
     std::cout << "No more tokens" << std::endl;
 }

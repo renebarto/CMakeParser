@@ -1,6 +1,8 @@
 #include "cmake-parser/Parser.h"
 
-#include "gtest/gtest.h"
+#include "test-platform/GoogleTest.h"
+#include <filesystem>
+#include <fstream>
 
 namespace cmake_parser {
 
@@ -20,6 +22,16 @@ TEST_F(ParserTest, EmptyStream)
 {
     std::string compilationUnit("ABC");
     std::istringstream stream("");
+    Parser parser(compilationUnit, stream);
+
+    EXPECT_TRUE(parser.Parse());
+}
+
+TEST_F(ParserTest, MinimalCMakeFile)
+{
+    std::string compilationUnit("CMakeLists_minimal.txt");
+    std::filesystem::path inputPath(TEST_DATA_DIR);
+    std::ifstream stream(inputPath / compilationUnit);
     Parser parser(compilationUnit, stream);
 
     EXPECT_TRUE(parser.Parse());

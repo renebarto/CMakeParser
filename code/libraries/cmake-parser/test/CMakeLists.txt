@@ -41,7 +41,7 @@ set(PROJECT_LINK_OPTIONS
 
 set(PROJECT_DEPENDENCIES
     cmake-parser
-    gtest
+    test-platform
     )
 
 set(PROJECT_LIBS
@@ -50,8 +50,10 @@ set(PROJECT_LIBS
     )
 
 set(PROJECT_SOURCES 
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/ParserTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/CMakeModelTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/LexerTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ParserTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ProjectModelTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
     )
 

@@ -12,6 +12,7 @@ enum Terminal
     Dollar,
     ForwardSlash,
     Equals,
+    Dot,
     String,
     ParenthesisOpen,
     ParenthesisClose,

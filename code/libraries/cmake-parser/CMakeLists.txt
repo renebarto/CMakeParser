@@ -40,6 +40,7 @@ set(PROJECT_LINK_OPTIONS
 
 set(PROJECT_DEPENDENCIES
     parser
+    utility
     )
 
 set(PROJECT_LIBS
@@ -48,13 +49,17 @@ set(PROJECT_LIBS
     )
 
 set(PROJECT_SOURCES 
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/CMakeModel.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Lexer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Parser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ProjectModel.cpp
     )
 
 set(PROJECT_INCLUDES_PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/CMakeModel.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/Lexer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/Parser.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/ProjectModel.h
     )
 
 set(PROJECT_INCLUDES_PUBLIC
