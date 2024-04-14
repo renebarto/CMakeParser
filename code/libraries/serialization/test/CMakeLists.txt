@@ -46,7 +46,7 @@ set(PROJECT_LINK_OPTIONS
 
 set(PROJECT_DEPENDENCIES
     serialization
-    gtest
+    test-platform
     )
 
 set(PROJECT_LIBS

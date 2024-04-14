@@ -1,4 +1,4 @@
-#include "gtest/gtest.h"
+#include "test-platform/GoogleTest.h"
 
 #include "parser/TokenType.h"
 

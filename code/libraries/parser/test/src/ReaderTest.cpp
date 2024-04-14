@@ -1,6 +1,6 @@
 #include "parser/Reader.h"
 
-#include "gtest/gtest.h"
+#include "test-platform/GoogleTest.h"
 
 using namespace parser;
 

@@ -1,6 +1,6 @@
 #include "parser/TokenizerRule.h"
 
-#include "gtest/gtest.h"
+#include "test-platform/GoogleTest.h"
 
 namespace parser {
 

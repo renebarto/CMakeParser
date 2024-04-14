@@ -41,7 +41,7 @@ set(PROJECT_LINK_OPTIONS
 
 set(PROJECT_DEPENDENCIES
     parser
-    gtest
+    test-platform
     )
 
 set(PROJECT_LIBS

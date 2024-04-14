@@ -1,6 +1,6 @@
 #include "parser/SourceLocation.h"
 
-#include "gtest/gtest.h"
+#include "test-platform/GoogleTest.h"
 
 using namespace parser;
 
