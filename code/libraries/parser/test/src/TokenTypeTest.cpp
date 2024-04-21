@@ -6,7 +6,7 @@ namespace parser {
 
 TEST(TokenTypeTest, TokenTypeToString)
 {
-    SetupTokenDefinitions({
+    SetupTokenDefinitions<int>({
         { 0, "None" },
         { 1, "Whitespace" },
         });
@@ -16,12 +16,12 @@ TEST(TokenTypeTest, TokenTypeToString)
 
 TEST(TokenTypeTest, StringToTokenType)
 {
-    SetupTokenDefinitions({
+    SetupTokenDefinitions<int>({
         { 0, "None" },
         { 1, "Whitespace" },
         });
-    EXPECT_EQ(TokenType{ 0 }, StringToTokenType("None"));
-    EXPECT_EQ(TokenType{ 1 }, StringToTokenType("Whitespace"));
+    EXPECT_EQ(TokenType<int>{ 0 }, StringToTokenType<int>("None"));
+    EXPECT_EQ(TokenType<int>{ 1 }, StringToTokenType<int>("Whitespace"));
 }
 
 TEST(TokenTypeTest, InsertionOperator)

@@ -1,6 +1,6 @@
 #include "getopt.h"
 #include <iostream>
-#include "parser/Lexer.h"
+//#include "parser/Lexer.h"
 
 int main(int argc, char* argv[])
 {
@@ -24,6 +24,6 @@ int main(int argc, char* argv[])
     }
     for (; optind < argc; optind++) {
         std::cout << "Extra argument: " << argv[optind] << std::endl;
-        parser::ParseFile(argv[optind]);
+//        parser::ParseFile(argv[optind]);
     }
 }

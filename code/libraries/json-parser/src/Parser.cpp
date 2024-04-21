@@ -30,11 +30,6 @@ const JSONValuePtr Parser::GetValue() const
     return m_value;
 }
 
-TokenTypes Parser::Type(parser::Token& token)
-{
-    return static_cast<TokenTypes>(token.Type().m_type);
-}
-
 JSONValuePtr Parser::ParseValue()
 {
     while (!m_lexer.IsAtEnd())
@@ -51,7 +46,7 @@ JSONValuePtr Parser::ParseValue()
         }
         if (!token.IsNull())
         {
-            switch (Type(token))
+            switch (token.Type().m_type)
             {
             case TokenTypes::Null:
                 return CreateValue(nullptr);
@@ -63,7 +58,7 @@ JSONValuePtr Parser::ParseValue()
                 {
                     auto value = token.Value();
                     token = m_lexer.GetToken();
-                    if (Type(token) == TokenTypes::NumberExponent)
+                    if (token.Type() == TokenTypes::NumberExponent)
                     {
                         value += token.Value();
                     }
@@ -93,12 +88,12 @@ JSONValuePtr Parser::ParseValue()
 JSONValuePtr Parser::ParseArray()
 {
     auto result = CreateArray();
-    Token token{};
+    Token<TokenTypes> token{};
     if (!Expect(TokenTypes::SquareBracketOpen, token))
         return nullptr;
     while (Expect({ TokenTypes::SquareBracketClose, TokenTypes::Null, TokenTypes::False, TokenTypes::True, TokenTypes::Number, TokenTypes::String, TokenTypes::SquareBracketOpen, TokenTypes::CurlyBracketOpen }, token))
     {
-        if (Type(token) != TokenTypes::SquareBracketClose)
+        if (token.Type() != TokenTypes::SquareBracketClose)
         {
             m_lexer.UngetToken(token);
             auto value = ParseValue();
@@ -108,7 +103,7 @@ JSONValuePtr Parser::ParseArray()
             if (!Expect({ TokenTypes::SquareBracketClose, TokenTypes::Comma }, token))
                 return result;
         }
-        if (Type(token) == TokenTypes::SquareBracketClose)
+        if (token.Type() == TokenTypes::SquareBracketClose)
         {
             return result;
         }
@@ -119,12 +114,12 @@ JSONValuePtr Parser::ParseArray()
 JSONValuePtr Parser::ParseObject()
 {
     auto result = CreateObject();
-    Token token{};
+    Token<TokenTypes> token{};
     if (!Expect(TokenTypes::CurlyBracketOpen, token))
         return nullptr;
     while (Expect({ TokenTypes::CurlyBracketClose, TokenTypes::String }, token))
     {
-        if (Type(token) != TokenTypes::CurlyBracketClose)
+        if (token.Type() != TokenTypes::CurlyBracketClose)
         {
             auto key = utility::UnQuote(token.Value());
             if (!Expect(TokenTypes::Colon, token))
@@ -140,7 +135,7 @@ JSONValuePtr Parser::ParseObject()
             if (!Expect({ TokenTypes::CurlyBracketClose, TokenTypes::Comma }, token))
                 return result;
         }
-        if (Type(token) == TokenTypes::CurlyBracketClose)
+        if (token.Type() == TokenTypes::CurlyBracketClose)
         {
             return result;
         }
@@ -148,13 +143,13 @@ JSONValuePtr Parser::ParseObject()
     return nullptr;
 }
 
-bool Parser::Expect(TokenTypes type, Token& token)
+bool Parser::Expect(TokenTypes type, Token<TokenTypes>& token)
 {
     do
     {
         token = m_lexer.GetToken();
-    } while (Type(token) == TokenTypes::Whitespace);
-    if (Type(token) != type)
+    } while (token.Type() == TokenTypes::Whitespace);
+    if (token.Type() != type)
     {
         OnParseError(token.Value(), token.BeginLocation(), token.EndLocation());
         return false;
@@ -162,13 +157,13 @@ bool Parser::Expect(TokenTypes type, Token& token)
     return true;
 }
 
-bool Parser::Expect(std::set<TokenTypes> oneOfTypes, Token& token)
+bool Parser::Expect(std::set<TokenTypes> oneOfTypes, Token<TokenTypes>& token)
 {
     do
     {
         token = m_lexer.GetToken();
-    } while (Type(token) == TokenTypes::Whitespace);
-    if (oneOfTypes.find(Type(token)) == oneOfTypes.end())
+    } while (token.Type() == TokenTypes::Whitespace);
+    if (oneOfTypes.find(token.Type().m_type) == oneOfTypes.end())
     {
         OnParseError(token.Value(), token.BeginLocation(), token.EndLocation());
         return false;

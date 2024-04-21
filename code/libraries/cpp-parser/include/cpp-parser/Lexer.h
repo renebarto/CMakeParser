@@ -57,14 +57,14 @@ enum TokenTypes
 class Lexer
 {
 private:
-    Tokenizer m_tokenizer;
-    TokenList m_tokens;
+    Tokenizer<TokenTypes> m_tokenizer;
+    TokenList<TokenTypes> m_tokens;
 
 public:
     Lexer(const std::string& path, std::istream& stream);
     bool Parse();
 
-    TokenList& GetTokens();
+    TokenList<TokenTypes>& GetTokens();
 };
 
 } // namespace parser

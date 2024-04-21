@@ -10,29 +10,29 @@ class TokenTest
 public:
     void SetUp() override
     {
-        SetupTokenDefinitions({
+        SetupTokenDefinitions<int>({
             { 0, "None" },
             { 1, "Whitespace" },
             });
     }
     void TearDown() override
     {
-        SetupTokenDefinitions({});
+        SetupTokenDefinitions<int>({});
     }
 };
 
 TEST_F(TokenTest, ConstructDefault)
 {
-    Token token;
+    Token<int> token;
 
     EXPECT_TRUE(token.IsNull());
     EXPECT_FALSE(token.IsInvalid());
-    EXPECT_EQ(TokenType{}, token.Type());
+    EXPECT_EQ(TokenType<int>{}, token.Type());
     EXPECT_EQ("", token.Value());
     EXPECT_EQ(SourceLocation{}, token.Location());
     EXPECT_EQ(SourceLocation{}, token.BeginLocation());
     EXPECT_EQ(SourceLocation{}, token.EndLocation());
-    EXPECT_EQ("None  ()", token.Serialize());
+    EXPECT_EQ("Null  (??-??)", token.Serialize());
 }
 
 TEST_F(TokenTest, Construct)
@@ -48,23 +48,23 @@ TEST_F(TokenTest, Construct)
     EXPECT_EQ(beginLocation, token.Location());
     EXPECT_EQ(beginLocation, token.BeginLocation());
     EXPECT_EQ(endLocation, token.EndLocation());
-    EXPECT_EQ("Whitespace One (ABC(1:1))", token.Serialize());
+    EXPECT_EQ("Whitespace One (ABC(1:1)-ABC(1:4))", token.Serialize());
 }
 
 TEST_F(TokenTest, ConstructInvalid)
 {
     SourceLocation beginLocation{ "ABC", 1, 1 };
     SourceLocation endLocation{ "ABC", 1, 4 };
-    Token token(TokenType::InvalidToken, "One", beginLocation, endLocation);
+    Token token(TokenType<int>::InvalidToken, "One", beginLocation, endLocation);
 
     EXPECT_FALSE(token.IsNull());
     EXPECT_TRUE(token.IsInvalid());
-    EXPECT_EQ(TokenType::InvalidToken, token.Type());
+    EXPECT_EQ(TokenType<int>::InvalidToken, token.Type());
     EXPECT_EQ("One", token.Value());
     EXPECT_EQ(beginLocation, token.Location());
     EXPECT_EQ(beginLocation, token.BeginLocation());
     EXPECT_EQ(endLocation, token.EndLocation());
-    EXPECT_EQ("Invalid One (ABC(1:1))", token.Serialize());
+    EXPECT_EQ("Invalid One (ABC(1:1)-ABC(1:4))", token.Serialize());
 }
 
 TEST_F(TokenTest, StreamInsertionNarrow)
@@ -75,7 +75,7 @@ TEST_F(TokenTest, StreamInsertionNarrow)
 
     std::ostringstream stream;
     stream << token;
-    EXPECT_EQ("Whitespace One (ABC(1:1))", stream.str());
+    EXPECT_EQ("Whitespace One (ABC(1:1)-ABC(1:4))", stream.str());
 }
 
 } // namespace parser

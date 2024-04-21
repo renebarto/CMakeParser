@@ -1,72 +1,62 @@
 #pragma once
 
 #include <filesystem>
-#include <map>
-#include <memory>
-#include "cmake-parser/ProjectModel.h"
+#include "cmake-parser/CMakeCache.h"
+#include "cmake-parser/DirectoryList.h"
+#include "cmake-parser/ProjectList.h"
+#include "cmake-parser/VariableList.h"
 
 namespace cmake_parser {
 
-struct Attribute
+enum VariableAttribute
 {
-    std::string name;
-    std::string value;
-
-    Attribute(const std::string& name, const std::string& value)
-        : name{ name }
-        , value{ value }
-    {
-    }
+    Cache = 1,
+    ParentScope = 2,
+    Force = 4,
 };
-using AttributePtr = std::shared_ptr<Attribute>;
-using AttributeList = std::map<std::string, AttributePtr>;
-struct Variable
-{
-    std::string name;
-    std::string value;
-
-    Variable(const std::string& name, const std::string& value)
-        : name{ name }
-        , value{ value }
-    {
-    }
-};
-using VariablePtr = std::shared_ptr<Variable>;
-using VariableList = std::map<std::string, VariablePtr>;
-using ProjectModelList = std::map<std::string, ProjectModelPtr>;
 
 class CMakeModel
 {
 private:
-    VariableList m_variables;
-    AttributeList m_attributes;
-    ProjectModelList m_projects;
-    ProjectModelPtr m_mainProject;
+    CMakeCache m_cache;
+    VariableList* m_scopeVariables;
+    ProjectList m_projects;
+    DirectoryList m_directories;
+    bool m_isSourceRootSet;
 
 public:
     CMakeModel();
 
-    void SetupRootCMakeFile(const std::string& rootListFile);
+    bool IsSourceRootSet() const { return m_isSourceRootSet; }
     void SetupSourceRoot(const std::filesystem::path& root);
+    void SetupRootCMakeFile(const std::string& rootListFile);
     void SetupCMakePath(const std::string& cmakePath, const std::string& cmakeVersion);
     void SetupNinjaPath(const std::string& ninjaPath);
-    bool AddProject(ProjectModelPtr project);
 
-    const VariableList& GetVariables() const { return m_variables; }
+    const Variables& GetCacheVariables() const { return m_cache.GetVariables(); }
+    const Variables& GetVariables() const;
+    std::string GetCacheVariable(const std::string& name) const { return m_cache.GetVariable(name); }
     std::string GetVariable(const std::string& name) const;
-    void SetVariable(const std::string& name, const std::string& value);
-    const AttributeList& GetAttributes() const { return m_attributes; }
-    const AttributePtr GetAttribute(const std::string& name) const;
-    void SetAttribute(const std::string& name, const std::string& value);
-    const ProjectModelList& GetProjects() const { return m_projects; }
-    const ProjectModelPtr GetProject(const std::string& name) const;
-    const ProjectModelPtr GetMainProject() const { return m_mainProject; }
+    void SetVariable(const std::string& name, const std::string& value, VariableAttribute attributes = {});
+    void UnsetVariable(const std::string& name, VariableAttribute attributes = {});
+
+    const Projects& GetProjects() const { return m_projects.GetProjects(); }
+    const ProjectPtr GetProject(const std::string& name) const { return m_projects.GetProject(name); }
+    bool AddProject(ProjectPtr project) { return m_projects.AddProject(project); }
+    Projects GetSubProjects(ProjectPtr parentProject) { return m_projects.GetSubProjects(parentProject); }
+    const ProjectPtr GetParentProject(ProjectPtr project) const { return m_projects.GetParentProject(project); }
+    const ProjectPtr GetMainProject() const { return m_projects.GetMainProject(); }
+    
+    const Directories& GetDirectories() const { return m_directories.GetDirectories(); }
+    std::filesystem::path GetDirectory(const std::filesystem::path& path) const { return m_directories.GetDirectory(path); }
+    DirectoryPtr FindDirectory(const std::filesystem::path& path) const { return m_directories.FindDirectory(path); }
+    bool AddDirectory(DirectoryPtr directory) { return m_directories.AddDirectory(directory); }
+
+    Directories GetSubDirectories(DirectoryPtr parentDirectory) { return m_directories.GetSubDirectories(parentDirectory); }
+    DirectoryPtr GetParentDirectory(DirectoryPtr directory) const { return m_directories.GetParentDirectory(directory); }
+    DirectoryPtr GetRootDirectory() const { return m_directories.GetRootDirectory(); }
+
     void AddMessage(const std::string& messageMode, const std::string& message);
-
-
-private:
-    VariablePtr FindVariable(const std::string& name);
-    AttributePtr FindAttribute(const std::string& name);
 };
 
 } // namespace cmake_parser

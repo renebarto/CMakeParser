@@ -48,19 +48,17 @@ set(PROJECT_LIBS
     )
 
 set(PROJECT_SOURCES 
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Lexer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Reader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/SourceLocation.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Token.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Tokenizer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/TokenizerRule.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/TokenType.cpp
     )
 
 set(PROJECT_INCLUDES_PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/parser/Lexer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/parser/IParserCallback.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/parser/ITokenizer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/parser/ParserExecutor.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/parser/Reader.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/parser/SourceLocation.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/parser/StateMachine.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/parser/Token.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/parser/Tokenizer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/parser/TokenizerRule.h

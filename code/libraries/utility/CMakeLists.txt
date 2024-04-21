@@ -52,6 +52,7 @@ set(PROJECT_SOURCES
     src/Console.cpp
     src/Deserialization.cpp
     src/FileHandling.cpp
+    src/Format.cpp
     src/Serialization.cpp
     src/StringFunctions.cpp
     )
@@ -62,6 +63,7 @@ set(PROJECT_INCLUDES_PUBLIC
     include/utility/Console.h
     include/utility/Deserialization.h
     include/utility/FileHandling.h
+    include/utility/Format.h
     include/utility/Serialization.h
     include/utility/StringFunctions.h
     include/utility/TypeCast.h

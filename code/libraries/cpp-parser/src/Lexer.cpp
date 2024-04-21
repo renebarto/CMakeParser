@@ -5,7 +5,7 @@
 namespace parser {
 
 #define TOKEN_DEF(x) { TokenTypes::x, #x }
-static TokenDefinitions reservedKeywords {
+static TokenDefinitions<TokenTypes> reservedKeywords {
     TOKEN_DEF(ClassKeyword),
     TOKEN_DEF(StructKeyword),
     TOKEN_DEF(VirtualKeyword),
@@ -18,7 +18,7 @@ static TokenDefinitions reservedKeywords {
     TOKEN_DEF(FloatKeyword),
     TOKEN_DEF(DoubleKeyword),
 };
-static TokenDefinitions tokenDefinitions {
+static TokenDefinitions<TokenTypes> tokenDefinitions {
     TOKEN_DEF(Whitespace),
     TOKEN_DEF(NewLine),
     TOKEN_DEF(SingleLineComment),
@@ -55,7 +55,7 @@ static TokenDefinitions tokenDefinitions {
     TOKEN_DEF(ForwardSlash),    
 };
 
-static TokenizerRules reservedKeywordRules{
+static TokenizerRules<TokenTypes> reservedKeywordRules{
     { "class", ClassKeyword},
     { "struct", StructKeyword},
     { "virtual", VirtualKeyword},
@@ -68,7 +68,7 @@ static TokenizerRules reservedKeywordRules{
     { "float", FloatKeyword},
     { "double", DoubleKeyword},
 };
-static TokenizerRules tokenizerRules{
+static TokenizerRules<TokenTypes> tokenizerRules{
     { "[ \t]+", Whitespace},
     { "(\r)?\n", NewLine},
     { "~", Tilde},
@@ -113,10 +113,10 @@ Lexer::Lexer(const std::string& path, std::istream& stream)
 
 bool Lexer::Parse()
 {
-    TokenDefinitions allTokenDefinitions{ tokenDefinitions };
+    TokenDefinitions<TokenTypes> allTokenDefinitions{ tokenDefinitions };
     allTokenDefinitions.insert(allTokenDefinitions.end(), reservedKeywords.begin(), reservedKeywords.end());
     SetupTokenDefinitions(allTokenDefinitions);
-    TokenizerRules allTokenizerRules{ tokenizerRules };
+    TokenizerRules<TokenTypes> allTokenizerRules{ tokenizerRules };
     allTokenizerRules.insert(allTokenizerRules.end(), reservedKeywordRules.begin(), reservedKeywordRules.end());
     SetTokenizerRules(allTokenizerRules);
     bool result{ true };
@@ -135,7 +135,7 @@ bool Lexer::Parse()
     return result;
 }
 
-TokenList& Lexer::GetTokens()
+TokenList<TokenTypes>& Lexer::GetTokens()
 {
     return m_tokens;
 }

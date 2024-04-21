@@ -41,6 +41,7 @@ set(PROJECT_LINK_OPTIONS
 
 set(PROJECT_DEPENDENCIES
     parser
+    utility
     test-platform
     )
 
@@ -50,15 +51,19 @@ set(PROJECT_LIBS
     )
 
 set(PROJECT_SOURCES 
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/LexerTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ParserExecutorTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ReaderTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/SourceLocationTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/StateMachineTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TokenizerRuleTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TokenizerTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TokenTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TokenTypeTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
     )
+set(PROJECT_SOURCES_${PROJECT_NAME}
+    ${PROJECT_SOURCES}
+    CACHE STRING "${PROJECT_NAME}" FORCE)
 
 set(PROJECT_INCLUDES_PRIVATE
     )

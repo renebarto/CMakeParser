@@ -37,4 +37,34 @@ TEST_F(ParserTest, MinimalCMakeFile)
     EXPECT_TRUE(parser.Parse());
 }
 
+TEST_F(ParserTest, MinimalCMakeProject)
+{
+    std::string compilationUnit("CMakeLists_minimal_project.txt");
+    std::filesystem::path inputPath(TEST_DATA_DIR);
+    std::ifstream stream(inputPath / compilationUnit);
+    Parser parser(compilationUnit, stream);
+
+    EXPECT_TRUE(parser.Parse());
+}
+
+TEST_F(ParserTest, MinimalCMakeProjectWithMessage)
+{
+    std::string compilationUnit("CMakeLists_minimal_project_message.txt");
+    std::filesystem::path inputPath(TEST_DATA_DIR);
+    std::ifstream stream(inputPath / compilationUnit);
+    Parser parser(compilationUnit, stream);
+
+    EXPECT_TRUE(parser.Parse());
+}
+
+TEST_F(ParserTest, MinimalCMakeProjectWithSet)
+{
+    std::string compilationUnit("CMakeLists_minimal_project_set.txt");
+    std::filesystem::path inputPath(TEST_DATA_DIR);
+    std::ifstream stream(inputPath / compilationUnit);
+    Parser parser(compilationUnit, stream);
+
+    EXPECT_TRUE(parser.Parse());
+}
+
 } // namespace cmake_parser

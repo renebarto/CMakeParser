@@ -60,6 +60,7 @@ set(PROJECT_SOURCES
     ${PROJECT_SOURCE_DIR}/src/CommandLineTest.cpp
     ${PROJECT_SOURCE_DIR}/src/ConsoleTest.cpp
     ${PROJECT_SOURCE_DIR}/src/DeserializationTest.cpp
+    ${PROJECT_SOURCE_DIR}/src/FormatTest.cpp
     ${PROJECT_SOURCE_DIR}/src/SerializationTest.cpp
     ${PROJECT_SOURCE_DIR}/src/StringFunctionsTest.cpp
     ${PROJECT_SOURCE_DIR}/src/TypeCastTest.cpp

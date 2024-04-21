@@ -39,7 +39,8 @@ public:
         return true;
     }
     static std::vector<EnumType> GetKeys() { return ConversionMap.GetKeys(); }
-    
+    static std::vector<std::string> GetValues() { return ConversionMap.GetValues(); }
+
 private:
     static const serialization::BidirectionalMap<EnumType, std::string> ConversionMap;
 };

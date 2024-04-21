@@ -24,18 +24,19 @@ enum TokenTypes
 };
 
 class Lexer
+    : public parser::ITokenizer<TokenTypes>
 {
 private:
-    parser::Tokenizer m_tokenizer;
-    parser::TokenList m_tokens;
+    parser::Tokenizer<TokenTypes> m_tokenizer;
+    parser::TokenList<TokenTypes> m_tokens;
 
 public:
     Lexer(const std::string& path, std::istream& stream);
 
-    parser::SourceLocation GetCurrentLocation() const;
-    parser::Token GetToken();
-    void UngetToken(const parser::Token& token);
-    bool IsAtEnd() const;
+    parser::SourceLocation GetCurrentLocation() const override;
+    parser::Token<TokenTypes> GetToken() override;
+    void UngetToken(const parser::Token<TokenTypes>& token) override;
+    bool IsAtEnd() const override;
 };
 
 } // namespace json_parser

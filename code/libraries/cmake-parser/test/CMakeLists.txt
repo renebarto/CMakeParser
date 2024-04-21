@@ -50,12 +50,21 @@ set(PROJECT_LIBS
     )
 
 set(PROJECT_SOURCES 
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/CMakeCacheTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/CMakeModelTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/DirectoryListTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/DirectoryTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/LexerTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ParserTest.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/ProjectModelTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ProjectListTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ProjectTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/VariableListTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/VariableTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
     )
+set(PROJECT_SOURCES_${PROJECT_NAME}
+    ${PROJECT_SOURCES}
+    CACHE STRING "${PROJECT_NAME}" FORCE)
 
 set(PROJECT_INCLUDES_PRIVATE
     )

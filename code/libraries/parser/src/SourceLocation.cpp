@@ -48,7 +48,7 @@ bool SourceLocation::IsValid() const
 std::string SourceLocation::Serialize() const
 {
     if (!IsValid())
-        return "";
+        return "??";
     return m_unitPath + "(" + std::to_string(m_line) + ":" + std::to_string(m_col) + ")";
 }
 

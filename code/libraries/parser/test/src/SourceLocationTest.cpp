@@ -22,6 +22,7 @@ TEST_F(SourceLocationTest, ConstructDefault)
     EXPECT_EQ("", sourceLocation.UnitPath());
     EXPECT_EQ(0, sourceLocation.Line());
     EXPECT_EQ(0, sourceLocation.Column());
+    EXPECT_EQ("??", sourceLocation.Serialize());
 }
 
 TEST_F(SourceLocationTest, ConstructPathOnly)

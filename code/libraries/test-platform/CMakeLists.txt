@@ -24,6 +24,7 @@ set(PROJECT_INCLUDE_DIRS_INTERFACE
 
 set(PROJECT_DEPENDENCIES
     gtest
+    gmock
     )
 
 set(PROJECT_LIBS
@@ -32,7 +33,7 @@ set(PROJECT_LIBS
     )
 
 set(PROJECT_INCLUDES_INTERFACE
-#    include/test-platform/GoogleMock.h
+    include/test-platform/GoogleMock.h
     include/test-platform/GoogleTest.h
     )
 

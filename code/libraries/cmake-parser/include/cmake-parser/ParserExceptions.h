@@ -12,7 +12,7 @@ private:
     std::string m_message;
 
 public:
-    UnexpectedToken(const parser::Token& token)
+    UnexpectedToken(const parser::Token<Terminal>& token)
         : m_message{ "Unexpected token: " + token.Serialize() }
     {}
     const char* what() const override
@@ -44,7 +44,7 @@ private:
     std::string m_message;
 
 public:
-    InvalidMessageMode(const parser::Token& token)
+    InvalidMessageMode(const parser::Token<Terminal>& token)
         : m_message{ "Invalid message mode: " + token.Value() }
     {}
     const char* what() const override

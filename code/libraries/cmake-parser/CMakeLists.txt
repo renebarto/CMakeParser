@@ -40,7 +40,7 @@ set(PROJECT_LINK_OPTIONS
 
 set(PROJECT_DEPENDENCIES
     parser
-    utility
+    tracing
     )
 
 set(PROJECT_LIBS
@@ -49,17 +49,29 @@ set(PROJECT_LIBS
     )
 
 set(PROJECT_SOURCES 
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/CMakeCache.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/CMakeModel.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Directory.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/DirectoryList.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Lexer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Parser.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/ProjectModel.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Project.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ProjectList.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Variable.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/VariableList.cpp
     )
 
 set(PROJECT_INCLUDES_PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/CMakeCache.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/CMakeModel.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/Directory.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/DirectoryList.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/Lexer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/Parser.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/ProjectModel.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/Project.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/ProjectList.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/Variable.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/VariableList.h
     )
 
 set(PROJECT_INCLUDES_PUBLIC

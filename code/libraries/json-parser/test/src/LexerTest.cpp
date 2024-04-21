@@ -24,7 +24,7 @@ TEST_F(LexerTest, EmptyStream)
     std::istringstream stream("");
     Lexer lexer(compilationUnit, stream);
 
-    EXPECT_EQ(Token{}, lexer.GetToken());
+    EXPECT_EQ(Token<TokenTypes>{}, lexer.GetToken());
     EXPECT_TRUE(lexer.IsAtEnd());
 }
 

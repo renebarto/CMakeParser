@@ -45,7 +45,7 @@ static std::map<ConsoleColor, int> s_colorLookup {
     { ConsoleColor::Yellow, FOREGROUND_RED | FOREGROUND_GREEN },
     { ConsoleColor::Blue, FOREGROUND_BLUE },
     { ConsoleColor::Magenta, FOREGROUND_RED | FOREGROUND_BLUE },
-    { ConsoleColor::Cyan, FOREGROUND_RED | FOREGROUND_GREEN },
+    { ConsoleColor::Cyan, FOREGROUND_GREEN | FOREGROUND_BLUE },
     { ConsoleColor::White, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE },
 };
 

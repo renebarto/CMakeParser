@@ -6,27 +6,27 @@ namespace parser {
 
 TEST(TokenizerRuleTest, ConstructDefault)
 {
-    TokenizerRule rule("", TokenType{});
+    TokenizerRule rule("", TokenType<int>{});
 
-    EXPECT_EQ(TokenType{}, rule.Type());
+    EXPECT_EQ(TokenType<int>{}, rule.Type());
     EXPECT_TRUE(rule.Matches(""));
     EXPECT_FALSE(rule.Matches("abc"));
 }
 
 TEST(TokenizerRuleTest, ConstructSingleCharacter)
 {
-    TokenizerRule rule("a", TokenType{});
+    TokenizerRule rule("a", TokenType<int>{});
 
-    EXPECT_EQ(TokenType{}, rule.Type());
+    EXPECT_EQ(TokenType<int>{}, rule.Type());
     EXPECT_TRUE(rule.Matches("a"));
     EXPECT_FALSE(rule.Matches("abc"));
 }
 
 TEST(TokenizerRuleTest, ConstructGreedyMatch)
 {
-    TokenizerRule rule("a+", TokenType{});
+    TokenizerRule rule("a+", TokenType<int>{});
 
-    EXPECT_EQ(TokenType{}, rule.Type());
+    EXPECT_EQ(TokenType<int>{}, rule.Type());
     EXPECT_TRUE(rule.Matches("a"));
     EXPECT_TRUE(rule.Matches("aa"));
     EXPECT_FALSE(rule.Matches("aab"));
@@ -34,9 +34,9 @@ TEST(TokenizerRuleTest, ConstructGreedyMatch)
 
 TEST(TokenizerRuleTest, ConstructCommentBlock)
 {
-    TokenizerRule rule("/\\*[\\s\\S]*?\\*/", TokenType{});
+    TokenizerRule rule("/\\*[\\s\\S]*?\\*/", TokenType<int>{});
 
-    EXPECT_EQ(TokenType{}, rule.Type());
+    EXPECT_EQ(TokenType<int>{}, rule.Type());
     EXPECT_TRUE(rule.Matches("/**/"));
     EXPECT_TRUE(rule.Matches("/* Text */"));
     EXPECT_TRUE(rule.Matches("/* Text\r\non\r\nmultiple\r\nlines */"));
@@ -44,9 +44,9 @@ TEST(TokenizerRuleTest, ConstructCommentBlock)
 
 TEST(TokenizerRuleTest, ConstructIdentifier)
 {
-    TokenizerRule rule("[:alpha:][[:digit:][:alpha:]]*", TokenType{});
+    TokenizerRule rule("[:alpha:][[:digit:][:alpha:]]*", TokenType<int>{});
 
-    EXPECT_EQ(TokenType{}, rule.Type());
+    EXPECT_EQ(TokenType<int>{}, rule.Type());
     EXPECT_TRUE(rule.Matches("a"));
     EXPECT_TRUE(rule.Matches("ab"));
     EXPECT_TRUE(rule.Matches("abc"));
@@ -56,9 +56,9 @@ TEST(TokenizerRuleTest, ConstructIdentifier)
 
 TEST(TokenizerRuleTest, ConstructWhitespace)
 {
-    TokenizerRule rule("[[:space:]]+", TokenType{});
+    TokenizerRule rule("[[:space:]]+", TokenType<int>{});
 
-    EXPECT_EQ(TokenType{}, rule.Type());
+    EXPECT_EQ(TokenType<int>{}, rule.Type());
     EXPECT_TRUE(rule.Matches(" "));
     EXPECT_TRUE(rule.Matches("\t"));
     EXPECT_TRUE(rule.Matches("\r"));
@@ -69,9 +69,9 @@ TEST(TokenizerRuleTest, ConstructWhitespace)
 
 TEST(TokenizerRuleTest, ConstructStringWithQuotes)
 {
-    TokenizerRule rule("\"(\\\\\"|[^\"\\\\]*)*\"", TokenType{});
+    TokenizerRule rule("\"(\\\\\"|[^\"\\\\]*)*\"", TokenType<int>{});
 
-    EXPECT_EQ(TokenType{}, rule.Type());
+    EXPECT_EQ(TokenType<int>{}, rule.Type());
     EXPECT_TRUE(rule.Matches("\"\""));
     EXPECT_TRUE(rule.Matches("\"abc\""));
     EXPECT_TRUE(rule.Matches("\"\\\"\""));
@@ -79,9 +79,9 @@ TEST(TokenizerRuleTest, ConstructStringWithQuotes)
 
 TEST(TokenizerRuleTest, ConstructSingleLineComment)
 {
-    TokenizerRule rule("(?:/|$)(?:/|$).*", TokenType{});
+    TokenizerRule rule("(?:/|$)(?:/|$).*", TokenType<int>{});
 
-    EXPECT_EQ(TokenType{}, rule.Type());
+    EXPECT_EQ(TokenType<int>{}, rule.Type());
     EXPECT_TRUE(rule.Matches("//"));
     EXPECT_TRUE(rule.Matches("//abc"));
     EXPECT_TRUE(rule.Matches("/"));

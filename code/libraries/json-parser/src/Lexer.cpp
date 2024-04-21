@@ -6,7 +6,7 @@ using namespace json_parser;
 
 #define TOKEN_DEF(x) { TokenTypes::x, #x }
 
-static const parser::TokenDefinitions tokenDefinitions {
+static const parser::TokenDefinitions<TokenTypes> tokenDefinitions {
     TOKEN_DEF(None),
     TOKEN_DEF(EOS),
     TOKEN_DEF(Whitespace),
@@ -24,7 +24,7 @@ static const parser::TokenDefinitions tokenDefinitions {
     TOKEN_DEF(String),
 };
 
-static const parser::TokenizerRules tokenizerRules {
+static const parser::TokenizerRules<TokenTypes> tokenizerRules {
     { "[[:space:]]+", {TokenTypes::Whitespace} },
     { "\\[", TokenTypes::SquareBracketOpen},
     { "\\]", TokenTypes::SquareBracketClose },
@@ -44,9 +44,9 @@ Lexer::Lexer(const std::string& path, std::istream& stream)
     : m_tokenizer(path, stream)
     , m_tokens{}
 {
-    parser::TokenDefinitions allTokenDefinitions{ tokenDefinitions };
+    parser::TokenDefinitions<TokenTypes> allTokenDefinitions{ tokenDefinitions };
     SetupTokenDefinitions(allTokenDefinitions);
-    parser::TokenizerRules allTokenizerRules{ tokenizerRules };
+    parser::TokenizerRules<TokenTypes> allTokenizerRules{ tokenizerRules };
     SetTokenizerRules(allTokenizerRules);
 }
 
@@ -55,12 +55,12 @@ parser::SourceLocation Lexer::GetCurrentLocation() const
     return m_tokenizer.GetCurrentLocation();
 }
 
-parser::Token Lexer::GetToken()
+parser::Token<TokenTypes> Lexer::GetToken()
 {
     return m_tokenizer.GetToken();
 }
 
-void Lexer::UngetToken(const parser::Token& token)
+void Lexer::UngetToken(const parser::Token<TokenTypes>& token)
 {
     m_tokenizer.UngetToken(token);
 }
