@@ -53,6 +53,7 @@ set(PROJECT_SOURCES
     src/Deserialization.cpp
     src/FileHandling.cpp
     src/Format.cpp
+    src/Regex.cpp
     src/Serialization.cpp
     src/StringFunctions.cpp
     )
@@ -64,6 +65,7 @@ set(PROJECT_INCLUDES_PUBLIC
     include/utility/Deserialization.h
     include/utility/FileHandling.h
     include/utility/Format.h
+    include/utility/Regex.h
     include/utility/Serialization.h
     include/utility/StringFunctions.h
     include/utility/TypeCast.h

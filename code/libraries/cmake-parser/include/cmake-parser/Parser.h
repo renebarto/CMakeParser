@@ -20,7 +20,7 @@ private:
     ProjectPtr m_currentProject;
 
 public:
-    Parser(const std::string& path, std::istream& stream);
+    Parser(const std::filesystem::path& rootDurectory, const std::string& fileName, std::istream& stream);
     bool Parse();
 
     const CMakeModel& GetModel() const { return m_model; }
@@ -40,6 +40,8 @@ public:
     parser::Token<Terminal> Expect(std::set<Terminal> oneOfTypes);
     parser::Token<Terminal> Expect_SkipWhitespace(std::set<Terminal> oneOfTypes);
     std::string ExpectVariable();
+    std::string ExpectExpression(const std::set<Terminal>& finalizers);
+    std::string ExpectExpressionPart();
 
     //bool HandleKeyword();
     bool HandleCMakeMinimumRequired();

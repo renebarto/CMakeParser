@@ -10,14 +10,14 @@ SourceLocation::SourceLocation()
 {
 }
 
-SourceLocation::SourceLocation(const std::string& unitPath)
+SourceLocation::SourceLocation(const std::filesystem::path& unitPath)
     : m_unitPath{ unitPath }
     , m_line{}
     , m_col{}
 {
 }
 
-SourceLocation::SourceLocation(const std::string& unitPath, int line, int column)
+SourceLocation::SourceLocation(const std::filesystem::path& unitPath, int line, int column)
     : m_unitPath{ unitPath }
     , m_line{ line }
     , m_col{ column }
@@ -49,7 +49,7 @@ std::string SourceLocation::Serialize() const
 {
     if (!IsValid())
         return "??";
-    return m_unitPath + "(" + std::to_string(m_line) + ":" + std::to_string(m_col) + ")";
+    return m_unitPath.string() + "(" + std::to_string(m_line) + ":" + std::to_string(m_col) + ")";
 }
 
 bool operator ==(const SourceLocation& lhs, const SourceLocation& rhs)

@@ -10,15 +10,18 @@ class UnexpectedToken
 {
 private:
     std::string m_message;
+    parser::SourceLocation m_location;
 
 public:
-    UnexpectedToken(const parser::Token<Terminal>& token)
+    UnexpectedToken(const parser::Token<Terminal>& token, const char* fileName, int line)
         : m_message{ "Unexpected token: " + token.Serialize() }
+        , m_location{ fileName, line, 1 }
     {}
     const char* what() const override
     {
         return m_message.c_str();
     }
+    const parser::SourceLocation& Location() const { return m_location; }
 };
 
 class UnexpectedEndOfStream
@@ -26,15 +29,18 @@ class UnexpectedEndOfStream
 {
 private:
     std::string m_message;
+    parser::SourceLocation m_location;
 
 public:
-    UnexpectedEndOfStream()
+    UnexpectedEndOfStream(const char* fileName, int line)
         : m_message{ "Unexpected end of stream" }
+        , m_location{ fileName, line, 1 }
     {}
     const char* what() const override
     {
         return m_message.c_str();
     }
+    const parser::SourceLocation& Location() const { return m_location; }
 };
 
 class InvalidMessageMode
@@ -42,15 +48,18 @@ class InvalidMessageMode
 {
 private:
     std::string m_message;
+    parser::SourceLocation m_location;
 
 public:
-    InvalidMessageMode(const parser::Token<Terminal>& token)
+    InvalidMessageMode(const parser::Token<Terminal>& token, const char* fileName, int line)
         : m_message{ "Invalid message mode: " + token.Value() }
+        , m_location{ fileName, line, 1 }
     {}
     const char* what() const override
     {
         return m_message.c_str();
     }
+    const parser::SourceLocation& Location() const { return m_location; }
 };
 
 

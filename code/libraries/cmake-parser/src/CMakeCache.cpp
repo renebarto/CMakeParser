@@ -4,12 +4,24 @@
 
 using namespace cmake_parser;
 
+#define VAR(name, type, value) { #name, {#type, value }}
+
+static const std::map<std::string, std::pair<std::string, std::string>> DefaultVariables
+{
+//    VAR(CMAKE_BUILD_TYPE, STRING, "Debug"),
+};
+
 CMakeCache::CMakeCache()
     : m_variables{}
 {
+    for (auto var : DefaultVariables)
+    {
+        auto variable = std::make_shared<TypedVariable>(var.first, var.second.first, var.second.second);
+        AddVariable(var.first, variable);
+    }
 }
 
-const Variables& CMakeCache::GetVariables() const
+const TypedVariables& CMakeCache::GetVariables() const
 {
     return m_variables.GetVariables();
 }
@@ -19,9 +31,9 @@ std::string CMakeCache::GetVariable(const std::string& name) const
     return m_variables.GetVariable(name);
 }
 
-void CMakeCache::SetVariable(const std::string& name, const std::string& value)
+void CMakeCache::SetVariable(const std::string& name, const std::string& type, const std::string& value)
 {
-    m_variables.SetVariable(name, value);
+    m_variables.SetVariable(name, type, value);
 }
 
 void CMakeCache::UnsetVariable(const std::string& name)
@@ -29,12 +41,12 @@ void CMakeCache::UnsetVariable(const std::string& name)
     m_variables.UnsetVariable(name);
 }
 
-VariablePtr CMakeCache::FindVariable(const std::string& name) const
+TypedVariablePtr CMakeCache::FindVariable(const std::string& name) const
 {
     return m_variables.FindVariable(name);
 }
 
-void CMakeCache::AddVariable(const std::string& name, VariablePtr variable)
+void CMakeCache::AddVariable(const std::string& name, TypedVariablePtr variable)
 {
     m_variables.AddVariable(name, variable);
 }

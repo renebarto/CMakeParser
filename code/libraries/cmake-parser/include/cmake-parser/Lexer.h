@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <set>
 #include "parser/Tokenizer.h"
 
@@ -37,7 +38,7 @@ private:
     parser::TokenList<Terminal> m_tokens;
 
 public:
-    Lexer(const std::string& path, std::istream& stream);
+    Lexer(const std::filesystem::path& path, std::istream& stream);
 
     parser::SourceLocation GetCurrentLocation() const override;
     parser::Token<Terminal> GetToken() override;

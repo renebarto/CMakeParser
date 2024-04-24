@@ -1,4 +1,4 @@
-#include "cmake-parser/VariableList.h"
+#include "cmake-parser/Variable.h"
 
 #include "test-platform/GoogleTest.h"
 
@@ -23,7 +23,7 @@ TEST_F(VariableTest, ConstructName)
 
     EXPECT_EQ(name, variable.Name());
     EXPECT_EQ("", variable.Value());
-    EXPECT_EQ("Variable variable = ", variable.Serialize());
+    EXPECT_EQ("Variable " + name + " = ", variable.Serialize());
 }
 
 TEST_F(VariableTest, ConstructNameValue)
@@ -34,7 +34,7 @@ TEST_F(VariableTest, ConstructNameValue)
 
     EXPECT_EQ(name, variable.Name());
     EXPECT_EQ(value, variable.Value());
-    EXPECT_EQ("Variable variable = value", variable.Serialize());
+    EXPECT_EQ("Variable " + name + " = " + value, variable.Serialize());
 }
 
 TEST_F(VariableTest, SetValue)
@@ -48,7 +48,7 @@ TEST_F(VariableTest, SetValue)
     EXPECT_EQ(value, variable.Value());
     variable.SetValue(valueNew);
     EXPECT_EQ(valueNew, variable.Value());
-    EXPECT_EQ("Variable variable = valueNew", variable.Serialize());
+    EXPECT_EQ("Variable " + name + " = " + valueNew, variable.Serialize());
 }
 
 TEST_F(VariableTest, StreamInsertion)
@@ -61,7 +61,7 @@ TEST_F(VariableTest, StreamInsertion)
     EXPECT_EQ(value, variable.Value());
     std::ostringstream stream;
     stream << variable;
-    EXPECT_EQ("Variable variable = value", stream.str());
+    EXPECT_EQ("Variable " + name + " = " + value, stream.str());
 }
 
 TEST_F(VariableTest, StreamInsertionPtr)
@@ -74,7 +74,7 @@ TEST_F(VariableTest, StreamInsertionPtr)
     EXPECT_EQ(value, variable->Value());
     std::ostringstream stream;
     stream << variable;
-    EXPECT_EQ("Variable variable = value", stream.str());
+    EXPECT_EQ("Variable " + name + " = " + value, stream.str());
 }
 
 } // namespace cmake_parser

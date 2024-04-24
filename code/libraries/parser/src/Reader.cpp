@@ -2,7 +2,7 @@
 
 namespace parser {
 
-Reader::Reader(const std::string& unitPath, std::istream& stream)
+Reader::Reader(const std::filesystem::path& unitPath, std::istream& stream)
     : m_unitPath{ unitPath }
     , m_stream(stream)
     , m_buffer{}

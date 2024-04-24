@@ -9,8 +9,6 @@ function(dump_all_vars)
     endforeach()
 endfunction()
 
-dump_all_vars()
-
 set(SCRIPTS_DIR "" CACHE STRING "CMake scripts path")
 
 if ("${SCRIPTS_DIR}" STREQUAL "")
@@ -34,6 +32,8 @@ project(CPP-Parser
     VERSION ${MSI_NUMBER}
     DESCRIPTION "This is the project for cpp-parser"
 )
+
+dump_all_vars()
 
 message(STATUS "")
 

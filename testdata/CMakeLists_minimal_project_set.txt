@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.5.1)
 
 message(STATUS "\n## In directory: ${CMAKE_CURRENT_SOURCE_DIR}")
 
+set(ENV{MYDIR} ${CMAKE_CURRENT_SOURCE_DIR})
+set(ENV{MYDIR} )
+
 set(SCRIPTS_DIR "" CACHE STRING "CMake scripts path")
 
 project(my-project
@@ -73,3 +76,4 @@ set(PROJECT_INCLUDES_PUBLIC
 set(ENV{myvar} "Hello world")
 
 unset(SCRIPTS_DIR CACHE)
+unset(ENV{MYDIR} )

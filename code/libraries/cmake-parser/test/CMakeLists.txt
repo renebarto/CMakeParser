@@ -58,6 +58,8 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ParserTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ProjectListTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ProjectTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/TypedVariableListTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/TypedVariableTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/VariableListTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/VariableTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp

@@ -48,7 +48,7 @@ static TokenizerRules<Terminal> tokenizerRules{
     { "[0-9]+", DigitSequence },
 };
 
-Lexer::Lexer(const std::string& path, std::istream& stream)
+Lexer::Lexer(const std::filesystem::path& path, std::istream& stream)
     : m_tokenizer(path, stream)
     , m_tokens{}
 {

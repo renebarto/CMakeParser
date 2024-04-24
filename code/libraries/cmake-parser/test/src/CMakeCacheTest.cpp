@@ -29,9 +29,9 @@ TEST_F(CMakeCacheTest, Construct)
 TEST_F(CMakeCacheTest, ConstructCopy)
 {
     CMakeCache other;
-    other.SetVariable("a", "x");
-    other.SetVariable("b", "y");
-    other.SetVariable("c", "z");
+    other.SetVariable("a", "STRING", "x");
+    other.SetVariable("b", "FILEPATH", "y");
+    other.SetVariable("c", "BOOL", "ON");
 
     CMakeCache cache(other);
 
@@ -40,7 +40,7 @@ TEST_F(CMakeCacheTest, ConstructCopy)
     EXPECT_NOT_NULL(other.FindVariable("a"));
     EXPECT_EQ("y", other.GetVariable("b"));
     EXPECT_NOT_NULL(other.FindVariable("b"));
-    EXPECT_EQ("z", other.GetVariable("c"));
+    EXPECT_EQ("ON", other.GetVariable("c"));
     EXPECT_NOT_NULL(other.FindVariable("c"));
     EXPECT_EQ(size_t{ 3 }, cache.GetVariables().size());
     EXPECT_EQ("x", cache.GetVariable("a"));
@@ -49,18 +49,18 @@ TEST_F(CMakeCacheTest, ConstructCopy)
     EXPECT_EQ("y", cache.GetVariable("b"));
     EXPECT_NOT_NULL(cache.FindVariable("b"));
     EXPECT_NE(other.FindVariable("b"), cache.FindVariable("b"));
-    EXPECT_EQ("z", cache.GetVariable("c"));
+    EXPECT_EQ("ON", cache.GetVariable("c"));
     EXPECT_NOT_NULL(cache.FindVariable("c"));
     EXPECT_NE(other.FindVariable("c"), cache.FindVariable("c"));
-    EXPECT_EQ("CMakeCache:\nVariable a = x\nVariable b = y\nVariable c = z\n", cache.Serialize());
+    EXPECT_EQ("CMakeCache:\nTypedVariable a:STRING = x\nTypedVariable b:FILEPATH = y\nTypedVariable c:BOOL = ON\n", cache.Serialize());
 }
 
 TEST_F(CMakeCacheTest, Assign)
 {
     CMakeCache other;
-    other.SetVariable("a", "x");
-    other.SetVariable("b", "y");
-    other.SetVariable("c", "z");
+    other.SetVariable("a", "STRING", "x");
+    other.SetVariable("b", "FILEPATH", "y");
+    other.SetVariable("c", "BOOL", "ON");
 
     CMakeCache cache;
     
@@ -71,7 +71,7 @@ TEST_F(CMakeCacheTest, Assign)
     EXPECT_NOT_NULL(other.FindVariable("a"));
     EXPECT_EQ("y", other.GetVariable("b"));
     EXPECT_NOT_NULL(other.FindVariable("b"));
-    EXPECT_EQ("z", other.GetVariable("c"));
+    EXPECT_EQ("ON", other.GetVariable("c"));
     EXPECT_NOT_NULL(other.FindVariable("c"));
     EXPECT_EQ(size_t{ 3 }, cache.GetVariables().size());
     EXPECT_EQ("x", cache.GetVariable("a"));
@@ -80,7 +80,7 @@ TEST_F(CMakeCacheTest, Assign)
     EXPECT_EQ("y", cache.GetVariable("b"));
     EXPECT_NOT_NULL(cache.FindVariable("b"));
     EXPECT_NE(other.FindVariable("b"), cache.FindVariable("b"));
-    EXPECT_EQ("z", cache.GetVariable("c"));
+    EXPECT_EQ("ON", cache.GetVariable("c"));
     EXPECT_NOT_NULL(cache.FindVariable("c"));
     EXPECT_NE(other.FindVariable("c"), cache.FindVariable("c"));
 }
@@ -93,13 +93,16 @@ TEST_F(CMakeCacheTest, SetVariable)
     EXPECT_EQ("", cache.GetVariable("DUMMY"));
     EXPECT_NULL(cache.FindVariable("DUMMY"));
 
-    cache.SetVariable("x", "y");
+    cache.SetVariable("x", "STRING", "y");
 
     EXPECT_EQ(size_t{ 1 }, cache.GetVariables().size());
     EXPECT_EQ("", cache.GetVariable("DUMMY"));
     EXPECT_NULL(cache.FindVariable("DUMMY"));
     EXPECT_EQ("y", cache.GetVariable("x"));
     EXPECT_NOT_NULL(cache.FindVariable("x"));
+    EXPECT_EQ("x", cache.FindVariable("x")->Name());
+    EXPECT_EQ("STRING", cache.FindVariable("x")->Type());
+    EXPECT_EQ("y", cache.FindVariable("x")->Value());
 }
 
 TEST_F(CMakeCacheTest, UnsetVariable)
@@ -110,7 +113,7 @@ TEST_F(CMakeCacheTest, UnsetVariable)
     EXPECT_EQ("", cache.GetVariable("DUMMY"));
     EXPECT_NULL(cache.FindVariable("DUMMY"));
 
-    cache.SetVariable("x", "y");
+    cache.SetVariable("x", "STRING", "y");
 
     EXPECT_EQ(size_t{ 1 }, cache.GetVariables().size());
     EXPECT_EQ("", cache.GetVariable("DUMMY"));
@@ -143,33 +146,36 @@ TEST_F(CMakeCacheTest, AddVariable)
     EXPECT_EQ("", cache.GetVariable("DUMMY"));
     EXPECT_NULL(cache.FindVariable("DUMMY"));
 
-    cache.AddVariable("x", std::make_shared<Variable>("x", "y"));
+    cache.AddVariable("x", std::make_shared<TypedVariable>("x", "STRING", "y"));
 
     EXPECT_EQ(size_t{ 1 }, cache.GetVariables().size());
     EXPECT_EQ("", cache.GetVariable("DUMMY"));
     EXPECT_NULL(cache.FindVariable("DUMMY"));
     EXPECT_EQ("y", cache.GetVariable("x"));
     EXPECT_NOT_NULL(cache.FindVariable("x"));
+    EXPECT_EQ("x", cache.FindVariable("x")->Name());
+    EXPECT_EQ("STRING", cache.FindVariable("x")->Type());
+    EXPECT_EQ("y", cache.FindVariable("x")->Value());
 }
 
 TEST_F(CMakeCacheTest, StreamInsertion)
 {
     CMakeCache cache;
-    cache.SetVariable("a", "x");
-    cache.SetVariable("b", "y");
-    cache.SetVariable("c", "z");
+    cache.SetVariable("a", "STRING", "x");
+    cache.SetVariable("b", "FILEPATH", "y");
+    cache.SetVariable("c", "BOOL", "ON");
 
     EXPECT_EQ(size_t{ 3 }, cache.GetVariables().size());
     EXPECT_EQ("x", cache.GetVariable("a"));
     EXPECT_NOT_NULL(cache.FindVariable("a"));
     EXPECT_EQ("y", cache.GetVariable("b"));
     EXPECT_NOT_NULL(cache.FindVariable("b"));
-    EXPECT_EQ("z", cache.GetVariable("c"));
+    EXPECT_EQ("ON", cache.GetVariable("c"));
     EXPECT_NOT_NULL(cache.FindVariable("c"));
 
     std::ostringstream stream;
     stream << cache;
-    EXPECT_EQ("CMakeCache:\nVariable a = x\nVariable b = y\nVariable c = z\n", stream.str());
+    EXPECT_EQ("CMakeCache:\nTypedVariable a:STRING = x\nTypedVariable b:FILEPATH = y\nTypedVariable c:BOOL = ON\n", stream.str());
 }
 
 } // namespace cmake_parser

@@ -2,8 +2,8 @@
 
 #include "serialization/EnumSerialization.h"
 #include "utility/CommandLine.h"
-#include "utility/Console.h"
 #include "utility/StringFunctions.h"
+#include "tracing/Tracing.h"
 #include "cmake-parser/ParserExceptions.h"
 
 using namespace utility;
@@ -11,8 +11,6 @@ using namespace parser;
 using namespace std::placeholders;
 
 namespace cmake_parser {
-
-static Console s_console;
 
 using Data = Token<Terminal>;
 
@@ -115,24 +113,19 @@ static bool LookupKeyword(const Token<Terminal>& token, Keyword& keyword)
     return false;
 }
 
-static void PrintColor(ConsoleColor color, const std::string& text)
-{
-    s_console << fgcolor(color) << text << fgcolor(ConsoleColor::Default) << std::endl;
-}
-
 static void PrintToken(const Token<Terminal>& token)
 {
-    s_console << fgcolor(ConsoleColor::Magenta) << token << fgcolor(ConsoleColor::Default) << std::endl;
+    TRACE_DEBUG("Token: {}", token);
 }
 
 static void PrintUngetToken(const Token<Terminal>& token)
 {
-    s_console << fgcolor(ConsoleColor::Magenta) << "Unget " << token << fgcolor(ConsoleColor::Default) << std::endl;
+    TRACE_DEBUG("Unget: {}", token);
 }
 
 static void PrintTokenSkip(const Token<Terminal>& token)
 {
-    s_console << fgcolor(ConsoleColor::Magenta) << token << " SKIP" << fgcolor(ConsoleColor::Default) << std::endl;
+    TRACE_DEBUG("Skip: {}", token);
 }
 
 static std::string FindCMake()
@@ -166,14 +159,15 @@ static std::string FindNinja()
     return {};
 }
 
-Parser::Parser(const std::string& path, std::istream& stream)
-	: m_lexer(path, stream)
+Parser::Parser(const std::filesystem::path& rootDurectory, const std::string& fileName, std::istream& stream)
+	: m_lexer(rootDurectory / fileName, stream)
     , m_errorCount{}
     , m_model{}
     , m_mainProject{}
     , m_currentProject{}
 {
-    m_model.SetupSourceRoot(path);
+    m_model.SetupSourceRoot(rootDurectory);
+    m_model.SetupRootCMakeFile(rootDurectory / fileName);
     m_model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     m_model.SetupNinjaPath(FindNinja());
 }
@@ -302,7 +296,7 @@ std::string Parser::Expect(Terminal type)
     if (CurrentTokenType() != type)
     {
         OnParseError(CurrentToken());
-        throw UnexpectedToken(CurrentToken());
+        throw UnexpectedToken(CurrentToken(), __FILE__, __LINE__);
     }
     auto result = CurrentToken().Value();
     NextToken();
@@ -320,7 +314,7 @@ Token<Terminal> Parser::Expect(std::set<Terminal> oneOfTypes)
     if (oneOfTypes.find(CurrentTokenType()) == oneOfTypes.end())
     {
         OnParseError(CurrentToken());
-        throw UnexpectedToken(CurrentToken());
+        throw UnexpectedToken(CurrentToken(), __FILE__, __LINE__);
     }
     auto result = CurrentToken();
     NextToken();
@@ -332,30 +326,6 @@ Token<Terminal> Parser::Expect_SkipWhitespace(std::set<Terminal> oneOfTypes)
     SkipWhitespace();
     return Expect(oneOfTypes);
 }
-
-//void Parser::HandleIf()
-//{
-//}
-//
-//std::string Parser::GetExpression(const Token<Terminal>& token)
-//{
-//    std::string result;
-//    switch (token.Type().m_type)
-//    {
-//        case Terminal::String:
-//            result = token.Value();
-//            break;
-//        case Terminal::Identifier:
-//            result = token.Value();
-//            break;
-//        case Terminal::Dollar:
-//            result = "${" + ExpectVariable() + "}";
-//            break;
-//        default:
-//            throw UnexpectedToken(token);
-//    }
-//    return result;
-//}
 
 bool Parser::HandleCMakeMinimumRequired()
 {
@@ -411,6 +381,7 @@ bool Parser::HandleProject()
         SkipWhitespace();
     }
     Expect_SkipWhitespace(Terminal::ParenthesisClose);
+    m_model.AddProject(m_currentProject);
     return true;
 }
 
@@ -456,74 +427,118 @@ bool Parser::IsValidMessageMode(const std::string& mode)
 
 bool Parser::HandleSet()
 {
-    std::string variableName;
-    std::string value;
+    std::set<Terminal> finalizers = { Terminal::Whitespace , Terminal::NewLine, Terminal::ParenthesisClose };
+
     Expect_SkipWhitespace(Terminal::ParenthesisOpen);
-    auto result = Expect_SkipWhitespace(Terminal::Identifier);
-    if (IsEqualIgnoreCase(EnvironmentPrefix, result))
+    SkipWhitespace();
+    if ((CurrentToken().Type() == Terminal::Identifier) && (IsEqualIgnoreCase(EnvironmentPrefix, CurrentToken().Value())))
     {
-        variableName = ExpectVariable();
-        auto token = Expect({ Terminal::String, Terminal::Dollar, Terminal::ParenthesisClose });
-        if (token.Type() != Terminal::ParenthesisClose)
+        Expect(Terminal::Identifier);
+        std::string variableName = ExpectVariable();
+        SkipWhitespace();
+        std::string value = ExpectExpression(finalizers);
+        if (value.empty())
         {
-            //value = GetExpression(token);
+            m_model.UnsetEnvironmentVariable(variableName);
+        }
+        else
+        {
+            m_model.SetEnvironmentVariable(variableName, value);
         }
     }
     else
     {
-        variableName = result;
-        auto token = Expect({ Terminal::String, Terminal::Identifier, Terminal::Dollar, Terminal::ParenthesisClose });
-        if (token.Type() != Terminal::ParenthesisClose)
+        if (CurrentToken().Type() == Terminal::Identifier)
         {
-            //value = GetExpression(token);
-            token = Expect({ Terminal::String, Terminal::Identifier, Terminal::Dollar, Terminal::ParenthesisClose });
-        }
-        while (token.Type() != Terminal::ParenthesisClose)
-        {
-            if (IsEqualIgnoreCase(KeywordCache, token.Value()))
+            std::string variableName = Expect(Terminal::Identifier);
+            std::string variableType{};
+            std::string description{};
+            std::string value{};
+            VariableAttribute variableAttributes{};
+            SkipWhitespace();
+            while (CurrentToken().Type() != Terminal::ParenthesisClose)
             {
-                // todo save attributes
-                Expect({ Terminal::Identifier, Terminal::String });
-                Expect(Terminal::String);
-                token = Expect({ Terminal::Identifier, Terminal::ParenthesisClose });
-                if (token.Type() != Terminal::ParenthesisClose)
+                if (CurrentToken().Type() == Terminal::Identifier)
                 {
-                    if (IsEqualIgnoreCase(KeywordForce, token.Value()))
+                    if (IsEqualIgnoreCase(KeywordCache, CurrentToken().Value()))
                     {
-                        Expect(Terminal::ParenthesisClose);
+                        Expect(Terminal::Identifier);
+                        variableAttributes = variableAttributes | VariableAttribute::Cache;
+                        variableType = Expect_SkipWhitespace(Terminal::Identifier);
+                        description = Expect_SkipWhitespace(Terminal::String);
+                        SkipWhitespace();
+                        if (CurrentToken().Type() != Terminal::ParenthesisClose)
+                        {
+                            if (IsEqualIgnoreCase(KeywordForce, CurrentToken().Value()))
+                                variableAttributes = variableAttributes | VariableAttribute::Force;
+                            else
+                                throw UnexpectedToken(CurrentToken(), __FILE__, __LINE__);
+                        }
+                        break;
                     }
-                    else
-                        throw UnexpectedToken(token);
+                    else if (IsEqualIgnoreCase(KeywordParentScope, CurrentToken().Value()))
+                    {
+                        variableAttributes = variableAttributes | VariableAttribute::ParentScope;
+                        break;
+                    }
                 }
+                if (!value.empty())
+                    value += ";";
+
+                value += ExpectExpression(finalizers);
+                SkipWhitespace();
             }
-            else if (IsEqualIgnoreCase(KeywordParentScope, token.Value()))
+            if (value.empty())
             {
-                // todo save attributes
+                m_model.UnsetVariable(variableName, variableAttributes);
             }
             else
             {
-                //value += " " + GetExpression(token);
-                token = Expect({ Terminal::String, Terminal::Identifier, Terminal::Dollar, Terminal::ParenthesisClose });
+                m_model.SetVariable(variableName, value, variableAttributes, variableType);
             }
         }
+        else
+        {
+            throw UnexpectedToken(CurrentToken(), __FILE__, __LINE__);
+        }
     }
-    m_model.SetVariable(variableName, value);
     Expect_SkipWhitespace(Terminal::ParenthesisClose);
+    return true;
 }
 
 bool Parser::HandleUnset()
 {
     Expect_SkipWhitespace(Terminal::ParenthesisOpen);
-    auto result = Expect_SkipWhitespace(Terminal::Identifier);
-    bool cache{};
-    bool parentScope{};
-    while (CurrentTokenType() == Terminal::Identifier)
+    SkipWhitespace();
+    if ((CurrentToken().Type() == Terminal::Identifier) && (IsEqualIgnoreCase(EnvironmentPrefix, CurrentToken().Value())))
     {
-        Keyword keyword;
-        LookupKeyword(CurrentToken(), keyword);
-
+        Expect(Terminal::Identifier);
+        std::string variableName = ExpectVariable();
+        m_model.UnsetEnvironmentVariable(variableName);
     }
-    auto token = Expect_SkipWhitespace({ Terminal::Identifier, Terminal::ParenthesisClose });
+    else
+    {
+        if (CurrentToken().Type() == Terminal::Identifier)
+        {
+            std::string variableName = Expect(Terminal::Identifier);
+            VariableAttribute variableAttributes{};
+            SkipWhitespace();
+            if (CurrentToken().Type() == Terminal::Identifier)
+            {
+                if (IsEqualIgnoreCase(KeywordCache, CurrentToken().Value()))
+                {
+                    Expect(Terminal::Identifier);
+                    variableAttributes = variableAttributes | VariableAttribute::Cache;
+                    SkipWhitespace();
+                }
+                else if (IsEqualIgnoreCase(KeywordParentScope, CurrentToken().Value()))
+                {
+                    variableAttributes = variableAttributes | VariableAttribute::ParentScope;
+                }
+                m_model.UnsetVariable(variableName, variableAttributes);
+            }
+        }
+    }
     Expect_SkipWhitespace(Terminal::ParenthesisClose);
     return true;
 }
@@ -536,6 +551,38 @@ std::string Parser::ExpectVariable()
     result = Expect(Terminal::Identifier);
     Expect(Terminal::CurlyBracketClose);
 
+    return result;
+}
+
+std::string Parser::ExpectExpression(const std::set<Terminal>& finalizers)
+{
+    std::string value{};
+
+    while (finalizers.find(CurrentToken().Type().m_type) == finalizers.end())
+    {
+        value += ExpectExpressionPart();
+    }
+    return value;
+}
+
+std::string Parser::ExpectExpressionPart()
+{
+    std::string result;
+
+    switch (CurrentToken().Type().m_type)
+    {
+    case Terminal::Dollar:
+        result = Expect(Terminal::Dollar);
+        result += Expect(Terminal::CurlyBracketOpen);
+        result += Expect(Terminal::Identifier);
+        result += Expect(Terminal::CurlyBracketClose);
+        return result;
+    default:
+        break;
+    }
+
+    result = CurrentToken().Value();
+    NextToken();
     return result;
 }
 
@@ -576,7 +623,7 @@ bool Parser::OnToken(const parser::Token<Terminal>& token, bool& done)
 
 bool Parser::OnNoMoreToken(const parser::SourceLocation& /*location*/)
 {
-    PrintColor(ConsoleColor::Green, "No more tokens");
+    TRACE_INFO("No more tokens");
     return true;
 }
 
@@ -588,9 +635,7 @@ void Parser::OnSkipToken(const parser::Token<Terminal>& token)
 void Parser::OnParseError(const parser::Token<Terminal>& token)
 {
     m_errorCount++;
-    std::ostringstream stream;
-    stream << "Parse error: unexpected token " << token;
-    PrintColor(ConsoleColor::Red, stream.str());
+    TRACE_ERROR("Parse error: unexpected token {}", token);
 }
 
 } // namespace cmake_parser

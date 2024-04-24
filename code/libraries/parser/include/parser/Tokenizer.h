@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <memory>
 #include <stack>
 #include "parser/ITokenizer.h"
@@ -18,7 +19,7 @@ private:
     std::stack<Token<UnderlyingType>> m_tokenBuffer;
 
 public:
-    Tokenizer(const std::string& compilationUnit, std::istream& stream)
+    Tokenizer(const std::filesystem::path& compilationUnit, std::istream& stream)
         : m_reader(compilationUnit, stream)
     {
     }

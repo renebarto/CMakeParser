@@ -3,6 +3,8 @@
 #include <cassert>
 #include <iostream>
 #include "utility/Console.h"
+#include "utility/StringFunctions.h"
+#include "tracing/Tracing.h"
 
 using namespace cmake_parser;
 
@@ -48,8 +50,6 @@ using namespace cmake_parser;
 // VERBOSE_BUILD=OFF
 // WIN32=1
 
-static utility::Console s_console;
-
 #define VAR(name, value) { #name, value }
 
 static const std::map<std::string, std::string> DefaultVariables
@@ -57,50 +57,47 @@ static const std::map<std::string, std::string> DefaultVariables
     VAR(ARGC, "0"),
     VAR(ARGN, ""),
     VAR(ARGV, ""),
-    //VAR(CMAKE_BINARY_DIR, ""),
     VAR(CMAKE_BUILD_TYPE, "Debug"),
-    //VAR(CMAKE_COMMAND, "C:/Program Files(x86)/Microsoft Visual Studio/2019/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe"),
-    //VAR(CMAKE_CPACK_COMMAND, "C:/Program Files(x86)/Microsoft Visual Studio/2019/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cpack.exe"),
-    //VAR(CMAKE_CTEST_COMMAND, "C:/Program Files(x86)/Microsoft Visual Studio/2019/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/ctest.exe"),
-    //VAR(CMAKE_CURRENT_BINARY_DIR, ""),
-    //VAR(CMAKE_CURRENT_FUNCTION, ""),
-    //VAR(CMAKE_CURRENT_FUNCTION_LIST_DIR, ""),
-    //VAR(CMAKE_CURRENT_FUNCTION_LIST_FILE, ""),
-    //VAR(CMAKE_CURRENT_FUNCTION_LIST_LINE, ""),
-    //VAR(CMAKE_CURRENT_LIST_DIR, ""),
-    //VAR(CMAKE_CURRENT_LIST_FILE, ""),
-    //VAR(CMAKE_CURRENT_SOURCE_DIR, ""),
     VAR(CMAKE_CXX_COMPILER, "C:/Program Files(x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe"),
     VAR(CMAKE_C_COMPILER, "C:/Program Files(x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe"),
-    //VAR(CMAKE_EXTRA_GENERATOR, ""),
     VAR(CMAKE_FILES_DIRECTORY, "/CMakeFiles"),
-    //VAR(CMAKE_GENERATOR, "Ninja"),
     VAR(CMAKE_GENERATOR_INSTANCE, ""),
     VAR(CMAKE_GENERATOR_PLATFORM, ""),
     VAR(CMAKE_GENERATOR_TOOLSET, ""),
     VAR(CMAKE_HOME_DIRECTORY, ""),
     VAR(CMAKE_HOST_SYSTEM_NAME, "Windows"),
     VAR(CMAKE_HOST_WIN32, "1"),
-    //VAR(CMAKE_INSTALL_PREFIX, ""),
-    //VAR(CMAKE_MAJOR_VERSION, "3"),
-    //VAR(CMAKE_MAKE_PROGRAM, "C:\\PROGRAM FILES(X86)\\MICROSOFT VISUAL STUDIO\\2019\\COMMUNITY\\COMMON7\\IDE\\COMMONEXTENSIONS\\MICROSOFT\\CMAKE\\Ninja\\ninja.exe"),
-    //VAR(CMAKE_MINIMUM_REQUIRED_VERSION, ""),
-    //VAR(CMAKE_MINOR_VERSION, "20"),
-    //VAR(CMAKE_MODULE_PATH, ""),
-    //VAR(CMAKE_PARENT_LIST_FILE, ""),
-    //VAR(CMAKE_PATCH_VERSION, "21032501"),
-    //VAR(CMAKE_ROOT, "C:/Program Files(x86)/Microsoft Visual Studio/2019/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/share/cmake-3.20"),
-    //VAR(CMAKE_SOURCE_DIR, ""),
-    //VAR(CMAKE_TWEAK_VERSION, "0"),
-    //VAR(CMAKE_VERSION, "3.20.21032501-MSVC_2"),
     VAR(WIN32, "1"),
 };
+
+struct Version
+{
+    std::string major;
+    std::string minor;
+    std::string patch;
+    std::string tweak;
+};
+
+static Version SplitVersion(const std::string& versionString)
+{
+    Version version{};
+
+    auto versionParts = utility::Split(versionString, '.');
+    version.major = ((versionParts.size() > 0) && !versionParts[0].empty()) ? versionParts[0] : "0";
+    version.minor = (versionParts.size() > 1) ? versionParts[1] : "0";
+    version.patch = (versionParts.size() > 2) ? versionParts[2] : "0";
+    version.tweak = (versionParts.size() > 3) ? versionParts[3] : "0";
+
+    return version;
+}
 
 CMakeModel::CMakeModel()
     : m_cache{}
     , m_scopeVariables{}
     , m_projects{}
+    , m_currentProject{}
     , m_directories{}
+    , m_currentDirectory{}
     , m_isSourceRootSet{}
 {
 }
@@ -110,6 +107,7 @@ void CMakeModel::SetupSourceRoot(const std::filesystem::path& root)
     auto rootDir = std::make_shared<Directory>(root);
     if (!m_directories.AddDirectory(rootDir))
         return;
+    m_currentDirectory = rootDir;
     m_scopeVariables = &rootDir->GetVariableList();
     m_isSourceRootSet = true;
     for (auto var : DefaultVariables)
@@ -125,7 +123,7 @@ void CMakeModel::SetupSourceRoot(const std::filesystem::path& root)
     SetVariable("CMAKE_CURRENT_BINARY_DIR", binaryDir.generic_string());
 }
 
-void CMakeModel::SetupRootCMakeFile(const std::string& rootListFile)
+void CMakeModel::SetupRootCMakeFile(const std::filesystem::path& rootListFile)
 {
     assert(IsSourceRootSet());
     std::filesystem::path rootCMakeFile = rootListFile;
@@ -141,7 +139,7 @@ void CMakeModel::SetupRootCMakeFile(const std::string& rootListFile)
     SetupSourceRoot(rootCMakeDir);
 }
 
-void CMakeModel::SetupCMakePath(const std::string& cmakePath, const std::string& cmakeVersion)
+void CMakeModel::SetupCMakePath(const std::filesystem::path& cmakePath, const std::string& cmakeVersion)
 {
     assert(IsSourceRootSet());
     auto versionMajor = cmakeVersion.substr(0, cmakeVersion.find('.', 0));
@@ -169,7 +167,7 @@ void CMakeModel::SetupCMakePath(const std::string& cmakePath, const std::string&
     SetVariable("CMAKE_TWEAK_VERSION", versionTweak);
 }
 
-void CMakeModel::SetupNinjaPath(const std::string& ninjaPath)
+void CMakeModel::SetupNinjaPath(const std::filesystem::path& ninjaPath)
 {
     assert(IsSourceRootSet());
     std::filesystem::path ninjaBinDir = ninjaPath;
@@ -196,27 +194,45 @@ std::string CMakeModel::GetVariable(const std::string& name) const
     return {};
 }
 
-void CMakeModel::SetVariable(const std::string& name, const std::string& value, VariableAttribute attributes /*= {}*/)
+VariablePtr CMakeModel::FindVariable(const std::string& name) const
+{
+    if (m_scopeVariables != nullptr)
+    {
+        return m_scopeVariables->FindVariable(name);
+    }
+    return {};
+}
+
+void CMakeModel::SetVariable(const std::string& name, const std::string& value, VariableAttribute attributes /*= {}*/, const std::string& type /*= {}*/)
 {
     if (attributes & VariableAttribute::Cache)
     {
         auto var = m_cache.FindVariable(name);
         if (var == nullptr)
         {
-            s_console << fgcolor(utility::ConsoleColor::Cyan) << "Add new cache variable " << name << " = " << value << fgcolor(utility::ConsoleColor::Default) << std::endl;
-            var = std::make_shared<Variable>(name, value);
+            auto varType = type.empty() ? "STRING" : type;
+            TRACE_DATA("Add new cache variable {}:{} = {}", name, varType, value);
+            var = std::make_shared<TypedVariable>(name, varType, value);
             m_cache.AddVariable(name, var);
         }
         else
         {
             if (attributes & VariableAttribute::Force)
             {
-                s_console << fgcolor(utility::ConsoleColor::Cyan) << "Update cache variable " << name << " = " << value << fgcolor(utility::ConsoleColor::Default) << std::endl;
-                var->SetValue(value);
+                if (type.empty())
+                {
+                    TRACE_DATA("Update cache variable {} = {}", name, value);
+                    var->SetValue(value);
+                }
+                else
+                {
+                    TRACE_DATA("Update cache variable {}:{} = {}", name, type, value);
+                    var->SetValue(type, value);
+                }
             }
             else
             {
-                s_console << fgcolor(utility::ConsoleColor::Cyan) << "Not update cache variable, already set " << name << " = " << value << fgcolor(utility::ConsoleColor::Default) << std::endl;
+                TRACE_DATA("Not update cache variable, already set {} = {}", name, value);
             }
         }
     }
@@ -226,38 +242,76 @@ void CMakeModel::SetVariable(const std::string& name, const std::string& value, 
         auto var = m_scopeVariables->FindVariable(name);
         if (var == nullptr)
         {
-            s_console << fgcolor(utility::ConsoleColor::Cyan) << "Add new variable " << name << " = " << value << fgcolor(utility::ConsoleColor::Default) << std::endl;
+            TRACE_DATA("Add new variable {} = {}", name, value);
             var = std::make_shared<Variable>(name, value);
             m_scopeVariables->AddVariable(name, var);
         }
         else
         {
-            s_console << fgcolor(utility::ConsoleColor::Cyan) << "Update variable " << name << " = " << value << fgcolor(utility::ConsoleColor::Default) << std::endl;
+            TRACE_DATA("Update variable {} = {}", name, value);
             var->SetValue(value);
         }
     }
+}
+
+void CMakeModel::SetEnvironmentVariable(const std::string& name, const std::string& value)
+{
+    TRACE_DATA("Set environment variable {} = {}", name, value);
+    m_environment.SetVariable(name, value);
 }
 
 void CMakeModel::UnsetVariable(const std::string& name, VariableAttribute attributes /*= {}*/)
 {
     if (attributes & VariableAttribute::Cache)
     {
-        auto var = m_cache.FindVariable(name);
-        if (var == nullptr)
-        {
-        }
+        TRACE_DATA("Unset cache variable {}", name);
+        m_cache.UnsetVariable(name);
     }
     else
     {
+        TRACE_DATA("Unset variable {}", name);
         assert(m_scopeVariables != nullptr);
-        auto var = m_scopeVariables->FindVariable(name);
-        if (var == nullptr)
-        {
-        }
+        m_scopeVariables->UnsetVariable(name);
     }
+}
+
+void CMakeModel::UnsetEnvironmentVariable(const std::string& name)
+{
+    TRACE_DATA("Unset environment variable {}", name);
+    m_environment.UnsetVariable(name);
+}
+
+bool CMakeModel::AddProject(ProjectPtr project)
+{
+    if (project != nullptr)
+        TRACE_DATA("Add project {}", project->Name());
+    else
+        TRACE_ERROR("Adding null project!");
+    auto result = m_projects.AddProject(project);
+    if (result)
+    {
+        SetVariable("PROJECT_BINARY_DIR", GetVariable("CMAKE_CURRENT_BINARY_DIR"));
+        SetVariable("PROJECT_HOMEPAGE_URL", "");
+        SetVariable("PROJECT_NAME", project->Name());
+        SetVariable("PROJECT_DESCRIPTION", project->Description());
+        SetVariable("PROJECT_SOURCE_DIR", GetVariable("CMAKE_CURRENT_SOURCE_DIR"));
+        SetVariable("PROJECT_VERSION", project->Version());
+        auto version = SplitVersion(project->Version());
+        SetVariable("PROJECT_VERSION_MAJOR", version.major);
+        SetVariable("PROJECT_VERSION_MINOR", version.minor);
+        SetVariable("PROJECT_VERSION_PATCH", version.patch);
+        SetVariable("PROJECT_VERSION_TWEAK", version.tweak);
+    }
+
+    return result;
+}
+
+DirectoryPtr CMakeModel::GetCurrentDirectory() const
+{
+    return m_currentDirectory;
 }
 
 void CMakeModel::AddMessage(const std::string& messageMode, const std::string& message)
 {
-    s_console << fgcolor(utility::ConsoleColor::Yellow) << "Message(" << messageMode << " " << message << ")" << fgcolor(utility::ConsoleColor::Default) << std::endl;
+    TRACE_INFO("Message({} {})", messageMode, message);
 }
