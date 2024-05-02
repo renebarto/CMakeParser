@@ -6,7 +6,7 @@
 #include "utility/StringFunctions.h"
 #include "tracing/Tracing.h"
 
-using namespace cmake_parser;
+namespace cmake_parser {
 
 // Variables set by cmake inside Visual Studio 2019. This may change
 // ARGC=0
@@ -49,6 +49,38 @@ using namespace cmake_parser;
 // CMAKE_VERSION=3.20.21032501-MSVC_2
 // VERBOSE_BUILD=OFF
 // WIN32=1
+
+// Variable names
+const std::string VarMinimumRequiredVersion{ "CMAKE_MINIMUM_REQUIRED_VERSION" };
+const std::string VarMainSourceDirectory{ "CMAKE_SOURCE_DIR" };
+const std::string VarMainBinaryDirectory{ "CMAKE_BINARY_DIR" };
+const std::string VarCurrentSourceDirectory{ "CMAKE_CURRENT_SOURCE_DIR" };
+const std::string VarCurrentBinaryDirectory{ "CMAKE_CURRENT_BINARY_DIR" };
+const std::string VarCurrentScriptDirectory{ "CMAKE_CURRENT_LIST_DIR" };
+const std::string VarCurrentScriptPath{ "CMAKE_CURRENT_LIST_FILE" };
+const std::string VarParentScriptPath{ "CMAKE_PARENT_LIST_FILE" };
+const std::string VarCMakeExePath{ "CMAKE_COMMAND" };
+const std::string VarCPackExePath{ "CMAKE_CPACK_COMMAND" };
+const std::string VarCTestExePath{ "CMAKE_CTEST_COMMAND" };
+const std::string VarCMakeRootPath{ "CMAKE_ROOT" };
+const std::string VarCMakeVersion{ "CMAKE_VERSION" };
+const std::string VarCMakeVersionMajor{ "CMAKE_MAJOR_VERSION" };
+const std::string VarCMakeVersionMinor{ "CMAKE_MINOR_VERSION" };
+const std::string VarCMakeVersionPatch{ "CMAKE_PATCH_VERSION" };
+const std::string VarCMakeVersionTweak{ "CMAKE_TWEAK_VERSION" };
+const std::string VarMakeProgramPath{ "CMAKE_MAKE_PROGRAM" };
+const std::string VarCMakeGenerator{ "CMAKE_GENERATOR" };
+const std::string VarProjectBinaryDir{ "PROJECT_BINARY_DIR" };
+const std::string VarProjectHomepageURL{ "PROJECT_HOMEPAGE_URL" };
+const std::string VarProjectName{ "PROJECT_NAME" };
+const std::string VarProjectDescription{ "PROJECT_DESCRIPTION" };
+const std::string VarProjectSourceDirectory{ "PROJECT_SOURCE_DIR" };
+const std::string VarProjectVersion{ "PROJECT_VERSION" };
+const std::string VarProjectVersionMajor{ "PROJECT_VERSION_MAJOR" };
+const std::string VarProjectVersionMinor{ "PROJECT_VERSION_MINOR" };
+const std::string VarProjectVersionPatch{ "PROJECT_VERSION_PATCH" };
+const std::string VarProjectVersionTweak{ "PROJECT_VERSION_TWEAK" };
+const std::string CMakeScriptFileName{ "CMakeLists.txt" };
 
 #define VAR(name, value) { #name, value }
 
@@ -95,48 +127,49 @@ CMakeModel::CMakeModel()
     : m_cache{}
     , m_scopeVariables{}
     , m_projects{}
+    , m_rootProject{}
     , m_currentProject{}
     , m_directories{}
+    , m_rootDirectory{}
     , m_currentDirectory{}
     , m_isSourceRootSet{}
 {
 }
 
-void CMakeModel::SetupSourceRoot(const std::filesystem::path& root)
+bool CMakeModel::SetupSourceRoot(const std::filesystem::path& root, const std::string& buildDir)
 {
-    auto rootDir = std::make_shared<Directory>(root);
-    if (!m_directories.AddDirectory(rootDir))
-        return;
-    m_currentDirectory = rootDir;
-    m_scopeVariables = &rootDir->GetVariableList();
+    m_rootSourceDirectory = root;
+    m_rootBinaryDirectory = (root / buildDir).generic_string();
     m_isSourceRootSet = true;
+    m_rootDirectory = std::make_shared<Directory>(m_rootSourceDirectory, m_rootBinaryDirectory);
+    std::filesystem::path listFilePath = (m_rootSourceDirectory / CMakeScriptFileName).generic_string();
+
+    if (!std::filesystem::exists(listFilePath))
+    {
+        TRACE_ERROR("File does not exist: {}", listFilePath);
+        return false;
+    }
+    if (!m_directories.AddDirectory(m_rootDirectory))
+    {
+        TRACE_ERROR("Cannot add directory: {}", m_rootDirectory);
+        return false;
+    }
+
+    m_currentDirectory = m_rootDirectory;
+    m_scopeVariables = &m_rootDirectory->GetVariableList();
+    SetVariable(VarMainSourceDirectory, m_rootSourceDirectory.generic_string());
+    SetVariable(VarMainBinaryDirectory, m_rootBinaryDirectory.generic_string());
+    SetVariable(VarCurrentSourceDirectory, m_rootSourceDirectory.generic_string());
+    SetVariable(VarCurrentBinaryDirectory, m_rootBinaryDirectory.generic_string());
+    SetVariable(VarCurrentScriptDirectory, m_rootSourceDirectory.generic_string());
+    SetVariable(VarCurrentScriptPath, listFilePath.generic_string());
+    SetVariable(VarParentScriptPath, listFilePath.generic_string());
+
     for (auto var : DefaultVariables)
     {
         SetVariable(var.first, var.second);
     }
-
-    auto binaryDir = root / "cmake-x64-Debug";
-
-    SetVariable("CMAKE_SOURCE_DIR", root.generic_string());
-    SetVariable("CMAKE_CURRENT_SOURCE_DIR", root.generic_string());
-    SetVariable("CMAKE_BINARY_DIR", binaryDir.generic_string());
-    SetVariable("CMAKE_CURRENT_BINARY_DIR", binaryDir.generic_string());
-}
-
-void CMakeModel::SetupRootCMakeFile(const std::filesystem::path& rootListFile)
-{
-    assert(IsSourceRootSet());
-    std::filesystem::path rootCMakeFile = rootListFile;
-    std::filesystem::path rootCMakeDir = rootListFile;
-    if (rootCMakeFile.has_filename())
-        rootCMakeDir.remove_filename();
-    else
-        rootCMakeDir /= "CMakeLists.txt";
-    rootCMakeDir = rootCMakeDir.parent_path();
-    SetVariable("CMAKE_CURRENT_LIST_DIR", rootCMakeDir.generic_string());
-    SetVariable("CMAKE_CURRENT_LIST_FILE", rootCMakeFile.generic_string());
-    SetVariable("CMAKE_PARENT_LIST_FILE", rootCMakeFile.generic_string());
-    SetupSourceRoot(rootCMakeDir);
+    return true;
 }
 
 void CMakeModel::SetupCMakePath(const std::filesystem::path& cmakePath, const std::string& cmakeVersion)
@@ -156,15 +189,15 @@ void CMakeModel::SetupCMakePath(const std::filesystem::path& cmakePath, const st
     auto cpackExePath = cmakeBinDir / "cpack.exe";
     auto ctestExePath = cmakeBinDir / "ctest.exe";
     auto cmakeRoot = std::filesystem::weakly_canonical(cmakeBinDir / ".." / "share" / ("cmake-" + versionMajor + "." + versionMinor));
-    SetVariable("CMAKE_COMMAND", cmakeExePath.generic_string());
-    SetVariable("CMAKE_CPACK_COMMAND", cpackExePath.generic_string());
-    SetVariable("CMAKE_CTEST_COMMAND", ctestExePath.generic_string());
-    SetVariable("CMAKE_ROOT", cmakeRoot.generic_string());
-    SetVariable("CMAKE_VERSION", cmakeVersion);
-    SetVariable("CMAKE_MAJOR_VERSION", versionMajor);
-    SetVariable("CMAKE_MINOR_VERSION", versionMinor);
-    SetVariable("CMAKE_PATCH_VERSION", versionPatch);
-    SetVariable("CMAKE_TWEAK_VERSION", versionTweak);
+    SetVariable(VarCMakeExePath, cmakeExePath.generic_string());
+    SetVariable(VarCPackExePath, cpackExePath.generic_string());
+    SetVariable(VarCTestExePath, ctestExePath.generic_string());
+    SetVariable(VarCMakeRootPath, cmakeRoot.generic_string());
+    SetVariable(VarCMakeVersion, cmakeVersion);
+    SetVariable(VarCMakeVersionMajor, versionMajor);
+    SetVariable(VarCMakeVersionMinor, versionMinor);
+    SetVariable(VarCMakeVersionPatch, versionPatch);
+    SetVariable(VarCMakeVersionTweak, versionTweak);
 }
 
 void CMakeModel::SetupNinjaPath(const std::filesystem::path& ninjaPath)
@@ -175,35 +208,64 @@ void CMakeModel::SetupNinjaPath(const std::filesystem::path& ninjaPath)
         ninjaBinDir.remove_filename();
     auto ninjaExePath = ninjaBinDir / "ninja.exe";
     ninjaExePath.make_preferred();
-    SetVariable("CMAKE_MAKE_PROGRAM", ninjaExePath.string());
-    SetVariable("CMAKE_GENERATOR", "Ninja");
+    SetVariable(VarMakeProgramPath, ninjaExePath.string());
+    SetVariable(VarCMakeGenerator, "Ninja");
+}
+
+bool CMakeModel::SetupCMakeFile(const std::string& directoryName)
+{
+    assert(IsSourceRootSet());
+    std::filesystem::path parentSourceDirectory = m_rootSourceDirectory;
+    std::filesystem::path parentBinaryDirectory = m_rootBinaryDirectory;
+    if (m_currentDirectory != nullptr)
+    {
+        parentSourceDirectory = m_currentDirectory->SourcePath();
+        parentBinaryDirectory = m_currentDirectory->BinaryPath();
+    }
+    auto currentSourceDirectory = parentSourceDirectory / directoryName;
+    auto currentBinaryDirectory = parentBinaryDirectory / directoryName;
+    auto listFilePath = currentSourceDirectory / CMakeScriptFileName;
+
+    if (!std::filesystem::exists(listFilePath))
+    {
+        TRACE_ERROR("File does not exist: {}", listFilePath);
+        return false;
+    }
+    auto directory = std::make_shared<Directory>(currentSourceDirectory, currentBinaryDirectory, m_currentDirectory);
+    if (!m_directories.AddDirectory(directory))
+    {
+        TRACE_ERROR("Cannot add directory: {}", directory);
+        return false;
+    }
+    m_currentDirectory = directory;
+    m_scopeVariables = &directory->GetVariableList();
+    SetVariable(VarCurrentSourceDirectory, currentSourceDirectory.generic_string());
+    SetVariable(VarCurrentBinaryDirectory, currentBinaryDirectory.generic_string());
+    SetVariable(VarCurrentScriptDirectory, currentSourceDirectory.generic_string());
+    SetVariable(VarCurrentScriptPath, listFilePath.generic_string());
+    SetVariable(VarParentScriptPath, (parentSourceDirectory / CMakeScriptFileName).generic_string());
+    return true;
 }
 
 const Variables& CMakeModel::GetVariables() const
 {
-    assert(m_scopeVariables != nullptr);
+    assert(IsSourceRootSet());
     return m_scopeVariables->GetVariables();
 }
 
 std::string CMakeModel::GetVariable(const std::string& name) const
 {
-    if (m_scopeVariables != nullptr)
-    {
-        return m_scopeVariables->GetVariable(name);
-    }
-    return {};
+    assert(IsSourceRootSet());
+    return m_scopeVariables->GetVariable(name);
 }
 
 VariablePtr CMakeModel::FindVariable(const std::string& name) const
 {
-    if (m_scopeVariables != nullptr)
-    {
-        return m_scopeVariables->FindVariable(name);
-    }
-    return {};
+    assert(IsSourceRootSet());
+    return m_scopeVariables->FindVariable(name);
 }
 
-void CMakeModel::SetVariable(const std::string& name, const std::string& value, VariableAttribute attributes /*= {}*/, const std::string& type /*= {}*/)
+void CMakeModel::SetVariable(const std::string& name, const std::string& value, VariableAttribute attributes /*= {}*/, const std::string& type /*= {}*/, const std::string& description /*= {}*/)
 {
     if (attributes & VariableAttribute::Cache)
     {
@@ -211,8 +273,8 @@ void CMakeModel::SetVariable(const std::string& name, const std::string& value, 
         if (var == nullptr)
         {
             auto varType = type.empty() ? "STRING" : type;
-            TRACE_DATA("Add new cache variable {}:{} = {}", name, varType, value);
-            var = std::make_shared<TypedVariable>(name, varType, value);
+            TRACE_DATA("Add new cache variable {}:{} = {} ({})", name, varType, value, description);
+            var = std::make_shared<TypedVariable>(name, varType, value, description);
             m_cache.AddVariable(name, var);
         }
         else
@@ -221,24 +283,26 @@ void CMakeModel::SetVariable(const std::string& name, const std::string& value, 
             {
                 if (type.empty())
                 {
-                    TRACE_DATA("Update cache variable {} = {}", name, value);
+                    TRACE_DATA("Update cache variable {} = {} ({})", name, value, description);
                     var->SetValue(value);
+                    var->SetDescription(description);
                 }
                 else
                 {
-                    TRACE_DATA("Update cache variable {}:{} = {}", name, type, value);
+                    TRACE_DATA("Update cache variable {}:{} = {} ({})", name, type, value, description);
                     var->SetValue(type, value);
+                    var->SetDescription(description);
                 }
             }
             else
             {
-                TRACE_DATA("Not update cache variable, already set {} = {}", name, value);
+                TRACE_DATA("Not updating cache variable, already set {} = {}", name, value);
             }
         }
     }
     else
     {
-        assert(m_scopeVariables != nullptr);
+        assert(IsSourceRootSet());
         auto var = m_scopeVariables->FindVariable(name);
         if (var == nullptr)
         {
@@ -254,12 +318,6 @@ void CMakeModel::SetVariable(const std::string& name, const std::string& value, 
     }
 }
 
-void CMakeModel::SetEnvironmentVariable(const std::string& name, const std::string& value)
-{
-    TRACE_DATA("Set environment variable {} = {}", name, value);
-    m_environment.SetVariable(name, value);
-}
-
 void CMakeModel::UnsetVariable(const std::string& name, VariableAttribute attributes /*= {}*/)
 {
     if (attributes & VariableAttribute::Cache)
@@ -270,9 +328,15 @@ void CMakeModel::UnsetVariable(const std::string& name, VariableAttribute attrib
     else
     {
         TRACE_DATA("Unset variable {}", name);
-        assert(m_scopeVariables != nullptr);
+        assert(IsSourceRootSet());
         m_scopeVariables->UnsetVariable(name);
     }
+}
+
+void CMakeModel::SetEnvironmentVariable(const std::string& name, const std::string& value)
+{
+    TRACE_DATA("Set environment variable {} = {}", name, value);
+    m_environment.SetVariable(name, value);
 }
 
 void CMakeModel::UnsetEnvironmentVariable(const std::string& name)
@@ -290,17 +354,17 @@ bool CMakeModel::AddProject(ProjectPtr project)
     auto result = m_projects.AddProject(project);
     if (result)
     {
-        SetVariable("PROJECT_BINARY_DIR", GetVariable("CMAKE_CURRENT_BINARY_DIR"));
-        SetVariable("PROJECT_HOMEPAGE_URL", "");
-        SetVariable("PROJECT_NAME", project->Name());
-        SetVariable("PROJECT_DESCRIPTION", project->Description());
-        SetVariable("PROJECT_SOURCE_DIR", GetVariable("CMAKE_CURRENT_SOURCE_DIR"));
-        SetVariable("PROJECT_VERSION", project->Version());
+        SetVariable(VarProjectBinaryDir, GetVariable("CMAKE_CURRENT_BINARY_DIR"));
+        SetVariable(VarProjectHomepageURL, "");
+        SetVariable(VarProjectName, project->Name());
+        SetVariable(VarProjectDescription, project->Description());
+        SetVariable(VarProjectSourceDirectory, GetVariable(VarCurrentSourceDirectory));
+        SetVariable(VarProjectVersion, project->Version());
         auto version = SplitVersion(project->Version());
-        SetVariable("PROJECT_VERSION_MAJOR", version.major);
-        SetVariable("PROJECT_VERSION_MINOR", version.minor);
-        SetVariable("PROJECT_VERSION_PATCH", version.patch);
-        SetVariable("PROJECT_VERSION_TWEAK", version.tweak);
+        SetVariable(VarProjectVersionMajor, version.major);
+        SetVariable(VarProjectVersionMinor, version.minor);
+        SetVariable(VarProjectVersionPatch, version.patch);
+        SetVariable(VarProjectVersionTweak, version.tweak);
     }
 
     return result;
@@ -315,3 +379,5 @@ void CMakeModel::AddMessage(const std::string& messageMode, const std::string& m
 {
     TRACE_INFO("Message({} {})", messageMode, message);
 }
+
+} // namespace cmake_parser

@@ -69,6 +69,8 @@ static std::filesystem::path FindNinja()
     return {};
 }
 
+static const std::string BuildDir{ "cmake-x64-Debug" };
+
 static const std::filesystem::path TOOLCHAIN_PATH{ "C:/Program Files(x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64" };
 static const std::string ARGC{ "0" };
 static const std::string ARGN{ "" };
@@ -118,41 +120,7 @@ TEST_F(CMakeModelTest, SetupSourceRoot)
 {
     CMakeModel model;
 
-    model.SetupSourceRoot(TEST_DATA_DIR);
-
-    EXPECT_TRUE(model.IsSourceRootSet());
-    EXPECT_EQ(size_t{ 18 }, model.GetVariables().size());
-    EXPECT_EQ(size_t{ 0 }, model.GetProjects().size());
-    EXPECT_EQ(size_t{ 1 }, model.GetDirectories().size());
-    EXPECT_EQ(ARGC, model.GetVariable("ARGC"));
-    EXPECT_EQ(ARGN, model.GetVariable("ARGN"));
-    EXPECT_EQ(ARGV, model.GetVariable("ARGV"));
-    EXPECT_EQ(CMAKE_BINARY_DIR, model.GetVariable("CMAKE_BINARY_DIR"));
-    EXPECT_EQ(CMAKE_BUILD_TYPE, model.GetVariable("CMAKE_BUILD_TYPE"));
-    EXPECT_EQ(CMAKE_CURRENT_BINARY_DIR, model.GetVariable("CMAKE_CURRENT_BINARY_DIR"));
-    EXPECT_EQ(CMAKE_CURRENT_SOURCE_DIR, model.GetVariable("CMAKE_CURRENT_SOURCE_DIR"));
-    EXPECT_EQ(CMAKE_CXX_COMPILER, model.GetVariable("CMAKE_CXX_COMPILER"));
-    EXPECT_EQ(CMAKE_C_COMPILER, model.GetVariable("CMAKE_C_COMPILER"));
-    EXPECT_EQ(CMAKE_FILES_DIRECTORY, model.GetVariable("CMAKE_FILES_DIRECTORY"));
-    EXPECT_EQ(CMAKE_GENERATOR_INSTANCE, model.GetVariable("CMAKE_GENERATOR_INSTANCE"));
-    EXPECT_EQ(CMAKE_GENERATOR_PLATFORM, model.GetVariable("CMAKE_GENERATOR_PLATFORM"));
-    EXPECT_EQ(CMAKE_GENERATOR_TOOLSET, model.GetVariable("CMAKE_GENERATOR_TOOLSET"));
-    EXPECT_EQ(CMAKE_HOME_DIRECTORY, model.GetVariable("CMAKE_HOME_DIRECTORY"));
-    EXPECT_EQ(CMAKE_HOST_SYSTEM_NAME, model.GetVariable("CMAKE_HOST_SYSTEM_NAME"));
-    EXPECT_EQ(CMAKE_HOST_WIN32, model.GetVariable("CMAKE_HOST_WIN32"));
-    EXPECT_EQ(CMAKE_SOURCE_DIR, model.GetVariable("CMAKE_SOURCE_DIR"));
-    EXPECT_EQ(ISWIN32, model.GetVariable("WIN32"));
-    EXPECT_EQ(size_t{ 0 }, model.GetProjects().size());
-    EXPECT_EQ(size_t{ 1 }, model.GetDirectories().size());
-    EXPECT_NOT_NULL(model.FindDirectory(TEST_DATA_DIR));
-}
-
-TEST_F(CMakeModelTest, SetupRootCMakeFile)
-{
-    CMakeModel model;
-
-    model.SetupSourceRoot(TEST_DATA_DIR);
-    model.SetupRootCMakeFile(std::filesystem::path(TEST_DATA_DIR) / "CMakeLists.txt");
+    EXPECT_TRUE(model.SetupSourceRoot(TEST_DATA_DIR, BuildDir));
 
     EXPECT_TRUE(model.IsSourceRootSet());
     EXPECT_EQ(size_t{ 21 }, model.GetVariables().size());
@@ -161,12 +129,7 @@ TEST_F(CMakeModelTest, SetupRootCMakeFile)
     EXPECT_EQ(ARGC, model.GetVariable("ARGC"));
     EXPECT_EQ(ARGN, model.GetVariable("ARGN"));
     EXPECT_EQ(ARGV, model.GetVariable("ARGV"));
-    EXPECT_EQ(CMAKE_BINARY_DIR, model.GetVariable("CMAKE_BINARY_DIR"));
     EXPECT_EQ(CMAKE_BUILD_TYPE, model.GetVariable("CMAKE_BUILD_TYPE"));
-    EXPECT_EQ(CMAKE_CURRENT_BINARY_DIR, model.GetVariable("CMAKE_CURRENT_BINARY_DIR"));
-    EXPECT_EQ(CMAKE_CURRENT_LIST_DIR, model.GetVariable("CMAKE_CURRENT_LIST_DIR"));
-    EXPECT_EQ(CMAKE_CURRENT_LIST_FILE, model.GetVariable("CMAKE_CURRENT_LIST_FILE"));
-    EXPECT_EQ(CMAKE_CURRENT_SOURCE_DIR, model.GetVariable("CMAKE_CURRENT_SOURCE_DIR"));
     EXPECT_EQ(CMAKE_CXX_COMPILER, model.GetVariable("CMAKE_CXX_COMPILER"));
     EXPECT_EQ(CMAKE_C_COMPILER, model.GetVariable("CMAKE_C_COMPILER"));
     EXPECT_EQ(CMAKE_FILES_DIRECTORY, model.GetVariable("CMAKE_FILES_DIRECTORY"));
@@ -176,20 +139,21 @@ TEST_F(CMakeModelTest, SetupRootCMakeFile)
     EXPECT_EQ(CMAKE_HOME_DIRECTORY, model.GetVariable("CMAKE_HOME_DIRECTORY"));
     EXPECT_EQ(CMAKE_HOST_SYSTEM_NAME, model.GetVariable("CMAKE_HOST_SYSTEM_NAME"));
     EXPECT_EQ(CMAKE_HOST_WIN32, model.GetVariable("CMAKE_HOST_WIN32"));
-    EXPECT_EQ(CMAKE_PARENT_LIST_FILE, model.GetVariable("CMAKE_PARENT_LIST_FILE"));
-    EXPECT_EQ(CMAKE_SOURCE_DIR, model.GetVariable("CMAKE_SOURCE_DIR"));
     EXPECT_EQ(ISWIN32, model.GetVariable("WIN32"));
-    EXPECT_EQ(size_t{ 0 }, model.GetProjects().size());
-    EXPECT_EQ(size_t{ 1 }, model.GetDirectories().size());
-    EXPECT_NOT_NULL(model.FindDirectory(TEST_DATA_DIR));
+    EXPECT_EQ(CMAKE_SOURCE_DIR, model.GetVariable(VarMainSourceDirectory));
+    EXPECT_EQ(CMAKE_BINARY_DIR, model.GetVariable(VarMainBinaryDirectory));
+    EXPECT_EQ(CMAKE_CURRENT_SOURCE_DIR, model.GetVariable(VarCurrentSourceDirectory));
+    EXPECT_EQ(CMAKE_CURRENT_BINARY_DIR, model.GetVariable(VarCurrentBinaryDirectory));
+    EXPECT_EQ(CMAKE_CURRENT_LIST_DIR, model.GetVariable(VarCurrentScriptDirectory));
+    EXPECT_EQ(CMAKE_CURRENT_LIST_FILE, model.GetVariable(VarCurrentScriptPath));
+    EXPECT_EQ(CMAKE_PARENT_LIST_FILE, model.GetVariable(VarParentScriptPath));
 }
 
 TEST_F(CMakeModelTest, SetupCMakePath)
 {
     CMakeModel model;
         
-    model.SetupSourceRoot(TEST_DATA_DIR);
-    model.SetupRootCMakeFile(std::filesystem::path(TEST_DATA_DIR) / "CMakeLists.txt");
+    EXPECT_TRUE(model.SetupSourceRoot(TEST_DATA_DIR, BuildDir));
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
 
     EXPECT_TRUE(model.IsSourceRootSet());
@@ -199,15 +163,7 @@ TEST_F(CMakeModelTest, SetupCMakePath)
     EXPECT_EQ(ARGC, model.GetVariable("ARGC"));
     EXPECT_EQ(ARGN, model.GetVariable("ARGN"));
     EXPECT_EQ(ARGV, model.GetVariable("ARGV"));
-    EXPECT_EQ(CMAKE_BINARY_DIR, model.GetVariable("CMAKE_BINARY_DIR"));
     EXPECT_EQ(CMAKE_BUILD_TYPE, model.GetVariable("CMAKE_BUILD_TYPE"));
-    EXPECT_EQ(CMAKE_COMMAND, model.GetVariable("CMAKE_COMMAND"));
-    EXPECT_EQ(CMAKE_CPACK_COMMAND, model.GetVariable("CMAKE_CPACK_COMMAND"));
-    EXPECT_EQ(CMAKE_CTEST_COMMAND, model.GetVariable("CMAKE_CTEST_COMMAND"));
-    EXPECT_EQ(CMAKE_CURRENT_BINARY_DIR, model.GetVariable("CMAKE_CURRENT_BINARY_DIR"));
-    EXPECT_EQ(CMAKE_CURRENT_LIST_DIR, model.GetVariable("CMAKE_CURRENT_LIST_DIR"));
-    EXPECT_EQ(CMAKE_CURRENT_LIST_FILE, model.GetVariable("CMAKE_CURRENT_LIST_FILE"));
-    EXPECT_EQ(CMAKE_CURRENT_SOURCE_DIR, model.GetVariable("CMAKE_CURRENT_SOURCE_DIR"));
     EXPECT_EQ(CMAKE_CXX_COMPILER, model.GetVariable("CMAKE_CXX_COMPILER"));
     EXPECT_EQ(CMAKE_C_COMPILER, model.GetVariable("CMAKE_C_COMPILER"));
     EXPECT_EQ(CMAKE_FILES_DIRECTORY, model.GetVariable("CMAKE_FILES_DIRECTORY"));
@@ -217,26 +173,30 @@ TEST_F(CMakeModelTest, SetupCMakePath)
     EXPECT_EQ(CMAKE_HOME_DIRECTORY, model.GetVariable("CMAKE_HOME_DIRECTORY"));
     EXPECT_EQ(CMAKE_HOST_SYSTEM_NAME, model.GetVariable("CMAKE_HOST_SYSTEM_NAME"));
     EXPECT_EQ(CMAKE_HOST_WIN32, model.GetVariable("CMAKE_HOST_WIN32"));
-    EXPECT_EQ(CMAKE_MAJOR_VERSION, model.GetVariable("CMAKE_MAJOR_VERSION"));
-    EXPECT_EQ(CMAKE_MINOR_VERSION, model.GetVariable("CMAKE_MINOR_VERSION"));
-    EXPECT_EQ(CMAKE_PARENT_LIST_FILE, model.GetVariable("CMAKE_PARENT_LIST_FILE"));
-    EXPECT_EQ(CMAKE_PATCH_VERSION, model.GetVariable("CMAKE_PATCH_VERSION"));
-    EXPECT_EQ(CMAKE_ROOT, model.GetVariable("CMAKE_ROOT"));
-    EXPECT_EQ(CMAKE_SOURCE_DIR, model.GetVariable("CMAKE_SOURCE_DIR"));
-    EXPECT_EQ(CMAKE_TWEAK_VERSION, model.GetVariable("CMAKE_TWEAK_VERSION"));
-    EXPECT_EQ(CMAKE_VERSION, model.GetVariable("CMAKE_VERSION"));
     EXPECT_EQ(ISWIN32, model.GetVariable("WIN32"));
-    EXPECT_EQ(size_t{ 0 }, model.GetProjects().size());
-    EXPECT_EQ(size_t{ 1 }, model.GetDirectories().size());
-    EXPECT_NOT_NULL(model.FindDirectory(TEST_DATA_DIR));
+    EXPECT_EQ(CMAKE_SOURCE_DIR, model.GetVariable(VarMainSourceDirectory));
+    EXPECT_EQ(CMAKE_BINARY_DIR, model.GetVariable(VarMainBinaryDirectory));
+    EXPECT_EQ(CMAKE_CURRENT_SOURCE_DIR, model.GetVariable(VarCurrentSourceDirectory));
+    EXPECT_EQ(CMAKE_CURRENT_BINARY_DIR, model.GetVariable(VarCurrentBinaryDirectory));
+    EXPECT_EQ(CMAKE_CURRENT_LIST_DIR, model.GetVariable(VarCurrentScriptDirectory));
+    EXPECT_EQ(CMAKE_CURRENT_LIST_FILE, model.GetVariable(VarCurrentScriptPath));
+    EXPECT_EQ(CMAKE_PARENT_LIST_FILE, model.GetVariable(VarParentScriptPath));
+    EXPECT_EQ(CMAKE_COMMAND, model.GetVariable(VarCMakeExePath));
+    EXPECT_EQ(CMAKE_CPACK_COMMAND, model.GetVariable(VarCPackExePath));
+    EXPECT_EQ(CMAKE_CTEST_COMMAND, model.GetVariable(VarCTestExePath));
+    EXPECT_EQ(CMAKE_MAJOR_VERSION, model.GetVariable(VarCMakeVersionMajor));
+    EXPECT_EQ(CMAKE_MINOR_VERSION, model.GetVariable(VarCMakeVersionMinor));
+    EXPECT_EQ(CMAKE_PATCH_VERSION, model.GetVariable(VarCMakeVersionPatch));
+    EXPECT_EQ(CMAKE_ROOT, model.GetVariable(VarCMakeRootPath));
+    EXPECT_EQ(CMAKE_TWEAK_VERSION, model.GetVariable(VarCMakeVersionTweak));
+    EXPECT_EQ(CMAKE_VERSION, model.GetVariable(VarCMakeVersion));
 }
 
 TEST_F(CMakeModelTest, SetupNinjaPath)
 {
     CMakeModel model;
 
-    model.SetupSourceRoot(TEST_DATA_DIR);
-    model.SetupRootCMakeFile(std::filesystem::path(TEST_DATA_DIR) / "CMakeLists.txt");
+    EXPECT_TRUE(model.SetupSourceRoot(TEST_DATA_DIR, BuildDir));
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
 
@@ -245,46 +205,92 @@ TEST_F(CMakeModelTest, SetupNinjaPath)
     EXPECT_EQ(ARGC, model.GetVariable("ARGC"));
     EXPECT_EQ(ARGN, model.GetVariable("ARGN"));
     EXPECT_EQ(ARGV, model.GetVariable("ARGV"));
-    EXPECT_EQ(CMAKE_BINARY_DIR, model.GetVariable("CMAKE_BINARY_DIR"));
     EXPECT_EQ(CMAKE_BUILD_TYPE, model.GetVariable("CMAKE_BUILD_TYPE"));
-    EXPECT_EQ(CMAKE_COMMAND, model.GetVariable("CMAKE_COMMAND"));
-    EXPECT_EQ(CMAKE_CPACK_COMMAND, model.GetVariable("CMAKE_CPACK_COMMAND"));
-    EXPECT_EQ(CMAKE_CTEST_COMMAND, model.GetVariable("CMAKE_CTEST_COMMAND"));
-    EXPECT_EQ(CMAKE_CURRENT_BINARY_DIR, model.GetVariable("CMAKE_CURRENT_BINARY_DIR"));
-    EXPECT_EQ(CMAKE_CURRENT_LIST_DIR, model.GetVariable("CMAKE_CURRENT_LIST_DIR"));
-    EXPECT_EQ(CMAKE_CURRENT_LIST_FILE, model.GetVariable("CMAKE_CURRENT_LIST_FILE"));
-    EXPECT_EQ(CMAKE_CURRENT_SOURCE_DIR, model.GetVariable("CMAKE_CURRENT_SOURCE_DIR"));
     EXPECT_EQ(CMAKE_CXX_COMPILER, model.GetVariable("CMAKE_CXX_COMPILER"));
     EXPECT_EQ(CMAKE_C_COMPILER, model.GetVariable("CMAKE_C_COMPILER"));
     EXPECT_EQ(CMAKE_FILES_DIRECTORY, model.GetVariable("CMAKE_FILES_DIRECTORY"));
-    EXPECT_EQ(CMAKE_GENERATOR, model.GetVariable("CMAKE_GENERATOR"));
     EXPECT_EQ(CMAKE_GENERATOR_INSTANCE, model.GetVariable("CMAKE_GENERATOR_INSTANCE"));
     EXPECT_EQ(CMAKE_GENERATOR_PLATFORM, model.GetVariable("CMAKE_GENERATOR_PLATFORM"));
     EXPECT_EQ(CMAKE_GENERATOR_TOOLSET, model.GetVariable("CMAKE_GENERATOR_TOOLSET"));
     EXPECT_EQ(CMAKE_HOME_DIRECTORY, model.GetVariable("CMAKE_HOME_DIRECTORY"));
     EXPECT_EQ(CMAKE_HOST_SYSTEM_NAME, model.GetVariable("CMAKE_HOST_SYSTEM_NAME"));
     EXPECT_EQ(CMAKE_HOST_WIN32, model.GetVariable("CMAKE_HOST_WIN32"));
-    EXPECT_EQ(CMAKE_MAJOR_VERSION, model.GetVariable("CMAKE_MAJOR_VERSION"));
-    EXPECT_EQ(CMAKE_MAKE_PROGRAM, model.GetVariable("CMAKE_MAKE_PROGRAM"));
-    EXPECT_EQ(CMAKE_MINOR_VERSION, model.GetVariable("CMAKE_MINOR_VERSION"));
-    EXPECT_EQ(CMAKE_PARENT_LIST_FILE, model.GetVariable("CMAKE_PARENT_LIST_FILE"));
-    EXPECT_EQ(CMAKE_PATCH_VERSION, model.GetVariable("CMAKE_PATCH_VERSION"));
-    EXPECT_EQ(CMAKE_ROOT, model.GetVariable("CMAKE_ROOT"));
-    EXPECT_EQ(CMAKE_SOURCE_DIR, model.GetVariable("CMAKE_SOURCE_DIR"));
-    EXPECT_EQ(CMAKE_TWEAK_VERSION, model.GetVariable("CMAKE_TWEAK_VERSION"));
-    EXPECT_EQ(CMAKE_VERSION, model.GetVariable("CMAKE_VERSION"));
     EXPECT_EQ(ISWIN32, model.GetVariable("WIN32"));
+    EXPECT_EQ(CMAKE_SOURCE_DIR, model.GetVariable(VarMainSourceDirectory));
+    EXPECT_EQ(CMAKE_BINARY_DIR, model.GetVariable(VarMainBinaryDirectory));
+    EXPECT_EQ(CMAKE_CURRENT_SOURCE_DIR, model.GetVariable(VarCurrentSourceDirectory));
+    EXPECT_EQ(CMAKE_CURRENT_BINARY_DIR, model.GetVariable(VarCurrentBinaryDirectory));
+    EXPECT_EQ(CMAKE_CURRENT_LIST_DIR, model.GetVariable(VarCurrentScriptDirectory));
+    EXPECT_EQ(CMAKE_CURRENT_LIST_FILE, model.GetVariable(VarCurrentScriptPath));
+    EXPECT_EQ(CMAKE_PARENT_LIST_FILE, model.GetVariable(VarParentScriptPath));
+    EXPECT_EQ(CMAKE_COMMAND, model.GetVariable(VarCMakeExePath));
+    EXPECT_EQ(CMAKE_CPACK_COMMAND, model.GetVariable(VarCPackExePath));
+    EXPECT_EQ(CMAKE_CTEST_COMMAND, model.GetVariable(VarCTestExePath));
+    EXPECT_EQ(CMAKE_MAJOR_VERSION, model.GetVariable(VarCMakeVersionMajor));
+    EXPECT_EQ(CMAKE_MINOR_VERSION, model.GetVariable(VarCMakeVersionMinor));
+    EXPECT_EQ(CMAKE_PATCH_VERSION, model.GetVariable(VarCMakeVersionPatch));
+    EXPECT_EQ(CMAKE_ROOT, model.GetVariable(VarCMakeRootPath));
+    EXPECT_EQ(CMAKE_TWEAK_VERSION, model.GetVariable(VarCMakeVersionTweak));
+    EXPECT_EQ(CMAKE_VERSION, model.GetVariable(VarCMakeVersion));
+    EXPECT_EQ(CMAKE_GENERATOR, model.GetVariable(VarCMakeGenerator));
+    EXPECT_EQ(CMAKE_MAKE_PROGRAM, model.GetVariable(VarMakeProgramPath));
+}
+
+TEST_F(CMakeModelTest, SetupCMakeFile)
+{
+    CMakeModel model;
+
+    EXPECT_TRUE(model.SetupSourceRoot(TEST_DATA_DIR, BuildDir));
+    model.SetupCMakePath(FindCMake(), GetCMakeVersion());
+    model.SetupNinjaPath(FindNinja());
+    EXPECT_TRUE(model.SetupCMakeFile("code"));
+
+    EXPECT_TRUE(model.IsSourceRootSet());
+    EXPECT_EQ(size_t{ 32 }, model.GetVariables().size());
     EXPECT_EQ(size_t{ 0 }, model.GetProjects().size());
-    EXPECT_EQ(size_t{ 1 }, model.GetDirectories().size());
+    EXPECT_EQ(size_t{ 2 }, model.GetDirectories().size());
+    EXPECT_EQ(ARGC, model.GetVariable("ARGC"));
+    EXPECT_EQ(ARGN, model.GetVariable("ARGN"));
+    EXPECT_EQ(ARGV, model.GetVariable("ARGV"));
+    EXPECT_EQ(CMAKE_BUILD_TYPE, model.GetVariable("CMAKE_BUILD_TYPE"));
+    EXPECT_EQ(CMAKE_CXX_COMPILER, model.GetVariable("CMAKE_CXX_COMPILER"));
+    EXPECT_EQ(CMAKE_C_COMPILER, model.GetVariable("CMAKE_C_COMPILER"));
+    EXPECT_EQ(CMAKE_FILES_DIRECTORY, model.GetVariable("CMAKE_FILES_DIRECTORY"));
+    EXPECT_EQ(CMAKE_GENERATOR_INSTANCE, model.GetVariable("CMAKE_GENERATOR_INSTANCE"));
+    EXPECT_EQ(CMAKE_GENERATOR_PLATFORM, model.GetVariable("CMAKE_GENERATOR_PLATFORM"));
+    EXPECT_EQ(CMAKE_GENERATOR_TOOLSET, model.GetVariable("CMAKE_GENERATOR_TOOLSET"));
+    EXPECT_EQ(CMAKE_HOME_DIRECTORY, model.GetVariable("CMAKE_HOME_DIRECTORY"));
+    EXPECT_EQ(CMAKE_HOST_SYSTEM_NAME, model.GetVariable("CMAKE_HOST_SYSTEM_NAME"));
+    EXPECT_EQ(CMAKE_HOST_WIN32, model.GetVariable("CMAKE_HOST_WIN32"));
+    EXPECT_EQ(ISWIN32, model.GetVariable("WIN32"));
+    EXPECT_EQ(CMAKE_SOURCE_DIR, model.GetVariable(VarMainSourceDirectory));
+    EXPECT_EQ(CMAKE_BINARY_DIR, model.GetVariable(VarMainBinaryDirectory));
+    EXPECT_EQ(std::filesystem::path(CMAKE_CURRENT_SOURCE_DIR) / "code", model.GetVariable(VarCurrentSourceDirectory));
+    EXPECT_EQ(std::filesystem::path(CMAKE_CURRENT_BINARY_DIR) / "code", model.GetVariable(VarCurrentBinaryDirectory));
+    EXPECT_EQ(std::filesystem::path(CMAKE_CURRENT_LIST_DIR) / "code", model.GetVariable(VarCurrentScriptDirectory));
+    EXPECT_EQ(std::filesystem::path(CMAKE_CURRENT_LIST_DIR) / "code" / "CMakeLists.txt", model.GetVariable(VarCurrentScriptPath));
+    EXPECT_EQ(CMAKE_PARENT_LIST_FILE, model.GetVariable(VarParentScriptPath));
+    EXPECT_EQ(CMAKE_COMMAND, model.GetVariable(VarCMakeExePath));
+    EXPECT_EQ(CMAKE_CPACK_COMMAND, model.GetVariable(VarCPackExePath));
+    EXPECT_EQ(CMAKE_CTEST_COMMAND, model.GetVariable(VarCTestExePath));
+    EXPECT_EQ(CMAKE_MAJOR_VERSION, model.GetVariable(VarCMakeVersionMajor));
+    EXPECT_EQ(CMAKE_MINOR_VERSION, model.GetVariable(VarCMakeVersionMinor));
+    EXPECT_EQ(CMAKE_PATCH_VERSION, model.GetVariable(VarCMakeVersionPatch));
+    EXPECT_EQ(CMAKE_ROOT, model.GetVariable(VarCMakeRootPath));
+    EXPECT_EQ(CMAKE_TWEAK_VERSION, model.GetVariable(VarCMakeVersionTweak));
+    EXPECT_EQ(CMAKE_VERSION, model.GetVariable(VarCMakeVersion));
+    EXPECT_EQ(CMAKE_GENERATOR, model.GetVariable(VarCMakeGenerator));
+    EXPECT_EQ(CMAKE_MAKE_PROGRAM, model.GetVariable(VarMakeProgramPath));
     EXPECT_NOT_NULL(model.FindDirectory(TEST_DATA_DIR));
+    EXPECT_NOT_NULL(model.FindDirectory(std::filesystem::path(TEST_DATA_DIR) / "code"));
 }
 
 TEST_F(CMakeModelTest, GetCacheVariables)
 {
     CMakeModel model;
 
-    model.SetupSourceRoot(TEST_DATA_DIR);
-    model.SetupRootCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
+    model.SetupSourceRoot(TEST_DATA_DIR, BuildDir);
+    model.SetupCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
     EXPECT_TRUE(model.IsSourceRootSet());
@@ -305,8 +311,8 @@ TEST_F(CMakeModelTest, GetVariables)
 {
     CMakeModel model;
 
-    model.SetupSourceRoot(TEST_DATA_DIR);
-    model.SetupRootCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
+    model.SetupSourceRoot(TEST_DATA_DIR, BuildDir);
+    model.SetupCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
 
@@ -339,8 +345,8 @@ TEST_F(CMakeModelTest, GetCacheVariable)
 {
     CMakeModel model;
 
-    model.SetupSourceRoot(TEST_DATA_DIR);
-    model.SetupRootCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
+    model.SetupSourceRoot(TEST_DATA_DIR, BuildDir);
+    model.SetupCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
     EXPECT_TRUE(model.IsSourceRootSet());
@@ -357,8 +363,8 @@ TEST_F(CMakeModelTest, GetVariable)
 {
     CMakeModel model;
 
-    model.SetupSourceRoot(TEST_DATA_DIR);
-    model.SetupRootCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
+    model.SetupSourceRoot(TEST_DATA_DIR, BuildDir);
+    model.SetupCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
     EXPECT_TRUE(model.IsSourceRootSet());
@@ -388,8 +394,8 @@ TEST_F(CMakeModelTest, SetVariableCache)
 {
     CMakeModel model;
 
-    model.SetupSourceRoot(TEST_DATA_DIR);
-    model.SetupRootCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
+    model.SetupSourceRoot(TEST_DATA_DIR, BuildDir);
+    model.SetupCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
     EXPECT_TRUE(model.IsSourceRootSet());
@@ -422,8 +428,8 @@ TEST_F(CMakeModelTest, SetVariableCacheForce)
 {
     CMakeModel model;
 
-    model.SetupSourceRoot(TEST_DATA_DIR);
-    model.SetupRootCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
+    model.SetupSourceRoot(TEST_DATA_DIR, BuildDir);
+    model.SetupCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
     EXPECT_TRUE(model.IsSourceRootSet());
@@ -466,8 +472,8 @@ TEST_F(CMakeModelTest, SetVariable)
 {
     CMakeModel model;
 
-    model.SetupSourceRoot(TEST_DATA_DIR);
-    model.SetupRootCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
+    model.SetupSourceRoot(TEST_DATA_DIR, BuildDir);
+    model.SetupCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
     EXPECT_TRUE(model.IsSourceRootSet());
@@ -502,8 +508,8 @@ TEST_F(CMakeModelTest, UnsetVariableCache)
 {
     CMakeModel model;
 
-    model.SetupSourceRoot(TEST_DATA_DIR);
-    model.SetupRootCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
+    model.SetupSourceRoot(TEST_DATA_DIR, BuildDir);
+    model.SetupCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
     EXPECT_TRUE(model.IsSourceRootSet());
@@ -523,8 +529,8 @@ TEST_F(CMakeModelTest, UnsetVariable)
 {
     CMakeModel model;
 
-    model.SetupSourceRoot(TEST_DATA_DIR);
-    model.SetupRootCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
+    model.SetupSourceRoot(TEST_DATA_DIR, BuildDir);
+    model.SetupCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
     EXPECT_TRUE(model.IsSourceRootSet());
@@ -559,8 +565,8 @@ TEST_F(CMakeModelTest, GetProjects)
 {
     CMakeModel model;
 
-    model.SetupSourceRoot(TEST_DATA_DIR);
-    model.SetupRootCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
+    model.SetupSourceRoot(TEST_DATA_DIR, BuildDir);
+    model.SetupCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
     EXPECT_TRUE(model.IsSourceRootSet());
@@ -602,8 +608,8 @@ TEST_F(CMakeModelTest, GetProject)
 {
     CMakeModel model;
 
-    model.SetupSourceRoot(TEST_DATA_DIR);
-    model.SetupRootCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
+    model.SetupSourceRoot(TEST_DATA_DIR, BuildDir);
+    model.SetupCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
     EXPECT_TRUE(model.IsSourceRootSet());
@@ -640,8 +646,8 @@ TEST_F(CMakeModelTest, AddProject)
 {
     CMakeModel model;
 
-    model.SetupSourceRoot(TEST_DATA_DIR);
-    model.SetupRootCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
+    model.SetupSourceRoot(TEST_DATA_DIR, BuildDir);
+    model.SetupCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
     EXPECT_TRUE(model.IsSourceRootSet());
@@ -700,8 +706,8 @@ TEST_F(CMakeModelTest, GetDirectories)
     EXPECT_EQ(size_t{ 0 }, model.GetDirectories().size());
 
     auto directoryPath = TEST_DATA_DIR;
-    model.SetupSourceRoot(directoryPath);
-    model.SetupRootCMakeFile(std::string(directoryPath) + "/CMakeLists.txt");
+    model.SetupSourceRoot(directoryPath, BuildDir);
+    model.SetupCMakeFile(std::string(directoryPath) + "/CMakeLists.txt");
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
 
@@ -715,8 +721,8 @@ TEST_F(CMakeModelTest, FindDirectory)
     std::filesystem::path directoryPath = TEST_DATA_DIR;
     EXPECT_NULL(model.FindDirectory(directoryPath));
 
-    model.SetupSourceRoot(directoryPath);
-    model.SetupRootCMakeFile((directoryPath / "CMakeLists.txt").string());
+    model.SetupSourceRoot(directoryPath, BuildDir);
+    model.SetupCMakeFile((directoryPath / "CMakeLists.txt").string());
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
 
@@ -730,8 +736,8 @@ TEST_F(CMakeModelTest, GetDirectory)
     std::filesystem::path directoryPath = TEST_DATA_DIR;
     EXPECT_EQ("", model.GetDirectory(directoryPath));
 
-    model.SetupSourceRoot(directoryPath);
-    model.SetupRootCMakeFile((directoryPath / "CMakeLists.txt").string());
+    model.SetupSourceRoot(directoryPath, BuildDir);
+    model.SetupCMakeFile((directoryPath / "CMakeLists.txt").string());
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
 
@@ -742,34 +748,36 @@ TEST_F(CMakeModelTest, AddDirectory)
 {
     CMakeModel model;
 
-    std::filesystem::path directoryPath = TEST_DATA_DIR;
-    EXPECT_EQ("", model.GetDirectory(directoryPath));
+    std::filesystem::path sourceDirectoryPath = TEST_DATA_DIR;
+    std::filesystem::path binaryDirectoryPath = std::filesystem::path(TEST_DATA_DIR) / "cmake-bin";
+    EXPECT_EQ("", model.GetDirectory(sourceDirectoryPath));
 
-    auto directory1 = std::make_shared<Directory>(directoryPath);
-    EXPECT_NULL(model.FindDirectory(directoryPath));
+    auto directory1 = std::make_shared<Directory>(sourceDirectoryPath, binaryDirectoryPath);
+    EXPECT_NULL(model.FindDirectory(sourceDirectoryPath));
 
     EXPECT_TRUE(model.AddDirectory(directory1));
 
     EXPECT_EQ(size_t{ 1 }, model.GetDirectories().size());
-    EXPECT_NOT_NULL(model.FindDirectory(directoryPath));
+    EXPECT_NOT_NULL(model.FindDirectory(sourceDirectoryPath));
 
-    std::filesystem::path subDirectoryPath = "subDir";
-    auto directory2 = std::make_shared<Directory>(subDirectoryPath, directory1);
-    EXPECT_NULL(model.FindDirectory(subDirectoryPath));
+    std::filesystem::path sourceSubDirectoryPath = "subDir";
+    std::filesystem::path binarySubDirectoryPath = "subDir";
+    auto directory2 = std::make_shared<Directory>(sourceSubDirectoryPath, binarySubDirectoryPath, directory1);
+    EXPECT_NULL(model.FindDirectory(sourceSubDirectoryPath));
 
     EXPECT_TRUE(model.AddDirectory(directory2));
 
     EXPECT_EQ(size_t{ 2 }, model.GetDirectories().size());
-    EXPECT_NOT_NULL(model.FindDirectory(subDirectoryPath));
+    EXPECT_NOT_NULL(model.FindDirectory(sourceSubDirectoryPath));
 
     EXPECT_FALSE(model.AddDirectory(directory1));
 
     EXPECT_EQ(size_t{ 2 }, model.GetDirectories().size());
-    EXPECT_NOT_NULL(model.FindDirectory(directoryPath));
+    EXPECT_NOT_NULL(model.FindDirectory(sourceDirectoryPath));
 
     auto const& subDirectories = model.GetSubDirectories(directory1);
     EXPECT_EQ(size_t{ 1 }, subDirectories.size());
-    EXPECT_NE(subDirectories.end(), subDirectories.find(subDirectoryPath));
+    EXPECT_NE(subDirectories.end(), subDirectories.find(sourceSubDirectoryPath));
     EXPECT_EQ(directory1, model.GetParentDirectory(directory2));
     EXPECT_NULL(model.GetParentDirectory(directory1));
     EXPECT_EQ(directory1, model.GetRootDirectory());

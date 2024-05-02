@@ -25,6 +25,38 @@ inline bool operator &(VariableAttribute lhs, VariableAttribute rhs)
     return (static_cast<int>(lhs) & static_cast<int>(rhs)) != 0;
 }
 
+// Variable names
+extern const std::string VarMinimumRequiredVersion;
+extern const std::string VarMainSourceDirectory;
+extern const std::string VarMainBinaryDirectory;
+extern const std::string VarCurrentSourceDirectory;
+extern const std::string VarCurrentBinaryDirectory;
+extern const std::string VarCurrentScriptDirectory;
+extern const std::string VarCurrentScriptPath;
+extern const std::string VarParentScriptPath;
+extern const std::string VarCMakeExePath;
+extern const std::string VarCPackExePath;
+extern const std::string VarCTestExePath;
+extern const std::string VarCMakeRootPath;
+extern const std::string VarCMakeVersion;
+extern const std::string VarCMakeVersionMajor;
+extern const std::string VarCMakeVersionMinor;
+extern const std::string VarCMakeVersionPatch;
+extern const std::string VarCMakeVersionTweak;
+extern const std::string VarMakeProgramPath;
+extern const std::string VarCMakeGenerator;
+extern const std::string VarProjectBinaryDir;
+extern const std::string VarProjectHomepageURL;
+extern const std::string VarProjectName;
+extern const std::string VarProjectDescription;
+extern const std::string VarProjectSourceDirectory;
+extern const std::string VarProjectVersion;
+extern const std::string VarProjectVersionMajor;
+extern const std::string VarProjectVersionMinor;
+extern const std::string VarProjectVersionPatch;
+extern const std::string VarProjectVersionTweak;
+extern const std::string CMakeScriptFileName;
+
 class CMakeModel
 {
 private:
@@ -32,32 +64,38 @@ private:
     VariableList* m_scopeVariables;
     VariableList m_environment;
     ProjectList m_projects;
+    ProjectPtr m_rootProject;
     ProjectPtr m_currentProject;
     DirectoryList m_directories;
+    DirectoryPtr m_rootDirectory;
     DirectoryPtr m_currentDirectory;
+    std::filesystem::path m_rootSourceDirectory;
+    std::filesystem::path m_rootBinaryDirectory;
     bool m_isSourceRootSet;
 
 public:
     CMakeModel();
 
     bool IsSourceRootSet() const { return m_isSourceRootSet; }
-    void SetupSourceRoot(const std::filesystem::path& root);
-    void SetupRootCMakeFile(const std::filesystem::path& rootListFile);
+    bool SetupSourceRoot(const std::filesystem::path& root, const std::string& buildDir);
     void SetupCMakePath(const std::filesystem::path& cmakePath, const std::string& cmakeVersion);
     void SetupNinjaPath(const std::filesystem::path& ninjaPath);
+    bool SetupCMakeFile(const std::string& directoryName);
 
     const TypedVariables& GetCacheVariables() const { return m_cache.GetVariables(); }
     const Variables& GetVariables() const;
     const Variables& GetEnvironmentVariables() const { return m_environment.GetVariables(); }
     std::string GetCacheVariable(const std::string& name) const { return m_cache.GetVariable(name); }
     TypedVariablePtr FindCacheVariable(const std::string& name) const { return m_cache.FindVariable(name); }
+
     std::string GetVariable(const std::string& name) const;
-    std::string GetEnvironmentVariable(const std::string& name) const { return m_environment.GetVariable(name); }
     VariablePtr FindVariable(const std::string& name) const;
-    VariablePtr FindEnvironmentVariable(const std::string& name) const { return m_environment.FindVariable(name); }
-    void SetVariable(const std::string& name, const std::string& value, VariableAttribute attributes = {}, const std::string& type = {});
-    void SetEnvironmentVariable(const std::string& name, const std::string& value);
+    void SetVariable(const std::string& name, const std::string& value, VariableAttribute attributes = {}, const std::string& type = {}, const std::string& description = {});
     void UnsetVariable(const std::string& name, VariableAttribute attributes = {});
+
+    std::string GetEnvironmentVariable(const std::string& name) const { return m_environment.GetVariable(name); }
+    VariablePtr FindEnvironmentVariable(const std::string& name) const { return m_environment.FindVariable(name); }
+    void SetEnvironmentVariable(const std::string& name, const std::string& value);
     void UnsetEnvironmentVariable(const std::string& name);
 
     const Projects& GetProjects() const { return m_projects.GetProjects(); }

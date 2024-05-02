@@ -11,12 +11,24 @@ template<typename UnderlyingType>
 class TokenType
 {
 public:
+    template<typename UnderlyingType>
+    using TokenDefinition = std::pair<TokenType<UnderlyingType>, std::string>;
+    template<typename UnderlyingType>
+    using TokenDefinitions = std::vector<TokenDefinition<UnderlyingType>>;
+    template<typename UnderlyingType>
+    friend void SetupTokenDefinitions(const TokenDefinitions<UnderlyingType>& definitions);
+    template<typename UnderlyingType>
+    friend TokenType<UnderlyingType> StringToTokenType(const std::string& text);
     static const TokenType InvalidToken;
     static const TokenType NullToken;
+
+private:
     static serialization::BidirectionalMap<TokenType, std::string, std::less<TokenType>> terminalDefinitions;
     UnderlyingType m_type;
     bool m_isInvalid;
     bool m_isNull;
+
+public:
     constexpr TokenType()
         : m_type{}
         , m_isInvalid{}
@@ -28,6 +40,7 @@ public:
         , m_isNull{}
     {}
 
+    UnderlyingType TypeCode() const { return m_type; }
     constexpr bool Equals(UnderlyingType value) const { return (m_type == value) && !m_isNull && !m_isInvalid; }
     constexpr bool Equals(const TokenType& value) const { return (m_type == value.m_type) && (m_isNull == value.m_isNull) && (m_isInvalid == value.m_isInvalid); }
     constexpr bool operator <(const TokenType& rhs) const

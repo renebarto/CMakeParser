@@ -16,7 +16,7 @@ TypedVariableList::TypedVariableList(const TypedVariableList& other)
     {
         if (var.second != nullptr)
         {
-            SetVariable(var.first, var.second->Type(), var.second->Value());
+            SetVariable(var.first, var.second->Type(), var.second->Value(), var.second->Description());
         }
     }
 }
@@ -30,7 +30,7 @@ TypedVariableList& TypedVariableList::operator = (const TypedVariableList& other
         {
             if (var.second != nullptr)
             {
-                SetVariable(var.first, var.second->Type(), var.second->Value());
+                SetVariable(var.first, var.second->Type(), var.second->Value(), var.second->Description());
             }
         }
     }
@@ -45,9 +45,9 @@ std::string TypedVariableList::GetVariable(const std::string& name) const
     return var->Value();
 }
 
-void TypedVariableList::SetVariable(const std::string& name, const std::string& type, const std::string& value)
+void TypedVariableList::SetVariable(const std::string& name, const std::string& type, const std::string& value, const std::string& description)
 {
-    AddVariable(name, std::make_shared<TypedVariable>(name, type, value));
+    AddVariable(name, std::make_shared<TypedVariable>(name, type, value, description));
 }
 
 void TypedVariableList::UnsetVariable(const std::string& name)

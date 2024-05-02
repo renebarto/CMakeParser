@@ -15,6 +15,9 @@ enum Terminal
     ForwardSlash,
     Equals,
     Dot,
+    Minus,
+    Plus,
+    Colon,
     String,
     ParenthesisOpen,
     ParenthesisClose,
@@ -35,7 +38,6 @@ class Lexer
 {
 private:
     parser::Tokenizer<Terminal> m_tokenizer;
-    parser::TokenList<Terminal> m_tokens;
 
 public:
     Lexer(const std::filesystem::path& path, std::istream& stream);

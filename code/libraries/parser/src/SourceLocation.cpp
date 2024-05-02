@@ -49,7 +49,7 @@ std::string SourceLocation::Serialize() const
 {
     if (!IsValid())
         return "??";
-    return m_unitPath.string() + "(" + std::to_string(m_line) + ":" + std::to_string(m_col) + ")";
+    return m_unitPath.generic_string() + "(" + std::to_string(m_line) + ":" + std::to_string(m_col) + ")";
 }
 
 bool operator ==(const SourceLocation& lhs, const SourceLocation& rhs)

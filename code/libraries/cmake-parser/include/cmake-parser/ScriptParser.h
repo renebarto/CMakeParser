@@ -6,21 +6,20 @@
 
 namespace cmake_parser {
 
-enum class State;
-
-class Parser
+class ScriptParser
     : public parser::IParserCallback<Terminal>
 {
 private:
+    std::filesystem::path m_path;
     Lexer m_lexer;
     parser::Token<Terminal> m_currentToken;
     int m_errorCount;
-    CMakeModel m_model;
+    CMakeModel& m_model;
     ProjectPtr m_mainProject;
     ProjectPtr m_currentProject;
 
 public:
-    Parser(const std::filesystem::path& rootDurectory, const std::string& fileName, std::istream& stream);
+    ScriptParser(CMakeModel& model, const std::filesystem::path& rootDirectory, std::istream& stream);
     bool Parse();
 
     const CMakeModel& GetModel() const { return m_model; }
@@ -40,18 +39,19 @@ public:
     parser::Token<Terminal> Expect(std::set<Terminal> oneOfTypes);
     parser::Token<Terminal> Expect_SkipWhitespace(std::set<Terminal> oneOfTypes);
     std::string ExpectVariable();
+    std::filesystem::path ExpectPath(const std::set<Terminal>& finalizers);
     std::string ExpectExpression(const std::set<Terminal>& finalizers);
     std::string ExpectExpressionPart();
 
-    //bool HandleKeyword();
+    std::string Evaluate(const std::string& expression) const;
     bool HandleCMakeMinimumRequired();
     bool HandleProject();
     bool HandleMessage();
     bool IsValidMessageMode(const std::string& mode);
     bool HandleSet();
     bool HandleUnset();
-    //void HandleIf();
-    //std::string GetExpression(const parser::Token<Terminal>& token);
+    bool HandleAddSubdirectory();
+    bool HandleUnsupported();
 
     bool OnToken(const parser::Token<Terminal>&, bool& done) override;
     bool OnNoMoreToken(const parser::SourceLocation& location) override;

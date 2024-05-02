@@ -46,7 +46,7 @@ JSONValuePtr Parser::ParseValue()
         }
         if (!token.IsNull())
         {
-            switch (token.Type().m_type)
+            switch (token.Type().TypeCode())
             {
             case TokenTypes::Null:
                 return CreateValue(nullptr);
@@ -163,7 +163,7 @@ bool Parser::Expect(std::set<TokenTypes> oneOfTypes, Token<TokenTypes>& token)
     {
         token = m_lexer.GetToken();
     } while (token.Type() == TokenTypes::Whitespace);
-    if (oneOfTypes.find(token.Type().m_type) == oneOfTypes.end())
+    if (oneOfTypes.find(token.Type().TypeCode()) == oneOfTypes.end())
     {
         OnParseError(token.Value(), token.BeginLocation(), token.EndLocation());
         return false;

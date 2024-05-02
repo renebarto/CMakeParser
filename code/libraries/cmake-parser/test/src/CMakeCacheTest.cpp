@@ -29,9 +29,9 @@ TEST_F(CMakeCacheTest, Construct)
 TEST_F(CMakeCacheTest, ConstructCopy)
 {
     CMakeCache other;
-    other.SetVariable("a", "STRING", "x");
-    other.SetVariable("b", "FILEPATH", "y");
-    other.SetVariable("c", "BOOL", "ON");
+    other.SetVariable("a", "STRING", "x", "\"var a\"");
+    other.SetVariable("b", "FILEPATH", "y", "\"var b\"");
+    other.SetVariable("c", "BOOL", "ON", "\"var c\"");
 
     CMakeCache cache(other);
 
@@ -52,15 +52,15 @@ TEST_F(CMakeCacheTest, ConstructCopy)
     EXPECT_EQ("ON", cache.GetVariable("c"));
     EXPECT_NOT_NULL(cache.FindVariable("c"));
     EXPECT_NE(other.FindVariable("c"), cache.FindVariable("c"));
-    EXPECT_EQ("CMakeCache:\nTypedVariable a:STRING = x\nTypedVariable b:FILEPATH = y\nTypedVariable c:BOOL = ON\n", cache.Serialize());
+    EXPECT_EQ("CMakeCache:\nTypedVariable a:STRING = x (\"var a\")\nTypedVariable b:FILEPATH = y (\"var b\")\nTypedVariable c:BOOL = ON (\"var c\")\n", cache.Serialize());
 }
 
 TEST_F(CMakeCacheTest, Assign)
 {
     CMakeCache other;
-    other.SetVariable("a", "STRING", "x");
-    other.SetVariable("b", "FILEPATH", "y");
-    other.SetVariable("c", "BOOL", "ON");
+    other.SetVariable("a", "STRING", "x", "\"var a\"");
+    other.SetVariable("b", "FILEPATH", "y", "\"var b\"");
+    other.SetVariable("c", "BOOL", "ON", "\"var c\"");
 
     CMakeCache cache;
     
@@ -93,7 +93,7 @@ TEST_F(CMakeCacheTest, SetVariable)
     EXPECT_EQ("", cache.GetVariable("DUMMY"));
     EXPECT_NULL(cache.FindVariable("DUMMY"));
 
-    cache.SetVariable("x", "STRING", "y");
+    cache.SetVariable("x", "STRING", "y", "\"var x\"");
 
     EXPECT_EQ(size_t{ 1 }, cache.GetVariables().size());
     EXPECT_EQ("", cache.GetVariable("DUMMY"));
@@ -103,6 +103,7 @@ TEST_F(CMakeCacheTest, SetVariable)
     EXPECT_EQ("x", cache.FindVariable("x")->Name());
     EXPECT_EQ("STRING", cache.FindVariable("x")->Type());
     EXPECT_EQ("y", cache.FindVariable("x")->Value());
+    EXPECT_EQ("\"var x\"", cache.FindVariable("x")->Description());
 }
 
 TEST_F(CMakeCacheTest, UnsetVariable)
@@ -113,7 +114,7 @@ TEST_F(CMakeCacheTest, UnsetVariable)
     EXPECT_EQ("", cache.GetVariable("DUMMY"));
     EXPECT_NULL(cache.FindVariable("DUMMY"));
 
-    cache.SetVariable("x", "STRING", "y");
+    cache.SetVariable("x", "STRING", "y", "\"var x\"");
 
     EXPECT_EQ(size_t{ 1 }, cache.GetVariables().size());
     EXPECT_EQ("", cache.GetVariable("DUMMY"));
@@ -146,7 +147,7 @@ TEST_F(CMakeCacheTest, AddVariable)
     EXPECT_EQ("", cache.GetVariable("DUMMY"));
     EXPECT_NULL(cache.FindVariable("DUMMY"));
 
-    cache.AddVariable("x", std::make_shared<TypedVariable>("x", "STRING", "y"));
+    cache.AddVariable("x", std::make_shared<TypedVariable>("x", "STRING", "y", "\"var x\""));
 
     EXPECT_EQ(size_t{ 1 }, cache.GetVariables().size());
     EXPECT_EQ("", cache.GetVariable("DUMMY"));
@@ -156,14 +157,15 @@ TEST_F(CMakeCacheTest, AddVariable)
     EXPECT_EQ("x", cache.FindVariable("x")->Name());
     EXPECT_EQ("STRING", cache.FindVariable("x")->Type());
     EXPECT_EQ("y", cache.FindVariable("x")->Value());
+    EXPECT_EQ("\"var x\"", cache.FindVariable("x")->Description());
 }
 
 TEST_F(CMakeCacheTest, StreamInsertion)
 {
     CMakeCache cache;
-    cache.SetVariable("a", "STRING", "x");
-    cache.SetVariable("b", "FILEPATH", "y");
-    cache.SetVariable("c", "BOOL", "ON");
+    cache.SetVariable("a", "STRING", "x", "\"var a\"");
+    cache.SetVariable("b", "FILEPATH", "y", "\"var b\"");
+    cache.SetVariable("c", "BOOL", "ON", "\"var c\"");
 
     EXPECT_EQ(size_t{ 3 }, cache.GetVariables().size());
     EXPECT_EQ("x", cache.GetVariable("a"));
@@ -175,7 +177,7 @@ TEST_F(CMakeCacheTest, StreamInsertion)
 
     std::ostringstream stream;
     stream << cache;
-    EXPECT_EQ("CMakeCache:\nTypedVariable a:STRING = x\nTypedVariable b:FILEPATH = y\nTypedVariable c:BOOL = ON\n", stream.str());
+    EXPECT_EQ("CMakeCache:\nTypedVariable a:STRING = x (\"var a\")\nTypedVariable b:FILEPATH = y (\"var b\")\nTypedVariable c:BOOL = ON (\"var c\")\n", stream.str());
 }
 
 } // namespace cmake_parser

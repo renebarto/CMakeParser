@@ -15,6 +15,9 @@ static TokenDefinitions<Terminal> tokenDefinitions {
     TOKEN_DEF(ForwardSlash),
     TOKEN_DEF(Equals),
     TOKEN_DEF(Dot),
+    TOKEN_DEF(Minus),
+    TOKEN_DEF(Plus),
+    TOKEN_DEF(Colon),
     TOKEN_DEF(String),
     TOKEN_DEF(ParenthesisOpen),
     TOKEN_DEF(ParenthesisClose),
@@ -33,6 +36,9 @@ static TokenizerRules<Terminal> tokenizerRules{
     { "\\/", ForwardSlash },
     { "=", Equals },
     { "\\.", Dot },
+    { "\\-", Minus },
+    { "\\+", Plus },
+    { "\\:", Plus },
     { "\\(", ParenthesisOpen },
     { "\\)", ParenthesisClose },
     { "\\{", CurlyBracketOpen },
@@ -50,7 +56,6 @@ static TokenizerRules<Terminal> tokenizerRules{
 
 Lexer::Lexer(const std::filesystem::path& path, std::istream& stream)
     : m_tokenizer(path, stream)
-    , m_tokens{}
 {
     TokenDefinitions<Terminal> allTokenDefinitions{ tokenDefinitions };
     SetupTokenDefinitions(allTokenDefinitions);

@@ -19,7 +19,7 @@ public:
 
     const TypedVariables& GetVariables() const { return m_variables; }
     std::string GetVariable(const std::string& name) const;
-    void SetVariable(const std::string& name, const std::string& type, const std::string& value);
+    void SetVariable(const std::string& name, const std::string& type, const std::string& value, const std::string& description);
     void UnsetVariable(const std::string& name);
 
     TypedVariablePtr FindVariable(const std::string& name) const;

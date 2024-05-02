@@ -16,7 +16,7 @@ std::filesystem::path DirectoryList::GetDirectory(const std::filesystem::path& p
     auto dir = FindDirectory(path);
     if (!dir)
         return {};
-    return dir->Path();
+    return dir->SourcePath();
 }
 
 DirectoryPtr DirectoryList::FindDirectory(const std::filesystem::path& path) const
@@ -30,29 +30,29 @@ bool DirectoryList::AddDirectory(DirectoryPtr directory)
     bool result{};
     if (directory == nullptr)
         return false;
-    if (FindDirectory(directory->Path()) != nullptr)
+    if (FindDirectory(directory->SourcePath()) != nullptr)
         return false;
     if (directory->Parent() == nullptr)
     {
         if (m_rootDirectory == nullptr)
         {
-            TRACE_DEBUG("Set main project {}", directory->Path().string());
+            TRACE_DEBUG("Set main project {}", directory->SourcePath().string());
             m_rootDirectory = directory;
         }
         else
         {
-            TRACE_WARNING("Main project already set when adding project {}", directory->Path().string());
+            TRACE_WARNING("Main project already set when adding project {}", directory->SourcePath().string());
         }
     }
     else
     {
-        if (FindDirectory(directory->Parent()->Path()) != directory->Parent())
+        if (FindDirectory(directory->Parent()->SourcePath()) != directory->Parent())
             return false;
     }
-    std::string parentPath = (directory->Parent() != nullptr) ? directory->Parent()->Path().string() : "";
+    std::string parentPath = (directory->Parent() != nullptr) ? directory->Parent()->SourcePath().string() : "";
 
-    TRACE_DEBUG("Add directory {} parent {}", directory->Path().string(), parentPath);
-    m_directories.insert(std::make_pair(directory->Path(), directory));
+    TRACE_DEBUG("Add directory {} parent {}", directory->SourcePath().string(), parentPath);
+    m_directories.insert(std::make_pair(directory->SourcePath(), directory));
     return true;
 }
 

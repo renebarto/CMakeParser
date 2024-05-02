@@ -11,7 +11,7 @@ static utility::ConsoleColor GetColorForCategory(TraceCategory category)
     switch (category)
     {
     case TraceCategory::Error:          return utility::ConsoleColor::Red;
-    case TraceCategory::Warning:        return utility::ConsoleColor::Magenta;
+    case TraceCategory::Warning:        return utility::ConsoleColor::Magenta | utility::ConsoleColor::Intensity;
     case TraceCategory::Information:    return utility::ConsoleColor::Green;
     case TraceCategory::Data:           return utility::ConsoleColor::Cyan;
     case TraceCategory::Debug:          return utility::ConsoleColor::Yellow;

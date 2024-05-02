@@ -4,9 +4,9 @@
 
 using namespace cmake_parser;
 
-#define VAR(name, type, value) { #name, {#type, value }}
+#define VAR(name, type, value, description) { #name, {#type, value, description }}
 
-static const std::map<std::string, std::pair<std::string, std::string>> DefaultVariables
+static const std::map<std::string, std::tuple<std::string, std::string, std::string>> DefaultVariables
 {
 //    VAR(CMAKE_BUILD_TYPE, STRING, "Debug"),
 };
@@ -16,7 +16,7 @@ CMakeCache::CMakeCache()
 {
     for (auto var : DefaultVariables)
     {
-        auto variable = std::make_shared<TypedVariable>(var.first, var.second.first, var.second.second);
+        auto variable = std::make_shared<TypedVariable>(var.first, std::get<0>(var.second), std::get<1>(var.second), std::get<2>(var.second));
         AddVariable(var.first, variable);
     }
 }
@@ -31,9 +31,9 @@ std::string CMakeCache::GetVariable(const std::string& name) const
     return m_variables.GetVariable(name);
 }
 
-void CMakeCache::SetVariable(const std::string& name, const std::string& type, const std::string& value)
+void CMakeCache::SetVariable(const std::string& name, const std::string& type, const std::string& value, const std::string& description)
 {
-    m_variables.SetVariable(name, type, value);
+    m_variables.SetVariable(name, type, value, description);
 }
 
 void CMakeCache::UnsetVariable(const std::string& name)

@@ -45,7 +45,7 @@ public:
         console << "From " << from << " input " << input << " data " << data;
         if (from == state1)
         {
-            switch (input.m_type)
+            switch (input.TypeCode())
             {
             case Terminal::A:
                 newState = state1;
@@ -57,7 +57,7 @@ public:
         }
         else if (from == state2)
         {
-            switch (input.m_type)
+            switch (input.TypeCode())
             {
             case Terminal::A:
                 newState = state1;
@@ -69,7 +69,7 @@ public:
         }
         else if (from == state3)
         {
-            switch (input.m_type)
+            switch (input.TypeCode())
             {
             case Terminal::A:
                 newState = state2;

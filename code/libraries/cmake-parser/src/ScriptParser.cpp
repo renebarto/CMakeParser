@@ -1,9 +1,11 @@
-#include "cmake-parser/Parser.h"
+#include "cmake-parser/ScriptParser.h"
 
+#include <fstream>
 #include "serialization/EnumSerialization.h"
 #include "utility/CommandLine.h"
 #include "utility/StringFunctions.h"
 #include "tracing/Tracing.h"
+#include "cmake-parser/Expression.h"
 #include "cmake-parser/ParserExceptions.h"
 
 using namespace utility;
@@ -14,10 +16,12 @@ namespace cmake_parser {
 
 using Data = Token<Terminal>;
 
+// Project attributes
 static const std::string VersionKeyword{ "version" };
 static const std::string DescriptionKeyword{ "description" };
 static const std::string LanguagesKeyword{ "languages" };
 
+// Message types
 static const std::string MessageModeFatalError{ "FATAL_ERROR" };
 static const std::string MessageModeSendError{ "SEND_ERROR" };
 static const std::string MessageModeWarning{ "WARNING" };
@@ -29,6 +33,7 @@ static const std::string MessageModeVerbose{ "VERBOSE" };
 static const std::string MessageModeDebug{ "DEBUG" };
 static const std::string MessageModeTrace{ "TRACE" };
 
+// Variable attributes
 static const std::string EnvironmentPrefix{ "ENV" };
 static const std::string KeywordCache{ "CACHE" };
 static const std::string KeywordParentScope{ "PARENT_SCOPE" };
@@ -40,10 +45,13 @@ enum class Keyword {
     CMakeMinimumRequired,
     Else,
     EndForEach,
+    EndFunction,
     EndIf,
     FindPackage,
     Force,
     ForEach,
+    Function,
+    GetCMakeProperty,
     If,
     Include,
     List,
@@ -69,10 +77,13 @@ const BidirectionalMap<cmake_parser::Keyword, std::string> EnumSerializationMap<
     { cmake_parser::Keyword::CMakeMinimumRequired, "cmake_minimum_required" },
     { cmake_parser::Keyword::Else, "else" },
     { cmake_parser::Keyword::EndForEach, "endforeach" },
+    { cmake_parser::Keyword::EndFunction, "endfunction" },
     { cmake_parser::Keyword::EndIf, "endif" },
     { cmake_parser::Keyword::FindPackage, "find_package" },
     { cmake_parser::Keyword::Force, "force" },
     { cmake_parser::Keyword::ForEach, "foreach" },
+    { cmake_parser::Keyword::Function, "function" },
+    { cmake_parser::Keyword::GetCMakeProperty, "get_cmake_property" },
     { cmake_parser::Keyword::If, "if" },
     { cmake_parser::Keyword::Include, "include" },
     { cmake_parser::Keyword::List, "list" },
@@ -93,11 +104,6 @@ namespace cmake_parser {
 inline std::ostream& operator << (std::ostream& stream, Keyword keyword)
 {
     return stream << serialization::Serialize(keyword);
-}
-
-inline std::ostream& operator << (std::ostream& stream, State state)
-{
-    return stream << serialization::Serialize(state);
 }
 
 static bool LookupKeyword(const Token<Terminal>& token, Keyword& keyword)
@@ -128,58 +134,28 @@ static void PrintTokenSkip(const Token<Terminal>& token)
     TRACE_DEBUG("Skip: {}", token);
 }
 
-static std::string FindCMake()
-{
-    std::string stdoutText;
-    std::string stderrText;
-    if (SystemRedirect("where cmake", "", stdoutText, stderrText) == 0)
-        return stdoutText.substr(0, stdoutText.find_first_of("\r\n", 0));
-    return {};
-}
-
-static std::string GetCMakeVersion()
-{
-    std::string stdoutText;
-    std::string stderrText;
-    if (SystemRedirect("cmake --version", "", stdoutText, stderrText) == 0)
-    {
-        auto line = stdoutText.substr(0, stdoutText.find_first_of("\r\n", 0));
-        std::string prefix = "cmake version ";
-        return line.substr(prefix.length());
-    }
-    return {};
-}
-
-static std::string FindNinja()
-{
-    std::string stdoutText;
-    std::string stderrText;
-    if (SystemRedirect("where ninja", "", stdoutText, stderrText) == 0)
-        return stdoutText.substr(0, stdoutText.find_first_of("\r\n", 0));
-    return {};
-}
-
-Parser::Parser(const std::filesystem::path& rootDurectory, const std::string& fileName, std::istream& stream)
-	: m_lexer(rootDurectory / fileName, stream)
+ScriptParser::ScriptParser(CMakeModel& model, const std::filesystem::path& rootDirectory, std::istream& stream)
+    : m_path{ rootDirectory / CMakeScriptFileName }
+    , m_lexer{ m_path, stream }
+    , m_currentToken{}
     , m_errorCount{}
-    , m_model{}
+    , m_model{ model }
     , m_mainProject{}
     , m_currentProject{}
 {
-    m_model.SetupSourceRoot(rootDurectory);
-    m_model.SetupRootCMakeFile(rootDurectory / fileName);
-    m_model.SetupCMakePath(FindCMake(), GetCMakeVersion());
-    m_model.SetupNinjaPath(FindNinja());
 }
 
-bool Parser::Parse()
+bool ScriptParser::Parse()
 {
+    TRACE_INFO("Start parsing {}", m_path.generic_string());
     ParserExecutor<Terminal> parserExecutor(*this, { Terminal::Whitespace, Terminal::NewLine });
 
-    return parserExecutor.Parse(m_lexer) && (m_errorCount == 0);
+    auto result = parserExecutor.Parse(m_lexer) && (m_errorCount == 0);
+    TRACE_INFO("End parsing {}: result {}, errors {}", m_path.generic_string(), result, m_errorCount);
+    return result;
 }
 
-std::string Parser::ParseVersion(const TerminalSet& endTerminals)
+std::string ScriptParser::ParseVersion(const TerminalSet& endTerminals)
 {
     std::string version;
 
@@ -187,23 +163,9 @@ std::string Parser::ParseVersion(const TerminalSet& endTerminals)
     {
         NextToken();
         SkipWhitespace();
-        version = Expect(Terminal::DigitSequence);
-        version += Expect(Terminal::Dot);
-        version += Expect(Terminal::DigitSequence);
-        if (CurrentTokenInSet(endTerminals))
-        {
-            UngetCurrentToken();
-            return version;
-        }
-        version += Expect(Terminal::Dot);
-        version += Expect(Terminal::DigitSequence);
-        if (CurrentTokenInSet(endTerminals))
-        {
-            UngetCurrentToken();
-            return version;
-        }
-        version += Expect(Terminal::Dot);
-        version += Expect(Terminal::DigitSequence);
+        auto expressionText = ExpectExpression(endTerminals);
+        expression::Expression expr(m_model, expressionText);
+        version = expr.Evaluate();
     }
     catch (std::exception&)
     { 
@@ -213,7 +175,7 @@ std::string Parser::ParseVersion(const TerminalSet& endTerminals)
     return version;
 }
 
-std::string Parser::ParseDescription()
+std::string ScriptParser::ParseDescription()
 {
     std::string description;
 
@@ -231,7 +193,7 @@ std::string Parser::ParseDescription()
     return description;
 }
 
-std::string Parser::ParseLanguages(const TerminalSet& endTerminals)
+std::string ScriptParser::ParseLanguages(const TerminalSet& endTerminals)
 {
     std::string languages;
 
@@ -256,34 +218,34 @@ std::string Parser::ParseLanguages(const TerminalSet& endTerminals)
     return languages;
 }
 
-void Parser::NextToken()
+void ScriptParser::NextToken()
 {
     m_currentToken = m_lexer.GetToken();
     PrintToken(CurrentToken());
 }
 
-Terminal Parser::CurrentTokenType()
+Terminal ScriptParser::CurrentTokenType()
 {
-    return CurrentToken().Type().m_type;
+    return CurrentToken().Type().TypeCode();
 }
 
-const parser::Token<Terminal>& Parser::CurrentToken()
+const parser::Token<Terminal>& ScriptParser::CurrentToken()
 {
     return m_currentToken;
 }
 
-bool Parser::CurrentTokenInSet(const TerminalSet& terminals)
+bool ScriptParser::CurrentTokenInSet(const TerminalSet& terminals)
 {
     return terminals.find(CurrentTokenType()) != terminals.end();
 }
 
-void Parser::UngetCurrentToken()
+void ScriptParser::UngetCurrentToken()
 {
     m_lexer.UngetToken(CurrentToken());
     PrintUngetToken(CurrentToken());
 }
 
-void Parser::SkipWhitespace()
+void ScriptParser::SkipWhitespace()
 {
     while ((CurrentTokenType() == Terminal::Whitespace) || (CurrentTokenType() == Terminal::NewLine))
     {
@@ -291,7 +253,7 @@ void Parser::SkipWhitespace()
     }
 }
 
-std::string Parser::Expect(Terminal type)
+std::string ScriptParser::Expect(Terminal type)
 {
     if (CurrentTokenType() != type)
     {
@@ -303,13 +265,13 @@ std::string Parser::Expect(Terminal type)
     return result;
 }
 
-std::string Parser::Expect_SkipWhitespace(Terminal type)
+std::string ScriptParser::Expect_SkipWhitespace(Terminal type)
 {
     SkipWhitespace();
     return Expect(type);
 }
 
-Token<Terminal> Parser::Expect(std::set<Terminal> oneOfTypes)
+Token<Terminal> ScriptParser::Expect(std::set<Terminal> oneOfTypes)
 {
     if (oneOfTypes.find(CurrentTokenType()) == oneOfTypes.end())
     {
@@ -321,13 +283,74 @@ Token<Terminal> Parser::Expect(std::set<Terminal> oneOfTypes)
     return result;
 }
 
-Token<Terminal> Parser::Expect_SkipWhitespace(std::set<Terminal> oneOfTypes)
+Token<Terminal> ScriptParser::Expect_SkipWhitespace(std::set<Terminal> oneOfTypes)
 {
     SkipWhitespace();
     return Expect(oneOfTypes);
 }
 
-bool Parser::HandleCMakeMinimumRequired()
+std::string ScriptParser::ExpectVariable()
+{
+    std::string result;
+
+    Expect(Terminal::CurlyBracketOpen);
+    result = Expect(Terminal::Identifier);
+    Expect(Terminal::CurlyBracketClose);
+
+    return result;
+}
+
+std::filesystem::path ScriptParser::ExpectPath(const std::set<Terminal>& finalizers)
+{
+    auto expression = ExpectExpression(finalizers);
+    std::filesystem::path path = m_model.GetVariable(VarCurrentSourceDirectory);
+    path = std::filesystem::canonical(path / expression);
+    if (!std::filesystem::exists(path))
+    {
+        throw UnexpectedPath(expression, __FILE__, __LINE__);
+    }
+    return path;
+}
+
+std::string ScriptParser::ExpectExpression(const std::set<Terminal>& finalizers)
+{
+    std::string value{};
+
+    while (finalizers.find(CurrentToken().Type().TypeCode()) == finalizers.end())
+    {
+        value += ExpectExpressionPart();
+    }
+    return value;
+}
+
+std::string ScriptParser::ExpectExpressionPart()
+{
+    std::string result;
+
+    switch (CurrentToken().Type().TypeCode())
+    {
+    case Terminal::Dollar:
+        result = Expect(Terminal::Dollar);
+        result += Expect(Terminal::CurlyBracketOpen);
+        result += Expect(Terminal::Identifier);
+        result += Expect(Terminal::CurlyBracketClose);
+        return result;
+    default:
+        break;
+    }
+
+    result = CurrentToken().Value();
+    NextToken();
+    return result;
+}
+
+std::string ScriptParser::Evaluate(const std::string& expression) const
+{
+    expression::Expression expr(GetModel(), expression);
+    return expr.Evaluate();
+}
+
+bool ScriptParser::HandleCMakeMinimumRequired()
 {
     Expect_SkipWhitespace(Terminal::ParenthesisOpen);
     std::string str = Expect_SkipWhitespace(Terminal::Identifier);
@@ -337,11 +360,11 @@ bool Parser::HandleCMakeMinimumRequired()
     if (result.empty())
         return false;
     Expect_SkipWhitespace(Terminal::ParenthesisClose);
-    m_model.SetVariable("CMAKE_MINIMUM_REQUIRED_VERSION", result);
+    m_model.SetVariable(VarMinimumRequiredVersion, result);
     return true;
 }
 
-bool Parser::HandleProject()
+bool ScriptParser::HandleProject()
 {
     Expect_SkipWhitespace(Terminal::ParenthesisOpen);
     auto result = Expect_SkipWhitespace(Terminal::Name);
@@ -385,7 +408,7 @@ bool Parser::HandleProject()
     return true;
 }
 
-bool Parser::HandleMessage()
+bool ScriptParser::HandleMessage()
 {
     Expect_SkipWhitespace(Terminal::ParenthesisOpen);
     auto token = Expect_SkipWhitespace({ Terminal::Identifier, Terminal::String });
@@ -410,7 +433,7 @@ bool Parser::HandleMessage()
     return true;
 }
 
-bool Parser::IsValidMessageMode(const std::string& mode)
+bool ScriptParser::IsValidMessageMode(const std::string& mode)
 {
     return
         IsEqualIgnoreCase(MessageModeFatalError, mode) ||
@@ -425,7 +448,7 @@ bool Parser::IsValidMessageMode(const std::string& mode)
         IsEqualIgnoreCase(MessageModeTrace, mode);
 }
 
-bool Parser::HandleSet()
+bool ScriptParser::HandleSet()
 {
     std::set<Terminal> finalizers = { Terminal::Whitespace , Terminal::NewLine, Terminal::ParenthesisClose };
 
@@ -470,7 +493,10 @@ bool Parser::HandleSet()
                         if (CurrentToken().Type() != Terminal::ParenthesisClose)
                         {
                             if (IsEqualIgnoreCase(KeywordForce, CurrentToken().Value()))
+                            {
+                                Expect(Terminal::Identifier);
                                 variableAttributes = variableAttributes | VariableAttribute::Force;
+                            }
                             else
                                 throw UnexpectedToken(CurrentToken(), __FILE__, __LINE__);
                         }
@@ -494,7 +520,7 @@ bool Parser::HandleSet()
             }
             else
             {
-                m_model.SetVariable(variableName, value, variableAttributes, variableType);
+                m_model.SetVariable(variableName, value, variableAttributes, variableType, description);
             }
         }
         else
@@ -506,7 +532,7 @@ bool Parser::HandleSet()
     return true;
 }
 
-bool Parser::HandleUnset()
+bool ScriptParser::HandleUnset()
 {
     Expect_SkipWhitespace(Terminal::ParenthesisOpen);
     SkipWhitespace();
@@ -543,59 +569,49 @@ bool Parser::HandleUnset()
     return true;
 }
 
-std::string Parser::ExpectVariable()
+bool ScriptParser::HandleAddSubdirectory()
 {
-    std::string result;
+    std::set<Terminal> finalizers = { Terminal::Whitespace , Terminal::NewLine, Terminal::ParenthesisClose };
 
-    Expect(Terminal::CurlyBracketOpen);
-    result = Expect(Terminal::Identifier);
-    Expect(Terminal::CurlyBracketClose);
+    Expect_SkipWhitespace(Terminal::ParenthesisOpen);
+    auto path = ExpectPath(finalizers);
+    Expect_SkipWhitespace(Terminal::ParenthesisClose);
+    m_model.SetVariable(VarCurrentSourceDirectory, path.generic_string());
 
-    return result;
+    std::ifstream stream(path / CMakeScriptFileName);
+    ScriptParser parser(m_model, path, stream);
+
+    return parser.Parse();
 }
 
-std::string Parser::ExpectExpression(const std::set<Terminal>& finalizers)
+bool ScriptParser::HandleUnsupported()
 {
-    std::string value{};
-
-    while (finalizers.find(CurrentToken().Type().m_type) == finalizers.end())
+    Expect_SkipWhitespace(Terminal::ParenthesisOpen);
+    do
     {
-        value += ExpectExpressionPart();
-    }
-    return value;
+        SkipWhitespace();
+        if (CurrentToken().Type() == Terminal::ParenthesisOpen)
+            HandleUnsupported();
+        else if (CurrentToken().Type() != Terminal::ParenthesisClose)
+            NextToken();
+    } while (CurrentToken().Type() != Terminal::ParenthesisClose);
+    Expect_SkipWhitespace(Terminal::ParenthesisClose);
+    return true;
 }
 
-std::string Parser::ExpectExpressionPart()
-{
-    std::string result;
-
-    switch (CurrentToken().Type().m_type)
-    {
-    case Terminal::Dollar:
-        result = Expect(Terminal::Dollar);
-        result += Expect(Terminal::CurlyBracketOpen);
-        result += Expect(Terminal::Identifier);
-        result += Expect(Terminal::CurlyBracketClose);
-        return result;
-    default:
-        break;
-    }
-
-    result = CurrentToken().Value();
-    NextToken();
-    return result;
-}
-
-bool Parser::OnToken(const parser::Token<Terminal>& token, bool& done)
+bool ScriptParser::OnToken(const parser::Token<Terminal>& token, bool& done)
 {
     PrintToken(token);
     NextToken();
     Keyword keyword;
+    bool result{};
     if (!LookupKeyword(token, keyword))
     {
-        return false;
+        if (token.Type() == Terminal::Comment)
+            return true;
+        TRACE_WARNING("Skipping unknown token {}", token.Value());
+        return HandleUnsupported();
     }
-    bool result{};
     switch (keyword)
     {
     case Keyword::CMakeMinimumRequired:
@@ -613,6 +629,25 @@ bool Parser::OnToken(const parser::Token<Terminal>& token, bool& done)
     case Keyword::Unset:
         result = HandleUnset();
         break;
+    case Keyword::AddSubDirectory:
+        result = HandleAddSubdirectory();
+        break;
+    case Keyword::Else:
+    case Keyword::EndForEach:
+    case Keyword::EndFunction:
+    case Keyword::EndIf:
+    case Keyword::FindPackage:
+    case Keyword::ForEach:
+    case Keyword::Function:
+    case Keyword::GetCMakeProperty:
+    case Keyword::If:
+    case Keyword::Include:
+    case Keyword::List:
+    case Keyword::Option:
+    case Keyword::String:
+        TRACE_WARNING("Skipping unsupported keyword {}", keyword);
+        result = HandleUnsupported();
+        break;
     default:
         break;
     }
@@ -621,18 +656,18 @@ bool Parser::OnToken(const parser::Token<Terminal>& token, bool& done)
     return result;
 }
 
-bool Parser::OnNoMoreToken(const parser::SourceLocation& /*location*/)
+bool ScriptParser::OnNoMoreToken(const parser::SourceLocation& /*location*/)
 {
     TRACE_INFO("No more tokens");
     return true;
 }
 
-void Parser::OnSkipToken(const parser::Token<Terminal>& token)
+void ScriptParser::OnSkipToken(const parser::Token<Terminal>& token)
 {
     PrintTokenSkip(token);
 }
 
-void Parser::OnParseError(const parser::Token<Terminal>& token)
+void ScriptParser::OnParseError(const parser::Token<Terminal>& token)
 {
     m_errorCount++;
     TRACE_ERROR("Parse error: unexpected token {}", token);

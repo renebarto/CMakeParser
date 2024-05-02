@@ -24,6 +24,25 @@ public:
     const parser::SourceLocation& Location() const { return m_location; }
 };
 
+class UnexpectedPath
+    : public std::exception
+{
+private:
+    std::string m_message;
+    parser::SourceLocation m_location;
+
+public:
+    UnexpectedPath(const std::string& path, const char* fileName, int line)
+        : m_message{ "Unexpected path: " + path }
+        , m_location{ fileName, line, 1 }
+    {}
+    const char* what() const override
+    {
+        return m_message.c_str();
+    }
+    const parser::SourceLocation& Location() const { return m_location; }
+};
+
 class UnexpectedEndOfStream
     : public std::exception
 {

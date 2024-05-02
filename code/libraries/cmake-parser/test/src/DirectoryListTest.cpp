@@ -58,12 +58,14 @@ TEST_F(DirectoryListTest, AddDirectoryExisting)
 {
     DirectoryList directories;
 
-    std::filesystem::path path1{ "." };
-    auto directory1 = std::make_shared<Directory>(path1, nullptr);
+    std::filesystem::path sourcePath1{ "." };
+    std::filesystem::path binaryPath1{ "./cmake-bin" };
+    auto directory1 = std::make_shared<Directory>(sourcePath1, binaryPath1, nullptr);
     EXPECT_TRUE(directories.AddDirectory(directory1));
 
-    std::filesystem::path path2{ "." };
-    auto directory2 = std::make_shared<Directory>(path2, nullptr);
+    std::filesystem::path sourcePath2{ "." };
+    std::filesystem::path binaryPath2{ "./cmake-bin" };
+    auto directory2 = std::make_shared<Directory>(sourcePath2, binaryPath2, nullptr);
     EXPECT_FALSE(directories.AddDirectory(directory2));
 
     EXPECT_EQ(size_t{ 1 }, directories.GetDirectories().size());
@@ -75,8 +77,9 @@ TEST_F(DirectoryListTest, AddDirectory)
 {
     DirectoryList directories;
 
-    std::filesystem::path path{ "." };
-    auto directory = std::make_shared<Directory>(path, nullptr);
+    std::filesystem::path sourcePath{ "." };
+    std::filesystem::path binaryPath{ "./cmake-bin" };
+    auto directory = std::make_shared<Directory>(sourcePath, binaryPath, nullptr);
     directories.AddDirectory(directory);
     EXPECT_EQ(size_t{ 1 }, directories.GetDirectories().size());
     EXPECT_EQ("", directories.GetDirectory("DUMMY"));
@@ -89,10 +92,12 @@ TEST_F(DirectoryListTest, AddDirectoryNonExistingParent)
 {
     DirectoryList directories;
 
-    std::filesystem::path parentPath{ "." };
-    auto parent = std::make_shared<Directory>(parentPath, nullptr);
-    std::filesystem::path path{ "subdir" };
-    auto directory = std::make_shared<Directory>(path, parent);
+    std::filesystem::path parentSourcePath{ "." };
+    std::filesystem::path parentBinaryPath{ "./cmake-bin" };
+    auto parent = std::make_shared<Directory>(parentSourcePath, parentBinaryPath, nullptr);
+    std::filesystem::path sourcePath{ "subdir" };
+    std::filesystem::path binaryPath{ "./cmake-bin/subdir" };
+    auto directory = std::make_shared<Directory>(sourcePath, binaryPath, parent);
     EXPECT_FALSE(directories.AddDirectory(directory));
     EXPECT_EQ(size_t{ 0 }, directories.GetDirectories().size());
 }
@@ -101,12 +106,14 @@ TEST_F(DirectoryListTest, AddDirectoryParent)
 {
     DirectoryList directories;
 
-    std::filesystem::path parentPath{ "." };
-    auto parent = std::make_shared<Directory>(parentPath, nullptr);
+    std::filesystem::path parentSourcePath{ "." };
+    std::filesystem::path parentBinaryPath{ "./cmake-bin" };
+    auto parent = std::make_shared<Directory>(parentSourcePath, parentBinaryPath, nullptr);
     EXPECT_TRUE(directories.AddDirectory(parent));
 
-    std::filesystem::path path{ "subdir" };
-    auto directory = std::make_shared<Directory>(path, parent);
+    std::filesystem::path sourcePath{ "subdir" };
+    std::filesystem::path binaryPath{ "./cmake-bin/subdir" };
+    auto directory = std::make_shared<Directory>(sourcePath, binaryPath, parent);
     EXPECT_TRUE(directories.AddDirectory(directory));
 
     EXPECT_EQ(size_t{ 2 }, directories.GetDirectories().size());
@@ -122,12 +129,14 @@ TEST_F(DirectoryListTest, GetSubDirectories)
 {
     DirectoryList directories;
 
-    std::filesystem::path parentPath{ "." };
-    auto parent = std::make_shared<Directory>(parentPath, nullptr);
+    std::filesystem::path parentSourcePath{ "." };
+    std::filesystem::path parentBinaryPath{ "./cmake-bin" };
+    auto parent = std::make_shared<Directory>(parentSourcePath, parentBinaryPath, nullptr);
     EXPECT_TRUE(directories.AddDirectory(parent));
 
-    std::filesystem::path path{ "subdir" };
-    auto directory = std::make_shared<Directory>(path, parent);
+    std::filesystem::path sourcePath{ "subdir" };
+    std::filesystem::path binaryPath{ "./cmake-bin/subdir" };
+    auto directory = std::make_shared<Directory>(sourcePath, binaryPath, parent);
     EXPECT_TRUE(directories.AddDirectory(directory));
 
     EXPECT_EQ(parent, directories.GetRootDirectory());
@@ -145,12 +154,14 @@ TEST_F(DirectoryListTest, GetRootDirectory)
 {
     DirectoryList directories;
 
-    std::filesystem::path parentPath{ "." };
-    auto parent = std::make_shared<Directory>(parentPath, nullptr);
+    std::filesystem::path parentSourcePath{ "." };
+    std::filesystem::path parentBinaryPath{ "./cmake-bin" };
+    auto parent = std::make_shared<Directory>(parentSourcePath, parentBinaryPath, nullptr);
     EXPECT_TRUE(directories.AddDirectory(parent));
 
-    std::filesystem::path path{ "subdir" };
-    auto directory = std::make_shared<Directory>(path, parent);
+    std::filesystem::path sourcePath{ "subdir" };
+    std::filesystem::path binaryPath{ "./cmake-bin/subdir" };
+    auto directory = std::make_shared<Directory>(sourcePath, binaryPath, parent);
     EXPECT_TRUE(directories.AddDirectory(directory));
 
     EXPECT_EQ(parent, directories.GetRootDirectory());
@@ -160,12 +171,14 @@ TEST_F(DirectoryListTest, GetParentDirectory)
 {
     DirectoryList directories;
 
-    std::filesystem::path parentPath{ "." };
-    auto parent = std::make_shared<Directory>(parentPath, nullptr);
+    std::filesystem::path parentSourcePath{ "." };
+    std::filesystem::path parentBinaryPath{ "./cmake-bin" };
+    auto parent = std::make_shared<Directory>(parentSourcePath, parentBinaryPath, nullptr);
     EXPECT_TRUE(directories.AddDirectory(parent));
 
-    std::filesystem::path path{ "subdir" };
-    auto directory = std::make_shared<Directory>(path, parent);
+    std::filesystem::path sourcePath{ "subdir" };
+    std::filesystem::path binaryPath{ "./cmake-bin/subdir" };
+    auto directory = std::make_shared<Directory>(sourcePath, binaryPath, parent);
     EXPECT_TRUE(directories.AddDirectory(directory));
 
     EXPECT_EQ(parent, directories.GetParentDirectory(directory));
@@ -176,38 +189,42 @@ TEST_F(DirectoryListTest, Serialize)
 {
     DirectoryList directories;
 
-    std::filesystem::path parentPath{ "." };
-    auto parent = std::make_shared<Directory>(parentPath, nullptr);
+    std::filesystem::path parentSourcePath{ "." };
+    std::filesystem::path parentBinaryPath{ "./cmake-bin" };
+    auto parent = std::make_shared<Directory>(parentSourcePath, parentBinaryPath, nullptr);
     EXPECT_TRUE(directories.AddDirectory(parent));
 
-    std::filesystem::path path{ "subdir" };
-    auto directory = std::make_shared<Directory>(path, parent);
+    std::filesystem::path sourcePath{ "subdir" };
+    std::filesystem::path binaryPath{ "./cmake-bin/subdir" };
+    auto directory = std::make_shared<Directory>(sourcePath, binaryPath, parent);
     EXPECT_TRUE(directories.AddDirectory(directory));
 
     EXPECT_EQ(
         "DirectoryList:\n"
-        "Directory path = \"" + parentPath.string() + "\", parent = \"none\"\n"
-        "Directory path = \"" + path.string() + "\", parent = \"" + parentPath.string() + "\"\n", directories.Serialize());
+        "Directory sourcePath = \"" + parentSourcePath.string() + "\", binaryPath = \"" + parentBinaryPath.string() + "\", parent = (none)\n"
+        "Directory sourcePath = \"" + sourcePath.string() + "\", binaryPath = \"" + binaryPath.string() + "\", parent = (Directory sourcePath = \"" + parentSourcePath.string() + "\", binaryPath = \"" + parentBinaryPath.string() + "\", parent = (none))\n", directories.Serialize());
 }
 
 TEST_F(DirectoryListTest, StreamInsertion)
 {
     DirectoryList directories;
 
-    std::filesystem::path parentPath{ "." };
-    auto parent = std::make_shared<Directory>(parentPath, nullptr);
+    std::filesystem::path parentSourcePath{ "." };
+    std::filesystem::path parentBinaryPath{ "./cmake-bin" };
+    auto parent = std::make_shared<Directory>(parentSourcePath, parentBinaryPath, nullptr);
     EXPECT_TRUE(directories.AddDirectory(parent));
 
-    std::filesystem::path path{ "subdir" };
-    auto directory = std::make_shared<Directory>(path, parent);
+    std::filesystem::path sourcePath{ "subdir" };
+    std::filesystem::path binaryPath{ "./cmake-bin/subdir" };
+    auto directory = std::make_shared<Directory>(sourcePath, binaryPath, parent);
     EXPECT_TRUE(directories.AddDirectory(directory));
 
     std::ostringstream stream;
     stream << directories;
     EXPECT_EQ(
         "DirectoryList:\n"
-        "Directory path = \"" + parentPath.string() + "\", parent = \"none\"\n"
-        "Directory path = \"" + path.string() + "\", parent = \"" + parentPath.string() + "\"\n", directories.Serialize());
+        "Directory sourcePath = \"" + parentSourcePath.string() + "\", binaryPath = \"" + parentBinaryPath.string() + "\", parent = (none)\n"
+        "Directory sourcePath = \"" + sourcePath.string() + "\", binaryPath = \"" + binaryPath.string() + "\", parent = (Directory sourcePath = \"" + parentSourcePath.string() + "\", binaryPath = \"" + parentBinaryPath.string() + "\", parent = (none))\n", directories.Serialize());
 }
 
 } // namespace cmake_parser

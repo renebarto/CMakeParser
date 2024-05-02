@@ -52,12 +52,14 @@ set(PROJECT_LIBS
 set(PROJECT_SOURCES 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/CMakeCacheTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/CMakeModelTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/CMakeParserTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/DirectoryListTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/DirectoryTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ExpressionTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/LexerTest.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/ParserTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ProjectListTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ProjectTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ScriptParserTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TypedVariableListTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TypedVariableTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/VariableListTest.cpp
