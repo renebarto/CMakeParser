@@ -61,9 +61,8 @@ public:
     {
         Tracing::SetTraceWriter(&m_traceWriter);
         m_savedTraceFilter = Tracing::GetDefaultTraceFilter();
-        Tracing::SetDefaultTraceFilter(TraceCategory::Error | TraceCategory::Warning | TraceCategory::Information | TraceCategory::Data/* | TraceCategory::Debug */);
+        Tracing::SetDefaultTraceFilter(TraceCategory::Error | TraceCategory::Warning | TraceCategory::Information/* | TraceCategory::Data | TraceCategory::Debug */);
         model.SetupSourceRoot(TEST_DATA_DIR, "cmake-x64-Debug");
-//        model.SetupRootCMakeFile("./dummy");
         model.SetupCMakePath(FindCMake(), GetCMakeVersion());
         model.SetupNinjaPath(FindNinja());
         model.SetVariable("A", "varA");

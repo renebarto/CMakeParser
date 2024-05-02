@@ -43,7 +43,7 @@ TEST_F(DirectoryTest, ConstructWithParent)
     EXPECT_EQ(size_t{ 0 }, directory.GetVariables().size());
     EXPECT_EQ(parent, directory.Parent());
     EXPECT_EQ("Directory sourcePath = \"" + sourcePath.string() + "\", binaryPath = \"" + binaryPath.string() + "\", parent = (Directory sourcePath = \"" + 
-        parentSourcePath.string() + "\", binaryPath = \"" + parentBinaryPath.string() + "\", parent = (none))", directory.Serialize());
+        parentSourcePath.string() + "\", binaryPath = \"" + parentBinaryPath.string() + "\")", directory.Serialize());
 }
 
 TEST_F(DirectoryTest, InheritVariablesFromParent)
@@ -64,7 +64,7 @@ TEST_F(DirectoryTest, InheritVariablesFromParent)
     EXPECT_EQ("y", var->Value());
     EXPECT_EQ(parent, directory.Parent());
     EXPECT_EQ("Directory sourcePath = \"" + sourcePath.string() + "\", binaryPath = \"" + binaryPath.string() + "\", parent = (Directory sourcePath = \"" + 
-        parentSourcePath.string() + "\", binaryPath = \"" + parentBinaryPath.string() + "\", parent = (none))", directory.Serialize());
+        parentSourcePath.string() + "\", binaryPath = \"" + parentBinaryPath.string() + "\")", directory.Serialize());
 }
 
 TEST_F(DirectoryTest, SetVariable)
@@ -91,7 +91,7 @@ TEST_F(DirectoryTest, SetVariable)
     EXPECT_EQ("y", var->Value());
     EXPECT_EQ(parent, directory.Parent());
     EXPECT_EQ("Directory sourcePath = \"" + sourcePath.string() + "\", binaryPath = \"" + binaryPath.string() + "\", parent = (Directory sourcePath = \"" + 
-        parentSourcePath.string() + "\", binaryPath = \"" + parentBinaryPath.string() + "\", parent = (none))", directory.Serialize());
+        parentSourcePath.string() + "\", binaryPath = \"" + parentBinaryPath.string() + "\")", directory.Serialize());
 }
 
 TEST_F(DirectoryTest, UnsetVariable)
@@ -110,7 +110,7 @@ TEST_F(DirectoryTest, UnsetVariable)
     EXPECT_EQ(size_t{ 0 }, directory.GetVariables().size());
     EXPECT_EQ(parent, directory.Parent());
     EXPECT_EQ("Directory sourcePath = \"" + sourcePath.string() + "\", binaryPath = \"" + binaryPath.string() + "\", parent = (Directory sourcePath = \"" + 
-        parentSourcePath.string() + "\", binaryPath = \"" + parentBinaryPath.string() + "\", parent = (none))", directory.Serialize());
+        parentSourcePath.string() + "\", binaryPath = \"" + parentBinaryPath.string() + "\")", directory.Serialize());
 }
 
 } // namespace cmake_parser

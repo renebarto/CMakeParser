@@ -2,6 +2,7 @@
 
 #include "test-platform/GoogleTest.h"
 #include "utility/CommandLine.h"
+#include "tracing/ConsoleTraceLineWriter.h"
 #include "utility/Regex.h"
 #include "tracing/StringTraceLineWriter.h"
 #include "tracing/Tracing.h"
@@ -16,7 +17,7 @@ class CMakeModelTest
 {
 public:
     CategorySet<TraceCategory> m_savedTraceFilter;
-    StringTraceLineWriter m_lineWriter;
+    ConsoleTraceLineWriter m_lineWriter;
     TraceWriter m_traceWriter;
 
     CMakeModelTest()
@@ -29,7 +30,7 @@ public:
     {
         Tracing::SetTraceWriter(&m_traceWriter);
         m_savedTraceFilter = Tracing::GetDefaultTraceFilter();
-        Tracing::SetDefaultTraceFilter({ TraceCategory::Information });
+        Tracing::SetDefaultTraceFilter(TraceCategory::Error | TraceCategory::Warning | TraceCategory::Information | TraceCategory::Data | TraceCategory::Debug);
     }
     void TearDown() override
     {
@@ -236,14 +237,14 @@ TEST_F(CMakeModelTest, SetupNinjaPath)
     EXPECT_EQ(CMAKE_MAKE_PROGRAM, model.GetVariable(VarMakeProgramPath));
 }
 
-TEST_F(CMakeModelTest, SetupCMakeFile)
+TEST_F(CMakeModelTest, EnterDirectory)
 {
     CMakeModel model;
 
     EXPECT_TRUE(model.SetupSourceRoot(TEST_DATA_DIR, BuildDir));
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
-    EXPECT_TRUE(model.SetupCMakeFile("code"));
+    EXPECT_TRUE(model.EnterDirectory("code"));
 
     EXPECT_TRUE(model.IsSourceRootSet());
     EXPECT_EQ(size_t{ 32 }, model.GetVariables().size());
@@ -285,12 +286,62 @@ TEST_F(CMakeModelTest, SetupCMakeFile)
     EXPECT_NOT_NULL(model.FindDirectory(std::filesystem::path(TEST_DATA_DIR) / "code"));
 }
 
+TEST_F(CMakeModelTest, LeaveDirectory)
+{
+    CMakeModel model;
+
+    EXPECT_TRUE(model.SetupSourceRoot(TEST_DATA_DIR, BuildDir));
+    model.SetupCMakePath(FindCMake(), GetCMakeVersion());
+    model.SetupNinjaPath(FindNinja());
+    EXPECT_TRUE(model.EnterDirectory("code"));
+
+    model.LeaveDirectory();
+
+    EXPECT_TRUE(model.IsSourceRootSet());
+    EXPECT_EQ(size_t{ 32 }, model.GetVariables().size());
+    EXPECT_EQ(size_t{ 0 }, model.GetProjects().size());
+    EXPECT_EQ(size_t{ 2 }, model.GetDirectories().size());
+    EXPECT_EQ(ARGC, model.GetVariable("ARGC"));
+    EXPECT_EQ(ARGN, model.GetVariable("ARGN"));
+    EXPECT_EQ(ARGV, model.GetVariable("ARGV"));
+    EXPECT_EQ(CMAKE_BUILD_TYPE, model.GetVariable("CMAKE_BUILD_TYPE"));
+    EXPECT_EQ(CMAKE_CXX_COMPILER, model.GetVariable("CMAKE_CXX_COMPILER"));
+    EXPECT_EQ(CMAKE_C_COMPILER, model.GetVariable("CMAKE_C_COMPILER"));
+    EXPECT_EQ(CMAKE_FILES_DIRECTORY, model.GetVariable("CMAKE_FILES_DIRECTORY"));
+    EXPECT_EQ(CMAKE_GENERATOR_INSTANCE, model.GetVariable("CMAKE_GENERATOR_INSTANCE"));
+    EXPECT_EQ(CMAKE_GENERATOR_PLATFORM, model.GetVariable("CMAKE_GENERATOR_PLATFORM"));
+    EXPECT_EQ(CMAKE_GENERATOR_TOOLSET, model.GetVariable("CMAKE_GENERATOR_TOOLSET"));
+    EXPECT_EQ(CMAKE_HOME_DIRECTORY, model.GetVariable("CMAKE_HOME_DIRECTORY"));
+    EXPECT_EQ(CMAKE_HOST_SYSTEM_NAME, model.GetVariable("CMAKE_HOST_SYSTEM_NAME"));
+    EXPECT_EQ(CMAKE_HOST_WIN32, model.GetVariable("CMAKE_HOST_WIN32"));
+    EXPECT_EQ(ISWIN32, model.GetVariable("WIN32"));
+    EXPECT_EQ(CMAKE_SOURCE_DIR, model.GetVariable(VarMainSourceDirectory));
+    EXPECT_EQ(CMAKE_BINARY_DIR, model.GetVariable(VarMainBinaryDirectory));
+    EXPECT_EQ(CMAKE_CURRENT_SOURCE_DIR, model.GetVariable(VarCurrentSourceDirectory));
+    EXPECT_EQ(CMAKE_CURRENT_BINARY_DIR, model.GetVariable(VarCurrentBinaryDirectory));
+    EXPECT_EQ(CMAKE_CURRENT_LIST_DIR, model.GetVariable(VarCurrentScriptDirectory));
+    EXPECT_EQ(CMAKE_CURRENT_LIST_FILE, model.GetVariable(VarCurrentScriptPath));
+    EXPECT_EQ(CMAKE_PARENT_LIST_FILE, model.GetVariable(VarParentScriptPath));
+    EXPECT_EQ(CMAKE_COMMAND, model.GetVariable(VarCMakeExePath));
+    EXPECT_EQ(CMAKE_CPACK_COMMAND, model.GetVariable(VarCPackExePath));
+    EXPECT_EQ(CMAKE_CTEST_COMMAND, model.GetVariable(VarCTestExePath));
+    EXPECT_EQ(CMAKE_MAJOR_VERSION, model.GetVariable(VarCMakeVersionMajor));
+    EXPECT_EQ(CMAKE_MINOR_VERSION, model.GetVariable(VarCMakeVersionMinor));
+    EXPECT_EQ(CMAKE_PATCH_VERSION, model.GetVariable(VarCMakeVersionPatch));
+    EXPECT_EQ(CMAKE_ROOT, model.GetVariable(VarCMakeRootPath));
+    EXPECT_EQ(CMAKE_TWEAK_VERSION, model.GetVariable(VarCMakeVersionTweak));
+    EXPECT_EQ(CMAKE_VERSION, model.GetVariable(VarCMakeVersion));
+    EXPECT_EQ(CMAKE_GENERATOR, model.GetVariable(VarCMakeGenerator));
+    EXPECT_EQ(CMAKE_MAKE_PROGRAM, model.GetVariable(VarMakeProgramPath));
+    EXPECT_NOT_NULL(model.FindDirectory(TEST_DATA_DIR));
+    EXPECT_NOT_NULL(model.FindDirectory(std::filesystem::path(TEST_DATA_DIR) / "code"));
+}
+
 TEST_F(CMakeModelTest, GetCacheVariables)
 {
     CMakeModel model;
 
     model.SetupSourceRoot(TEST_DATA_DIR, BuildDir);
-    model.SetupCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
     EXPECT_TRUE(model.IsSourceRootSet());
@@ -312,7 +363,6 @@ TEST_F(CMakeModelTest, GetVariables)
     CMakeModel model;
 
     model.SetupSourceRoot(TEST_DATA_DIR, BuildDir);
-    model.SetupCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
 
@@ -346,7 +396,6 @@ TEST_F(CMakeModelTest, GetCacheVariable)
     CMakeModel model;
 
     model.SetupSourceRoot(TEST_DATA_DIR, BuildDir);
-    model.SetupCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
     EXPECT_TRUE(model.IsSourceRootSet());
@@ -364,7 +413,6 @@ TEST_F(CMakeModelTest, GetVariable)
     CMakeModel model;
 
     model.SetupSourceRoot(TEST_DATA_DIR, BuildDir);
-    model.SetupCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
     EXPECT_TRUE(model.IsSourceRootSet());
@@ -395,7 +443,6 @@ TEST_F(CMakeModelTest, SetVariableCache)
     CMakeModel model;
 
     model.SetupSourceRoot(TEST_DATA_DIR, BuildDir);
-    model.SetupCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
     EXPECT_TRUE(model.IsSourceRootSet());
@@ -429,7 +476,6 @@ TEST_F(CMakeModelTest, SetVariableCacheForce)
     CMakeModel model;
 
     model.SetupSourceRoot(TEST_DATA_DIR, BuildDir);
-    model.SetupCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
     EXPECT_TRUE(model.IsSourceRootSet());
@@ -473,7 +519,6 @@ TEST_F(CMakeModelTest, SetVariable)
     CMakeModel model;
 
     model.SetupSourceRoot(TEST_DATA_DIR, BuildDir);
-    model.SetupCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
     EXPECT_TRUE(model.IsSourceRootSet());
@@ -509,7 +554,6 @@ TEST_F(CMakeModelTest, UnsetVariableCache)
     CMakeModel model;
 
     model.SetupSourceRoot(TEST_DATA_DIR, BuildDir);
-    model.SetupCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
     EXPECT_TRUE(model.IsSourceRootSet());
@@ -530,7 +574,6 @@ TEST_F(CMakeModelTest, UnsetVariable)
     CMakeModel model;
 
     model.SetupSourceRoot(TEST_DATA_DIR, BuildDir);
-    model.SetupCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
     EXPECT_TRUE(model.IsSourceRootSet());
@@ -566,7 +609,6 @@ TEST_F(CMakeModelTest, GetProjects)
     CMakeModel model;
 
     model.SetupSourceRoot(TEST_DATA_DIR, BuildDir);
-    model.SetupCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
     EXPECT_TRUE(model.IsSourceRootSet());
@@ -609,7 +651,6 @@ TEST_F(CMakeModelTest, GetProject)
     CMakeModel model;
 
     model.SetupSourceRoot(TEST_DATA_DIR, BuildDir);
-    model.SetupCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
     EXPECT_TRUE(model.IsSourceRootSet());
@@ -647,7 +688,6 @@ TEST_F(CMakeModelTest, AddProject)
     CMakeModel model;
 
     model.SetupSourceRoot(TEST_DATA_DIR, BuildDir);
-    model.SetupCMakeFile(std::string(TEST_DATA_DIR) + "/CMakeLists.txt");
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
     EXPECT_TRUE(model.IsSourceRootSet());
@@ -687,16 +727,16 @@ TEST_F(CMakeModelTest, AddProject)
     EXPECT_EQ(project1, model.GetParentProject(project2));
     EXPECT_NULL(model.GetParentProject(project1));
 
-    EXPECT_EQ(CMAKE_CURRENT_BINARY_DIR, model.GetVariable("PROJECT_BINARY_DIR"));
-    EXPECT_EQ("", model.GetVariable("PROJECT_HOMEPAGE_URL"));
-    EXPECT_EQ(projectName2, model.GetVariable("PROJECT_NAME"));
-    EXPECT_EQ(description2, model.GetVariable("PROJECT_DESCRIPTION"));
-    EXPECT_EQ(CMAKE_CURRENT_SOURCE_DIR, model.GetVariable("PROJECT_SOURCE_DIR"));
-    EXPECT_EQ(version2, model.GetVariable("PROJECT_VERSION"));
-    EXPECT_EQ("1", model.GetVariable("PROJECT_VERSION_MAJOR"));
-    EXPECT_EQ("2", model.GetVariable("PROJECT_VERSION_MINOR"));
-    EXPECT_EQ("3", model.GetVariable("PROJECT_VERSION_PATCH"));
-    EXPECT_EQ("5", model.GetVariable("PROJECT_VERSION_TWEAK"));
+    EXPECT_EQ(CMAKE_CURRENT_BINARY_DIR, model.GetVariable(VarProjectBinaryDir));
+    EXPECT_EQ("", model.GetVariable(VarProjectHomepageURL));
+    EXPECT_EQ(projectName2, model.GetVariable(VarProjectName));
+    EXPECT_EQ(description2, model.GetVariable(VarProjectDescription));
+    EXPECT_EQ(CMAKE_CURRENT_SOURCE_DIR, model.GetVariable(VarProjectSourceDirectory));
+    EXPECT_EQ(version2, model.GetVariable(VarProjectVersion));
+    EXPECT_EQ("1", model.GetVariable(VarProjectVersionMajor));
+    EXPECT_EQ("2", model.GetVariable(VarProjectVersionMinor));
+    EXPECT_EQ("3", model.GetVariable(VarProjectVersionPatch));
+    EXPECT_EQ("5", model.GetVariable(VarProjectVersionTweak));
 }
 
 TEST_F(CMakeModelTest, GetDirectories)
@@ -707,7 +747,6 @@ TEST_F(CMakeModelTest, GetDirectories)
 
     auto directoryPath = TEST_DATA_DIR;
     model.SetupSourceRoot(directoryPath, BuildDir);
-    model.SetupCMakeFile(std::string(directoryPath) + "/CMakeLists.txt");
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
 
@@ -722,7 +761,6 @@ TEST_F(CMakeModelTest, FindDirectory)
     EXPECT_NULL(model.FindDirectory(directoryPath));
 
     model.SetupSourceRoot(directoryPath, BuildDir);
-    model.SetupCMakeFile((directoryPath / "CMakeLists.txt").string());
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
 
@@ -737,7 +775,6 @@ TEST_F(CMakeModelTest, GetDirectory)
     EXPECT_EQ("", model.GetDirectory(directoryPath));
 
     model.SetupSourceRoot(directoryPath, BuildDir);
-    model.SetupCMakeFile((directoryPath / "CMakeLists.txt").string());
     model.SetupCMakePath(FindCMake(), GetCMakeVersion());
     model.SetupNinjaPath(FindNinja());
 
@@ -785,13 +822,18 @@ TEST_F(CMakeModelTest, AddDirectory)
 
 TEST_F(CMakeModelTest, AddMessage)
 {
+    StringTraceLineWriter lineWriter;
+    TraceWriter traceWriter(lineWriter);
+    Tracing::SetTraceWriter(&traceWriter);
+
     CMakeModel model;
 
     std::string messageMode{ "STATUS" };
     std::string message{ "Hello World" };
     model.AddMessage(messageMode, message);
-    EXPECT_EQ(size_t{ 1 }, m_lineWriter.GetResult().size());
-    EXPECT_TRUE(utility::VerifyMatch(m_lineWriter.GetResult()[0], utility::FormatString("Info \\|CMakeModel.cpp:\\d+\\|AddMessage\\|Message\\({} {}\\)", messageMode, message)));
+
+    EXPECT_EQ(size_t{ 1 }, lineWriter.GetResult().size());
+    EXPECT_TRUE(utility::VerifyMatch(lineWriter.GetResult()[0], utility::FormatString("Info \\|CMakeModel.cpp:\\d+\\|AddMessage\\|Message\\({} {}\\)", messageMode, message)));
 }
 
 } // namespace cmake_parser

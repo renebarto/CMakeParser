@@ -113,8 +113,8 @@ TEST_F(CMakeParserTest, Construct)
 
     EXPECT_TRUE(parser.Parse());
     EXPECT_EQ(size_t{ 0 }, parser.GetModel().GetEnvironmentVariables().size());
-    EXPECT_EQ(size_t{ 0 }, parser.GetModel().GetCacheVariables().size());
-    EXPECT_EQ(size_t{ 32 }, parser.GetModel().GetVariables().size());
+    EXPECT_EQ(size_t{ 2 }, parser.GetModel().GetCacheVariables().size());
+    EXPECT_EQ(size_t{ 72 }, parser.GetModel().GetVariables().size());
     EXPECT_EQ(ARGC, parser.GetModel().GetVariable("ARGC"));
     EXPECT_EQ(ARGN, parser.GetModel().GetVariable("ARGN"));
     EXPECT_EQ(ARGV, parser.GetModel().GetVariable("ARGV"));
@@ -131,10 +131,10 @@ TEST_F(CMakeParserTest, Construct)
     EXPECT_EQ(ISWIN32, parser.GetModel().GetVariable("WIN32"));
     EXPECT_EQ(CMAKE_SOURCE_DIR, parser.GetModel().GetVariable(VarMainSourceDirectory));
     EXPECT_EQ(CMAKE_BINARY_DIR, parser.GetModel().GetVariable(VarMainBinaryDirectory));
-    EXPECT_EQ(std::filesystem::path(CMAKE_CURRENT_SOURCE_DIR) / "code", parser.GetModel().GetVariable(VarCurrentSourceDirectory));
-    EXPECT_EQ(std::filesystem::path(CMAKE_CURRENT_BINARY_DIR) / "code", parser.GetModel().GetVariable(VarCurrentBinaryDirectory));
-    EXPECT_EQ(std::filesystem::path(CMAKE_CURRENT_LIST_DIR) / "code", parser.GetModel().GetVariable(VarCurrentScriptDirectory));
-    EXPECT_EQ(std::filesystem::path(CMAKE_CURRENT_LIST_DIR) / "code" / "CMakeLists.txt", parser.GetModel().GetVariable(VarCurrentScriptPath));
+    EXPECT_EQ(CMAKE_CURRENT_SOURCE_DIR, parser.GetModel().GetVariable(VarCurrentSourceDirectory));
+    EXPECT_EQ(CMAKE_CURRENT_BINARY_DIR, parser.GetModel().GetVariable(VarCurrentBinaryDirectory));
+    EXPECT_EQ(CMAKE_CURRENT_LIST_DIR, parser.GetModel().GetVariable(VarCurrentScriptDirectory));
+    EXPECT_EQ(CMAKE_CURRENT_LIST_FILE, parser.GetModel().GetVariable(VarCurrentScriptPath));
     EXPECT_EQ(CMAKE_PARENT_LIST_FILE, parser.GetModel().GetVariable(VarParentScriptPath));
     EXPECT_EQ(CMAKE_COMMAND, parser.GetModel().GetVariable(VarCMakeExePath));
     EXPECT_EQ(CMAKE_CPACK_COMMAND, parser.GetModel().GetVariable(VarCPackExePath));
@@ -148,8 +148,40 @@ TEST_F(CMakeParserTest, Construct)
     EXPECT_EQ(CMAKE_GENERATOR, parser.GetModel().GetVariable(VarCMakeGenerator));
     EXPECT_EQ(CMAKE_MAKE_PROGRAM, parser.GetModel().GetVariable(VarMakeProgramPath));
 
-    EXPECT_EQ(size_t{ 0 }, parser.GetModel().GetProjects().size());
-    EXPECT_EQ(size_t{ 1 }, parser.GetModel().GetDirectories().size());
+    EXPECT_EQ("3.5.1", parser.GetModel().GetVariable("CMAKE_MINIMUM_REQUIRED_VERSION"));
+
+    EXPECT_EQ("1.2.3.4", parser.GetModel().GetVariable("MSI_NUMBER"));
+    EXPECT_EQ("TRUE", parser.GetModel().GetVariable("PLATFORM_WINDOWS"));
+    EXPECT_EQ("windows", parser.GetModel().GetVariable("PLATFORM_NAME"));
+    EXPECT_EQ("ON", parser.GetModel().GetVariable("CMAKE_EXPORT_COMPILE_COMMANDS"));
+    EXPECT_EQ("OFF", parser.GetModel().GetVariable("CMAKE_COLOR_MAKEFILE"));
+    EXPECT_EQ("ON", parser.GetModel().GetVariable("CMAKE_BUILD_WITH_INSTALL_RPATH"));
+    EXPECT_EQ("OFF", parser.GetModel().GetVariable("CMAKE_VERBOSE_MAKEFILE"));
+    EXPECT_EQ("${CMAKE_SOURCE_DIR}/output/${PLATFORM_NAME}", parser.GetModel().GetVariable("OUTPUT_BASE_DIR"));
+    EXPECT_EQ("${CMAKE_SOURCE_DIR}/testdata", parser.GetModel().GetVariable("TEST_DATA_DIR"));
+    EXPECT_EQ("CMAKE_CXX_FLAGS;CMAKE_CXX_FLAGS_DEBUG;CMAKE_CXX_FLAGS_RELEASE;CMAKE_C_FLAGS;CMAKE_C_FLAGS_DEBUG;CMAKE_C_FLAGS_RELEASE", parser.GetModel().GetVariable("CompilerFlags"));
+    EXPECT_EQ("17", parser.GetModel().GetVariable("SUPPORTED_CPP_STANDARD"));
+    EXPECT_EQ("/Wall;/wd4061;/wd4239;/wd4251;/wd4275;/wd4435;/wd4505;/wd4514;/wd4548;/wd4571;/wd4592;/wd4625;/wd4626;/wd4628;/wd4710;/wd4711;/wd4774;/wd4668;/wd5045;/wd4820;/wd5026;/wd5027;/WX-;/EHsc;/Gd;/GR;/sdl-;/Zc:wchar_t;/Zc:inline;/fp:precise;/bigobj;/std:c++${SUPPORTED_CPP_STANDARD}", parser.GetModel().GetVariable("FLAGS_CXX"));
+    EXPECT_EQ("/Od;/Gm-;/Zi;/RTC1;/MTd", parser.GetModel().GetVariable("FLAGS_CXX_DEBUG"));
+    EXPECT_EQ("/Ox;/GL;/GS;/Gy;/Oi;/MT", parser.GetModel().GetVariable("FLAGS_CXX_RELEASE"));
+    EXPECT_EQ("/O1;/GL;/GS;/Gy;/Oi;/MT", parser.GetModel().GetVariable("FLAGS_CXX_MINSIZEREL"));
+    EXPECT_EQ("/O2;/GL;/GS;/Gy;/Oi;/Zi;/MT", parser.GetModel().GetVariable("FLAGS_CXX_RELWITHDEBINFO"));
+    EXPECT_EQ("/Wall;/wd4061;/wd4251;/wd4275;/wd4505;/wd4514;/wd4548;/wd4571;/wd4625;/wd4626;/wd4710;/wd4774;/wd4820;/wd5026;/wd5027;/WX-;/EHsc;/Gd;/GR;/sdl-;/Zc:wchar_t;/Zc:inline;/fp:precise", parser.GetModel().GetVariable("FLAGS_C"));
+    EXPECT_EQ("/Od;/Gm-;/ZI;/RTC1;/MTd", parser.GetModel().GetVariable("FLAGS_C_DEBUG"));
+    EXPECT_EQ("/Ox;/GL;/GS;/Gy;/Oi;/MT", parser.GetModel().GetVariable("FLAGS_C_RELEASE"));
+    EXPECT_EQ("/O1;/GL;/GS;/Gy;/Oi;/MT", parser.GetModel().GetVariable("FLAGS_C_MINSIZEREL"));
+    EXPECT_EQ("/O2;/GL;/GS;/Gy;/Oi;/Zi;/MT", parser.GetModel().GetVariable("FLAGS_C_RELWITHDEBINFO"));
+    EXPECT_EQ("${DEFINES};_X86_", parser.GetModel().GetVariable("DEFINES"));
+    EXPECT_EQ("_DEBUG", parser.GetModel().GetVariable("DEFINES_DEBUG"));
+    EXPECT_EQ("NDEBUG", parser.GetModel().GetVariable("DEFINES_RELEASE"));
+    EXPECT_EQ("NDEBUG", parser.GetModel().GetVariable("DEFINES_MINSIZEREL"));
+    EXPECT_EQ("NDEBUG", parser.GetModel().GetVariable("DEFINES_RELWITHDEBINFO"));
+    EXPECT_EQ("/ignore:4217", parser.GetModel().GetVariable("LINK_FLAGS"));
+    EXPECT_EQ("TRUE", parser.GetModel().GetVariable("CMAKE_USE_WIN32_THREADS_INIT"));
+    EXPECT_EQ("NEW", parser.GetModel().GetVariable("CMAKE_POLICY_DEFAULT_CMP0048"));
+
+    EXPECT_EQ(size_t{ 4 }, parser.GetModel().GetProjects().size());
+    EXPECT_EQ(size_t{ 7 }, parser.GetModel().GetDirectories().size());
     std::string directoryPath{ TEST_DATA_DIR };
     auto directory = parser.GetModel().FindDirectory(directoryPath);
     ASSERT_NOT_NULL(directory);

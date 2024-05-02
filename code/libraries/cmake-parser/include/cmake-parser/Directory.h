@@ -14,6 +14,7 @@ struct Directory
 
     Directory(const std::filesystem::path& sourcePath, const std::filesystem::path& binaryPath);
     Directory(const std::filesystem::path& sourcePath, const std::filesystem::path& binaryPath, std::shared_ptr<Directory> parent);
+    ~Directory();
     const std::filesystem::path& SourcePath() const { return m_sourcePath; }
     const std::filesystem::path& BinaryPath() const { return m_binaryPath; }
     std::shared_ptr<Directory> Parent() { return m_parentDirectory.lock(); }
@@ -22,6 +23,7 @@ struct Directory
     void SetVariable(const std::string& name, const std::string& value) { m_variables.SetVariable(name, value); }
     void UnsetVariable(const std::string& name) { m_variables.UnsetVariable(name); }
 
+    std::string SerializeShort() const;
     std::string Serialize() const;
 
     const VariableList& GetVariableList() const { return m_variables; }

@@ -54,6 +54,7 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/CMakeParser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Directory.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/DirectoryList.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/DirectoryStack.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Expression.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ExpressionLexer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Lexer.cpp
@@ -72,6 +73,7 @@ set(PROJECT_INCLUDES_PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/CMakeParser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/Directory.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/DirectoryList.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/DirectoryStack.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/Expression.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/ExpressionLexer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/Lexer.h

@@ -1,8 +1,10 @@
 #pragma once
 
 #include <filesystem>
+#include <vector>
 #include "cmake-parser/CMakeCache.h"
 #include "cmake-parser/DirectoryList.h"
+#include "cmake-parser/DirectoryStack.h"
 #include "cmake-parser/ProjectList.h"
 #include "cmake-parser/VariableList.h"
 
@@ -68,7 +70,7 @@ private:
     ProjectPtr m_currentProject;
     DirectoryList m_directories;
     DirectoryPtr m_rootDirectory;
-    DirectoryPtr m_currentDirectory;
+    DirectoryStack m_directoryStack;
     std::filesystem::path m_rootSourceDirectory;
     std::filesystem::path m_rootBinaryDirectory;
     bool m_isSourceRootSet;
@@ -80,7 +82,8 @@ public:
     bool SetupSourceRoot(const std::filesystem::path& root, const std::string& buildDir);
     void SetupCMakePath(const std::filesystem::path& cmakePath, const std::string& cmakeVersion);
     void SetupNinjaPath(const std::filesystem::path& ninjaPath);
-    bool SetupCMakeFile(const std::string& directoryName);
+    bool EnterDirectory(const std::string& directoryName);
+    void LeaveDirectory();
 
     const TypedVariables& GetCacheVariables() const { return m_cache.GetVariables(); }
     const Variables& GetVariables() const;

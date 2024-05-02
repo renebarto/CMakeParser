@@ -367,7 +367,8 @@ bool ScriptParser::HandleCMakeMinimumRequired()
 bool ScriptParser::HandleProject()
 {
     Expect_SkipWhitespace(Terminal::ParenthesisOpen);
-    auto result = Expect_SkipWhitespace(Terminal::Name);
+    auto projectName = Expect_SkipWhitespace({ Terminal::Name, Terminal::Identifier });
+    auto result = projectName.Value();
     m_currentProject = std::make_shared<Project>(result);
     SkipWhitespace();
     while (CurrentTokenType() == Terminal::Identifier)
@@ -576,12 +577,16 @@ bool ScriptParser::HandleAddSubdirectory()
     Expect_SkipWhitespace(Terminal::ParenthesisOpen);
     auto path = ExpectPath(finalizers);
     Expect_SkipWhitespace(Terminal::ParenthesisClose);
-    m_model.SetVariable(VarCurrentSourceDirectory, path.generic_string());
+    m_model.EnterDirectory(std::filesystem::relative(path, m_model.GetCurrentDirectory()->SourcePath()).generic_string());
 
     std::ifstream stream(path / CMakeScriptFileName);
     ScriptParser parser(m_model, path, stream);
 
-    return parser.Parse();
+    auto result = parser.Parse();
+
+    m_model.LeaveDirectory();
+
+    return result;
 }
 
 bool ScriptParser::HandleUnsupported()

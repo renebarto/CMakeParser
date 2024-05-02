@@ -2,7 +2,6 @@
 
 #include <cassert>
 #include <iostream>
-#include "utility/Console.h"
 #include "utility/StringFunctions.h"
 #include "tracing/Tracing.h"
 
@@ -131,7 +130,7 @@ CMakeModel::CMakeModel()
     , m_currentProject{}
     , m_directories{}
     , m_rootDirectory{}
-    , m_currentDirectory{}
+    , m_directoryStack{}
     , m_isSourceRootSet{}
 {
 }
@@ -139,10 +138,13 @@ CMakeModel::CMakeModel()
 bool CMakeModel::SetupSourceRoot(const std::filesystem::path& root, const std::string& buildDir)
 {
     m_rootSourceDirectory = root;
+    m_rootSourceDirectory.make_preferred();
     m_rootBinaryDirectory = (root / buildDir).generic_string();
+    m_rootBinaryDirectory.make_preferred();
     m_isSourceRootSet = true;
     m_rootDirectory = std::make_shared<Directory>(m_rootSourceDirectory, m_rootBinaryDirectory);
-    std::filesystem::path listFilePath = (m_rootSourceDirectory / CMakeScriptFileName).generic_string();
+    std::filesystem::path listFilePath = m_rootSourceDirectory / CMakeScriptFileName;
+    listFilePath.make_preferred();
 
     if (!std::filesystem::exists(listFilePath))
     {
@@ -155,7 +157,7 @@ bool CMakeModel::SetupSourceRoot(const std::filesystem::path& root, const std::s
         return false;
     }
 
-    m_currentDirectory = m_rootDirectory;
+    m_directoryStack.Push(m_rootDirectory);
     m_scopeVariables = &m_rootDirectory->GetVariableList();
     SetVariable(VarMainSourceDirectory, m_rootSourceDirectory.generic_string());
     SetVariable(VarMainBinaryDirectory, m_rootBinaryDirectory.generic_string());
@@ -212,32 +214,36 @@ void CMakeModel::SetupNinjaPath(const std::filesystem::path& ninjaPath)
     SetVariable(VarCMakeGenerator, "Ninja");
 }
 
-bool CMakeModel::SetupCMakeFile(const std::string& directoryName)
+bool CMakeModel::EnterDirectory(const std::string& directoryName)
 {
     assert(IsSourceRootSet());
     std::filesystem::path parentSourceDirectory = m_rootSourceDirectory;
     std::filesystem::path parentBinaryDirectory = m_rootBinaryDirectory;
-    if (m_currentDirectory != nullptr)
-    {
-        parentSourceDirectory = m_currentDirectory->SourcePath();
-        parentBinaryDirectory = m_currentDirectory->BinaryPath();
+    DirectoryPtr parentDirectory = m_directoryStack.At(0);
+    if (parentDirectory != nullptr)
+    {        
+        parentSourceDirectory = parentDirectory->SourcePath();
+        parentBinaryDirectory = parentDirectory->BinaryPath();
     }
     auto currentSourceDirectory = parentSourceDirectory / directoryName;
+    currentSourceDirectory.make_preferred();
     auto currentBinaryDirectory = parentBinaryDirectory / directoryName;
+    currentBinaryDirectory.make_preferred();
     auto listFilePath = currentSourceDirectory / CMakeScriptFileName;
+    listFilePath.make_preferred();
 
     if (!std::filesystem::exists(listFilePath))
     {
         TRACE_ERROR("File does not exist: {}", listFilePath);
         return false;
     }
-    auto directory = std::make_shared<Directory>(currentSourceDirectory, currentBinaryDirectory, m_currentDirectory);
+    auto directory = std::make_shared<Directory>(currentSourceDirectory, currentBinaryDirectory, parentDirectory);
     if (!m_directories.AddDirectory(directory))
     {
         TRACE_ERROR("Cannot add directory: {}", directory);
         return false;
     }
-    m_currentDirectory = directory;
+    m_directoryStack.Push(directory);
     m_scopeVariables = &directory->GetVariableList();
     SetVariable(VarCurrentSourceDirectory, currentSourceDirectory.generic_string());
     SetVariable(VarCurrentBinaryDirectory, currentBinaryDirectory.generic_string());
@@ -245,6 +251,14 @@ bool CMakeModel::SetupCMakeFile(const std::string& directoryName)
     SetVariable(VarCurrentScriptPath, listFilePath.generic_string());
     SetVariable(VarParentScriptPath, (parentSourceDirectory / CMakeScriptFileName).generic_string());
     return true;
+}
+
+void CMakeModel::LeaveDirectory()
+{
+    assert(IsSourceRootSet());
+
+    m_directoryStack.Pop();
+    m_scopeVariables = &m_directoryStack.Top()->GetVariableList();
 }
 
 const Variables& CMakeModel::GetVariables() const
@@ -372,7 +386,7 @@ bool CMakeModel::AddProject(ProjectPtr project)
 
 DirectoryPtr CMakeModel::GetCurrentDirectory() const
 {
-    return m_currentDirectory;
+    return m_directoryStack.Top();
 }
 
 void CMakeModel::AddMessage(const std::string& messageMode, const std::string& message)

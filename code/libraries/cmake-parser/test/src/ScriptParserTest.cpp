@@ -31,7 +31,7 @@ public:
     {
         Tracing::SetTraceWriter(&m_traceWriter);
         m_savedTraceFilter = Tracing::GetDefaultTraceFilter();
-        Tracing::SetDefaultTraceFilter(TraceCategory::Error | TraceCategory::Warning | TraceCategory::Information | TraceCategory::Data | TraceCategory::Debug);
+        Tracing::SetDefaultTraceFilter(TraceCategory::Error | TraceCategory::Warning | TraceCategory::Information | TraceCategory::Data/* | TraceCategory::Debug*/);
     }
     void TearDown() override
     {
@@ -174,16 +174,16 @@ TEST_F(ScriptParserTest, MinimalCMakeProject)
     EXPECT_EQ("\"This is the project for cpp-parser\"", project->Description());
     EXPECT_EQ("CXX", project->Languages());
     EXPECT_NULL(project->Parent());
-    EXPECT_EQ(rootDirectory / buildDir, parser.GetModel().GetVariable("PROJECT_BINARY_DIR"));
-    EXPECT_EQ("", parser.GetModel().GetVariable("PROJECT_HOMEPAGE_URL"));
-    EXPECT_EQ(project->Name(), parser.GetModel().GetVariable("PROJECT_NAME"));
-    EXPECT_EQ(project->Description(), parser.GetModel().GetVariable("PROJECT_DESCRIPTION"));
-    EXPECT_EQ(rootDirectory, parser.GetModel().GetVariable("PROJECT_SOURCE_DIR"));
-    EXPECT_EQ(project->Version(), parser.GetModel().GetVariable("PROJECT_VERSION"));
-    EXPECT_EQ("4", parser.GetModel().GetVariable("PROJECT_VERSION_MAJOR"));
-    EXPECT_EQ("3", parser.GetModel().GetVariable("PROJECT_VERSION_MINOR"));
-    EXPECT_EQ("2", parser.GetModel().GetVariable("PROJECT_VERSION_PATCH"));
-    EXPECT_EQ("1", parser.GetModel().GetVariable("PROJECT_VERSION_TWEAK"));
+    EXPECT_EQ(rootDirectory / buildDir, parser.GetModel().GetVariable(VarProjectBinaryDir));
+    EXPECT_EQ("", parser.GetModel().GetVariable(VarProjectHomepageURL));
+    EXPECT_EQ(project->Name(), parser.GetModel().GetVariable(VarProjectName));
+    EXPECT_EQ(project->Description(), parser.GetModel().GetVariable(VarProjectDescription));
+    EXPECT_EQ(rootDirectory, parser.GetModel().GetVariable(VarProjectSourceDirectory));
+    EXPECT_EQ(project->Version(), parser.GetModel().GetVariable(VarProjectVersion));
+    EXPECT_EQ("4", parser.GetModel().GetVariable(VarProjectVersionMajor));
+    EXPECT_EQ("3", parser.GetModel().GetVariable(VarProjectVersionMinor));
+    EXPECT_EQ("2", parser.GetModel().GetVariable(VarProjectVersionPatch));
+    EXPECT_EQ("1", parser.GetModel().GetVariable(VarProjectVersionTweak));
 
     EXPECT_EQ(size_t{ 1 }, parser.GetModel().GetDirectories().size());
     EXPECT_NOT_NULL(parser.GetModel().FindDirectory(rootDirectory));
@@ -230,16 +230,16 @@ TEST_F(ScriptParserTest, MinimalCMakeProjectWithMessage)
     EXPECT_EQ("\"My project\"", project->Description());
     EXPECT_EQ("", project->Languages());
     EXPECT_NULL(project->Parent());
-    EXPECT_EQ(rootDirectory / buildDir, parser.GetModel().GetVariable("PROJECT_BINARY_DIR"));
-    EXPECT_EQ("", parser.GetModel().GetVariable("PROJECT_HOMEPAGE_URL"));
-    EXPECT_EQ(project->Name(), parser.GetModel().GetVariable("PROJECT_NAME"));
-    EXPECT_EQ(project->Description(), parser.GetModel().GetVariable("PROJECT_DESCRIPTION"));
-    EXPECT_EQ(rootDirectory, parser.GetModel().GetVariable("PROJECT_SOURCE_DIR"));
-    EXPECT_EQ(project->Version(), parser.GetModel().GetVariable("PROJECT_VERSION"));
-    EXPECT_EQ("0", parser.GetModel().GetVariable("PROJECT_VERSION_MAJOR"));
-    EXPECT_EQ("0", parser.GetModel().GetVariable("PROJECT_VERSION_MINOR"));
-    EXPECT_EQ("0", parser.GetModel().GetVariable("PROJECT_VERSION_PATCH"));
-    EXPECT_EQ("0", parser.GetModel().GetVariable("PROJECT_VERSION_TWEAK"));
+    EXPECT_EQ(rootDirectory / buildDir, parser.GetModel().GetVariable(VarProjectBinaryDir));
+    EXPECT_EQ("", parser.GetModel().GetVariable(VarProjectHomepageURL));
+    EXPECT_EQ(project->Name(), parser.GetModel().GetVariable(VarProjectName));
+    EXPECT_EQ(project->Description(), parser.GetModel().GetVariable(VarProjectDescription));
+    EXPECT_EQ(rootDirectory, parser.GetModel().GetVariable(VarProjectSourceDirectory));
+    EXPECT_EQ(project->Version(), parser.GetModel().GetVariable(VarProjectVersion));
+    EXPECT_EQ("0", parser.GetModel().GetVariable(VarProjectVersionMajor));
+    EXPECT_EQ("0", parser.GetModel().GetVariable(VarProjectVersionMinor));
+    EXPECT_EQ("0", parser.GetModel().GetVariable(VarProjectVersionPatch));
+    EXPECT_EQ("0", parser.GetModel().GetVariable(VarProjectVersionTweak));
 
     EXPECT_EQ(size_t{ 1 }, parser.GetModel().GetDirectories().size());
     EXPECT_NOT_NULL(parser.GetModel().FindDirectory(rootDirectory));
@@ -299,16 +299,16 @@ TEST_F(ScriptParserTest, MinimalCMakeProjectWithSet)
     EXPECT_EQ("\"My project\"", project->Description());
     EXPECT_EQ("", project->Languages());
     EXPECT_NULL(project->Parent());
-    EXPECT_EQ(rootDirectory / buildDir, parser.GetModel().GetVariable("PROJECT_BINARY_DIR"));
-    EXPECT_EQ("", parser.GetModel().GetVariable("PROJECT_HOMEPAGE_URL"));
-    EXPECT_EQ(project->Name(), parser.GetModel().GetVariable("PROJECT_NAME"));
-    EXPECT_EQ(project->Description(), parser.GetModel().GetVariable("PROJECT_DESCRIPTION"));
-    EXPECT_EQ(rootDirectory, parser.GetModel().GetVariable("PROJECT_SOURCE_DIR"));
-    EXPECT_EQ(project->Version(), parser.GetModel().GetVariable("PROJECT_VERSION"));
-    EXPECT_EQ("0", parser.GetModel().GetVariable("PROJECT_VERSION_MAJOR"));
-    EXPECT_EQ("0", parser.GetModel().GetVariable("PROJECT_VERSION_MINOR"));
-    EXPECT_EQ("0", parser.GetModel().GetVariable("PROJECT_VERSION_PATCH"));
-    EXPECT_EQ("0", parser.GetModel().GetVariable("PROJECT_VERSION_TWEAK"));
+    EXPECT_EQ(rootDirectory / buildDir, parser.GetModel().GetVariable(VarProjectBinaryDir));
+    EXPECT_EQ("", parser.GetModel().GetVariable(VarProjectHomepageURL));
+    EXPECT_EQ(project->Name(), parser.GetModel().GetVariable(VarProjectName));
+    EXPECT_EQ(project->Description(), parser.GetModel().GetVariable(VarProjectDescription));
+    EXPECT_EQ(rootDirectory, parser.GetModel().GetVariable(VarProjectSourceDirectory));
+    EXPECT_EQ(project->Version(), parser.GetModel().GetVariable(VarProjectVersion));
+    EXPECT_EQ("0", parser.GetModel().GetVariable(VarProjectVersionMajor));
+    EXPECT_EQ("0", parser.GetModel().GetVariable(VarProjectVersionMinor));
+    EXPECT_EQ("0", parser.GetModel().GetVariable(VarProjectVersionPatch));
+    EXPECT_EQ("0", parser.GetModel().GetVariable(VarProjectVersionTweak));
 
     EXPECT_EQ(size_t{ 1 }, parser.GetModel().GetDirectories().size());
     EXPECT_NOT_NULL(parser.GetModel().FindDirectory(rootDirectory));
@@ -325,11 +325,14 @@ TEST_F(ScriptParserTest, CMakeProject)
     EXPECT_TRUE(parser.Parse());
     EXPECT_EQ(size_t{ 0 }, parser.GetModel().GetEnvironmentVariables().size());
     EXPECT_EQ("", parser.GetModel().GetEnvironmentVariable("myvar"));
-    EXPECT_EQ(size_t{ 1 }, parser.GetModel().GetCacheVariables().size());
+    EXPECT_EQ(size_t{ 2 }, parser.GetModel().GetCacheVariables().size());
     EXPECT_EQ("\"${CMAKE_SOURCE_DIR}/cmake\"", parser.GetModel().GetCacheVariable("SCRIPTS_DIR"));
     EXPECT_EQ("STRING", parser.GetModel().FindCacheVariable("SCRIPTS_DIR")->Type());
     EXPECT_EQ("\"CMake scripts path\"", parser.GetModel().FindCacheVariable("SCRIPTS_DIR")->Description());
-    EXPECT_EQ(size_t{ 71 }, parser.GetModel().GetVariables().size());
+    //EXPECT_EQ("\"${CMAKE_SOURCE_DIR}/cmake\"", parser.GetModel().GetCacheVariable("PROJECT_SOURCES_${PROJECT_NAME}"));
+    //EXPECT_EQ("STRING", parser.GetModel().FindCacheVariable("PROJECT_SOURCES_${PROJECT_NAME}")->Type());
+    //EXPECT_EQ("\"CMake scripts path\"", parser.GetModel().FindCacheVariable("PROJECT_SOURCES_${PROJECT_NAME}")->Description());
+    EXPECT_EQ(size_t{ 72 }, parser.GetModel().GetVariables().size());
     EXPECT_EQ(CMAKE_BUILD_TYPE, parser.GetModel().GetVariable("CMAKE_BUILD_TYPE"));
     EXPECT_EQ(CMAKE_CXX_COMPILER, parser.GetModel().GetVariable("CMAKE_CXX_COMPILER"));
     EXPECT_EQ(CMAKE_C_COMPILER, parser.GetModel().GetVariable("CMAKE_C_COMPILER"));
@@ -350,27 +353,57 @@ TEST_F(ScriptParserTest, CMakeProject)
 
     EXPECT_EQ("3.5.1", parser.GetModel().GetVariable("CMAKE_MINIMUM_REQUIRED_VERSION"));
 
-    EXPECT_EQ(size_t{ 1 }, parser.GetModel().GetProjects().size());
+    EXPECT_EQ(size_t{ 4 }, parser.GetModel().GetProjects().size());
     std::string projectName{ "CPP-Parser" };
     std::string projectDescription{ "\"This is the project for cpp-parser\"" };
     auto project = parser.GetModel().GetProject(projectName);
     EXPECT_EQ(projectName, project->Name());
-    EXPECT_EQ("", project->Version());
+    EXPECT_EQ("1.2.3.4", project->Version());
     EXPECT_EQ(projectDescription, project->Description());
     EXPECT_EQ("", project->Languages());
     EXPECT_NULL(project->Parent());
 
-    EXPECT_EQ(CMAKE_CURRENT_BINARY_DIR, parser.GetModel().GetVariable("PROJECT_BINARY_DIR"));
-    EXPECT_EQ("", parser.GetModel().GetVariable("PROJECT_HOMEPAGE_URL"));
-    EXPECT_EQ(project->Name(), parser.GetModel().GetVariable("PROJECT_NAME"));
-    EXPECT_EQ(project->Description(), parser.GetModel().GetVariable("PROJECT_DESCRIPTION"));
-    EXPECT_EQ(CMAKE_CURRENT_SOURCE_DIR, parser.GetModel().GetVariable("PROJECT_SOURCE_DIR"));
-    EXPECT_EQ(project->Version(), parser.GetModel().GetVariable("PROJECT_VERSION"));
-    EXPECT_EQ("0", parser.GetModel().GetVariable("PROJECT_VERSION_MAJOR"));
-    EXPECT_EQ("0", parser.GetModel().GetVariable("PROJECT_VERSION_MINOR"));
-    EXPECT_EQ("0", parser.GetModel().GetVariable("PROJECT_VERSION_PATCH"));
-    EXPECT_EQ("0", parser.GetModel().GetVariable("PROJECT_VERSION_TWEAK"));
+    projectName = { "serializer" };
+    projectDescription = { "\"CPP parser\"" };
+    project = parser.GetModel().GetProject(projectName);
+    EXPECT_EQ(projectName, project->Name());
+    EXPECT_EQ("1.2.3.4", project->Version());
+    EXPECT_EQ(projectDescription, project->Description());
+    EXPECT_EQ("CXX", project->Languages());
+    EXPECT_NULL(project->Parent());
 
+    projectName = { "serialization" };
+    projectDescription = { "\"Serialization library\"" };
+    project = parser.GetModel().GetProject(projectName);
+    EXPECT_EQ(projectName, project->Name());
+    EXPECT_EQ("1.2.3.4", project->Version());
+    EXPECT_EQ(projectDescription, project->Description());
+    EXPECT_EQ("CXX", project->Languages());
+    EXPECT_NULL(project->Parent());
+
+    projectName = { "serialization-test" };
+    projectDescription = { "\"Serialization Library Test\"" };
+    project = parser.GetModel().GetProject(projectName);
+    EXPECT_EQ(projectName, project->Name());
+    EXPECT_EQ("1.2.3.4", project->Version());
+    EXPECT_EQ(projectDescription, project->Description());
+    EXPECT_EQ("CXX", project->Languages());
+    EXPECT_NULL(project->Parent());
+
+    projectName = { "CPP-Parser" };
+    project = parser.GetModel().GetProject(projectName);
+    EXPECT_EQ(CMAKE_CURRENT_BINARY_DIR, parser.GetModel().GetVariable(VarProjectBinaryDir));
+    EXPECT_EQ("", parser.GetModel().GetVariable(VarProjectHomepageURL));
+    EXPECT_EQ(project->Name(), parser.GetModel().GetVariable(VarProjectName));
+    EXPECT_EQ(project->Description(), parser.GetModel().GetVariable(VarProjectDescription));
+    EXPECT_EQ(CMAKE_CURRENT_SOURCE_DIR, parser.GetModel().GetVariable(VarProjectSourceDirectory));
+    EXPECT_EQ(project->Version(), parser.GetModel().GetVariable(VarProjectVersion));
+    EXPECT_EQ("1", parser.GetModel().GetVariable(VarProjectVersionMajor));
+    EXPECT_EQ("2", parser.GetModel().GetVariable(VarProjectVersionMinor));
+    EXPECT_EQ("3", parser.GetModel().GetVariable(VarProjectVersionPatch));
+    EXPECT_EQ("4", parser.GetModel().GetVariable(VarProjectVersionTweak));
+
+    EXPECT_EQ("1.2.3.4", parser.GetModel().GetVariable("MSI_NUMBER"));
     EXPECT_EQ("TRUE", parser.GetModel().GetVariable("PLATFORM_WINDOWS"));
     EXPECT_EQ("windows", parser.GetModel().GetVariable("PLATFORM_NAME"));
     EXPECT_EQ("ON", parser.GetModel().GetVariable("CMAKE_EXPORT_COMPILE_COMMANDS"));
@@ -402,8 +435,14 @@ TEST_F(ScriptParserTest, CMakeProject)
 
     // Todo: evaluate expressions
 
-    EXPECT_EQ(size_t{ 1 }, parser.GetModel().GetDirectories().size());
+    EXPECT_EQ(size_t{ 7 }, parser.GetModel().GetDirectories().size());
     EXPECT_NOT_NULL(parser.GetModel().FindDirectory(rootDirectory));
+    EXPECT_NOT_NULL(parser.GetModel().FindDirectory(rootDirectory / "code"));
+    EXPECT_NOT_NULL(parser.GetModel().FindDirectory(rootDirectory / "code" / "applications"));
+    EXPECT_NOT_NULL(parser.GetModel().FindDirectory(rootDirectory / "code" / "applications" / "serializer"));
+    EXPECT_NOT_NULL(parser.GetModel().FindDirectory(rootDirectory / "code" / "libraries"));
+    EXPECT_NOT_NULL(parser.GetModel().FindDirectory(rootDirectory / "code" / "libraries" / "serialization"));
+    EXPECT_NOT_NULL(parser.GetModel().FindDirectory(rootDirectory / "code" / "libraries" / "serialization" / "test"));
 }
 
 } // namespace cmake_parser

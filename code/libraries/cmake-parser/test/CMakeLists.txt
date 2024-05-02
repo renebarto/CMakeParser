@@ -54,6 +54,7 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/CMakeModelTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/CMakeParserTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/DirectoryListTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/DirectoryStackTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/DirectoryTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ExpressionTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/LexerTest.cpp

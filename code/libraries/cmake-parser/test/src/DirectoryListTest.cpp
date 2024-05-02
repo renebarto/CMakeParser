@@ -202,7 +202,7 @@ TEST_F(DirectoryListTest, Serialize)
     EXPECT_EQ(
         "DirectoryList:\n"
         "Directory sourcePath = \"" + parentSourcePath.string() + "\", binaryPath = \"" + parentBinaryPath.string() + "\", parent = (none)\n"
-        "Directory sourcePath = \"" + sourcePath.string() + "\", binaryPath = \"" + binaryPath.string() + "\", parent = (Directory sourcePath = \"" + parentSourcePath.string() + "\", binaryPath = \"" + parentBinaryPath.string() + "\", parent = (none))\n", directories.Serialize());
+        "Directory sourcePath = \"" + sourcePath.string() + "\", binaryPath = \"" + binaryPath.string() + "\", parent = (Directory sourcePath = \"" + parentSourcePath.string() + "\", binaryPath = \"" + parentBinaryPath.string() + "\")\n", directories.Serialize());
 }
 
 TEST_F(DirectoryListTest, StreamInsertion)
@@ -224,7 +224,7 @@ TEST_F(DirectoryListTest, StreamInsertion)
     EXPECT_EQ(
         "DirectoryList:\n"
         "Directory sourcePath = \"" + parentSourcePath.string() + "\", binaryPath = \"" + parentBinaryPath.string() + "\", parent = (none)\n"
-        "Directory sourcePath = \"" + sourcePath.string() + "\", binaryPath = \"" + binaryPath.string() + "\", parent = (Directory sourcePath = \"" + parentSourcePath.string() + "\", binaryPath = \"" + parentBinaryPath.string() + "\", parent = (none))\n", directories.Serialize());
+        "Directory sourcePath = \"" + sourcePath.string() + "\", binaryPath = \"" + binaryPath.string() + "\", parent = (Directory sourcePath = \"" + parentSourcePath.string() + "\", binaryPath = \"" + parentBinaryPath.string() + "\")\n", directories.Serialize());
 }
 
 } // namespace cmake_parser
