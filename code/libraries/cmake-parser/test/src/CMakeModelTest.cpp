@@ -30,7 +30,7 @@ public:
     {
         Tracing::SetTraceWriter(&m_traceWriter);
         m_savedTraceFilter = Tracing::GetDefaultTraceFilter();
-        Tracing::SetDefaultTraceFilter(TraceCategory::Error | TraceCategory::Warning | TraceCategory::Information | TraceCategory::Data | TraceCategory::Debug);
+        Tracing::SetDefaultTraceFilter(TraceCategory::Error | TraceCategory::Warning | TraceCategory::Information/* | TraceCategory::Data | TraceCategory::Debug*/);
     }
     void TearDown() override
     {

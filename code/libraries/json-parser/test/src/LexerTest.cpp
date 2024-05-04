@@ -48,8 +48,8 @@ TEST_F(LexerTest, Brackets)
     EXPECT_FALSE(lexer.IsAtEnd());
     EXPECT_EQ(Token(TokenType(TokenTypes::SquareBracketOpen), "[", SourceLocation("ABC", 1, 1), SourceLocation("ABC", 1, 2)), lexer.GetToken());
     EXPECT_EQ(Token(TokenType(TokenTypes::SquareBracketClose), "]", SourceLocation("ABC", 1, 2), SourceLocation("ABC", 1, 3)), lexer.GetToken());
-    EXPECT_EQ(Token(TokenType(TokenTypes::CurlyBracketOpen), "{", SourceLocation("ABC", 1, 3), SourceLocation("ABC", 1, 4)), lexer.GetToken());
-    EXPECT_EQ(Token(TokenType(TokenTypes::CurlyBracketClose), "}", SourceLocation("ABC", 1, 4), SourceLocation("ABC", 1, 5)), lexer.GetToken());
+    EXPECT_EQ(Token(TokenType(TokenTypes::CurlyBraceOpen), "{", SourceLocation("ABC", 1, 3), SourceLocation("ABC", 1, 4)), lexer.GetToken());
+    EXPECT_EQ(Token(TokenType(TokenTypes::CurlyBraceClose), "}", SourceLocation("ABC", 1, 4), SourceLocation("ABC", 1, 5)), lexer.GetToken());
     EXPECT_EQ(Token(TokenType(TokenTypes::Comma), ",", SourceLocation("ABC", 1, 5), SourceLocation("ABC", 1, 6)), lexer.GetToken());
     EXPECT_EQ(Token(TokenType(TokenTypes::Colon), ":", SourceLocation("ABC", 1, 6), SourceLocation("ABC", 1, 7)), lexer.GetToken());
     EXPECT_TRUE(lexer.IsAtEnd());

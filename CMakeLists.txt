@@ -33,7 +33,7 @@ project(CPP-Parser
     DESCRIPTION "This is the project for cpp-parser"
 )
 
-dump_all_vars()
+#dump_all_vars()
 
 message(STATUS "")
 
@@ -56,7 +56,9 @@ message(STATUS "")
 message(STATUS "Verbose build:       ${CMAKE_VERBOSE_MAKEFILE}")
 
 set(OUTPUT_BASE_DIR ${CMAKE_SOURCE_DIR}/output/${PLATFORM_NAME})
+message(STATUS "OUTPUT_BASE_DIR:     ${OUTPUT_BASE_DIR}")
 set(TEST_DATA_DIR ${CMAKE_SOURCE_DIR}/testdata)
+message(STATUS "TEST_DATA_DIR:       ${TEST_DATA_DIR}")
 
 # Enforce CMake to use /MT and /MTd
 set(CompilerFlags

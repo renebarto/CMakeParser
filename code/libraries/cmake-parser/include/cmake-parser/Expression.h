@@ -32,6 +32,7 @@ public:
     std::string Expect_SkipWhitespace(Terminal type);
     std::string Evaluate();
     std::string EvaluateString(const std::string& text);
+    static std::string EvaluateString(const CMakeModel& model, const std::string& text);
 
     bool OnToken(const parser::Token<Terminal>&, bool& done) override;
     bool OnNoMoreToken(const parser::SourceLocation& location) override;

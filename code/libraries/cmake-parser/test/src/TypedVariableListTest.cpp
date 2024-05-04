@@ -93,7 +93,7 @@ TEST_F(TypedVariableListTest, SetVariable)
     EXPECT_EQ("", variables.GetVariable("DUMMY"));
     EXPECT_NULL(variables.FindVariable("DUMMY"));
 
-    variables.SetVariable("x", "STRING", "y", "\"var x\"");
+    variables.SetVariable("x", "STRING", "y", "var x");
 
     EXPECT_EQ(size_t{ 1 }, variables.GetVariables().size());
     EXPECT_EQ("", variables.GetVariable("DUMMY"));
@@ -103,7 +103,7 @@ TEST_F(TypedVariableListTest, SetVariable)
     EXPECT_EQ("x", variables.FindVariable("x")->Name());
     EXPECT_EQ("STRING", variables.FindVariable("x")->Type());
     EXPECT_EQ("y", variables.FindVariable("x")->Value());
-    EXPECT_EQ("\"var x\"", variables.FindVariable("x")->Description());
+    EXPECT_EQ("var x", variables.FindVariable("x")->Description());
 }
 
 TEST_F(TypedVariableListTest, UnsetTypedVariable)
@@ -114,7 +114,7 @@ TEST_F(TypedVariableListTest, UnsetTypedVariable)
     EXPECT_EQ("", variables.GetVariable("DUMMY"));
     EXPECT_NULL(variables.FindVariable("DUMMY"));
 
-    variables.SetVariable("x", "STRING", "y", "\"var x\"");
+    variables.SetVariable("x", "STRING", "y", "var x");
 
     EXPECT_EQ(size_t{ 1 }, variables.GetVariables().size());
     EXPECT_EQ("", variables.GetVariable("DUMMY"));
@@ -147,7 +147,7 @@ TEST_F(TypedVariableListTest, AddVariable)
     EXPECT_EQ("", variables.GetVariable("DUMMY"));
     EXPECT_NULL(variables.FindVariable("DUMMY"));
 
-    variables.AddVariable("x", std::make_shared<TypedVariable>("x", "STRING", "y", "\"var x\""));
+    variables.AddVariable("x", std::make_shared<TypedVariable>("x", "STRING", "y", "var x"));
 
     EXPECT_EQ(size_t{ 1 }, variables.GetVariables().size());
     EXPECT_EQ("", variables.GetVariable("DUMMY"));
@@ -157,7 +157,7 @@ TEST_F(TypedVariableListTest, AddVariable)
     EXPECT_EQ("x", variables.FindVariable("x")->Name());
     EXPECT_EQ("STRING", variables.FindVariable("x")->Type());
     EXPECT_EQ("y", variables.FindVariable("x")->Value());
-    EXPECT_EQ("\"var x\"", variables.FindVariable("x")->Description());
+    EXPECT_EQ("var x", variables.FindVariable("x")->Description());
 }
 
 TEST_F(TypedVariableListTest, StreamInsertion)

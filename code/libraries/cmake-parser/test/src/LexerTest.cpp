@@ -66,8 +66,8 @@ TEST_F(LexerTest, SimpleTerminals)
     EXPECT_EQ(Token(TokenType(Terminal::Dollar),              "$", SourceLocation("ABC", 1, 1), SourceLocation("ABC", 1, 2)), lexer.GetToken());
     EXPECT_EQ(Token(TokenType(Terminal::ParenthesisOpen),     "(", SourceLocation("ABC", 1, 2), SourceLocation("ABC", 1, 3)), lexer.GetToken());
     EXPECT_EQ(Token(TokenType(Terminal::ParenthesisClose),    ")", SourceLocation("ABC", 1, 3), SourceLocation("ABC", 1, 4)), lexer.GetToken());
-    EXPECT_EQ(Token(TokenType(Terminal::CurlyBracketOpen),    "{", SourceLocation("ABC", 1, 4), SourceLocation("ABC", 1, 5)), lexer.GetToken());
-    EXPECT_EQ(Token(TokenType(Terminal::CurlyBracketClose),   "}", SourceLocation("ABC", 1, 5), SourceLocation("ABC", 1, 6)), lexer.GetToken());
+    EXPECT_EQ(Token(TokenType(Terminal::CurlyBraceOpen),    "{", SourceLocation("ABC", 1, 4), SourceLocation("ABC", 1, 5)), lexer.GetToken());
+    EXPECT_EQ(Token(TokenType(Terminal::CurlyBraceClose),   "}", SourceLocation("ABC", 1, 5), SourceLocation("ABC", 1, 6)), lexer.GetToken());
     EXPECT_TRUE(lexer.IsAtEnd());
 }
 

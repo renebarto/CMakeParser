@@ -80,7 +80,7 @@ TEST_F(ExpressionTest, ParseString)
     std::string expr = "\"text\"";
     Expression expression(model, expr);
 
-    EXPECT_EQ("\"text\"", expression.Evaluate());
+    EXPECT_EQ("text", expression.Evaluate());
 }
 
 TEST_F(ExpressionTest, ParseStringWithVariable)
@@ -88,7 +88,7 @@ TEST_F(ExpressionTest, ParseStringWithVariable)
     std::string expr = "\"text ${A}\"";
     Expression expression(model, expr);
 
-    EXPECT_EQ("\"text varA\"", expression.Evaluate());
+    EXPECT_EQ("text varA", expression.Evaluate());
 }
 
 TEST_F(ExpressionTest, ParseExpressionWithVariables)

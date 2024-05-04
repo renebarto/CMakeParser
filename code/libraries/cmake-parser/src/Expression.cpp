@@ -1,5 +1,6 @@
 #include "cmake-parser/Expression.h"
 
+#include "utility/StringFunctions.h"
 #include "tracing/Tracing.h"
 
 using namespace parser;
@@ -62,37 +63,55 @@ std::string Expression::Evaluate()
 
 std::string Expression::EvaluateString(const std::string& text)
 {
-    std::string result;
-    size_t index{};
-    while (index < text.length())
+    return EvaluateString(m_model, text);
+}
+
+std::string Expression::EvaluateString(const CMakeModel& model, const std::string& text)
+{
+    std::string prevResult;
+    std::string result = text;
+    while (prevResult != result)
     {
-        char ch = text[index++];
-        switch (ch)
+        prevResult = result;
+        result = {};
+        size_t index{};
+        while (index < prevResult.length())
         {
-        case '$':
-            if ((index < text.length()) && (text[index] == '{'))
+            char ch = prevResult[index++];
+            switch (ch)
             {
-                index++;
-                std::string variableName;
-                while ((index < text.length()) && (text[index] != '}'))
+            case '$':
+                if ((index < prevResult.length()) && (prevResult[index] == '{'))
                 {
-                    variableName += text[index++];
-                }
-                if ((index < text.length()) && (text[index] == '}'))
-                {
-                    result += m_model.GetVariable(variableName);
                     index++;
+                    std::string variableName;
+                    while ((index < prevResult.length()) && (prevResult[index] != '}') && (prevResult[index] != '$'))
+                    {
+                        variableName += prevResult[index++];
+                    }
+                    if ((index < prevResult.length()) && (prevResult[index] == '}'))
+                    {
+                        if (model.FindVariable(variableName) == nullptr)
+                        {
+                            result += model.GetCacheVariable(variableName);
+                        }
+                        else
+                        {
+                            result += model.GetVariable(variableName);
+                        }
+                        index++;
+                    }
+                    else
+                    {
+                        // Invalid variable expression
+                        result += "${" + variableName;
+                    }
                 }
-                else
-                {
-                    // Invalid variable expression
-                    result += "${" + variableName;
-                }
+                break;
+            default:
+                result += ch;
+                break;
             }
-            break;
-        default:
-            result += ch;
-            break;
         }
     }
     return result;
@@ -161,38 +180,16 @@ bool Expression::OnToken(const parser::Token<Terminal>& token, bool& done)
     switch (token.Type().TypeCode())
     {
     case Terminal::String:
-        m_result += EvaluateString(token.Value());
+        m_result += utility::UnQuote(EvaluateString(token.Value()));
         break;
     case Terminal::Dollar:
         {
             NextToken();
-            Expect(Terminal::CurlyBracketOpen);
+            Expect(Terminal::CurlyBraceOpen);
             auto variableName = Expect(Terminal::Name);
-            Expect(Terminal::CurlyBracketClose);
+            Expect(Terminal::CurlyBraceClose);
             UngetCurrentToken();
             m_result += m_model.GetVariable(variableName);
-        }
-        break;
-    case Terminal::DigitSequence:
-        {
-            m_result = token.Value();
-            NextToken();
-            m_result += Expect(Terminal::Dot);
-            m_result += Expect(Terminal::DigitSequence);
-            if (CurrentToken().IsNull())
-            {
-                UngetCurrentToken();
-                return true;
-            }
-            m_result += Expect(Terminal::Dot);
-            m_result += Expect(Terminal::DigitSequence);
-            if (CurrentToken().IsNull())
-            {
-                UngetCurrentToken();
-                return true;
-            }
-            m_result += Expect(Terminal::Dot);
-            m_result += Expect(Terminal::DigitSequence);
         }
         break;
     default:

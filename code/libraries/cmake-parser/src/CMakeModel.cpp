@@ -4,6 +4,7 @@
 #include <iostream>
 #include "utility/StringFunctions.h"
 #include "tracing/Tracing.h"
+#include "cmake-parser/Expression.h"
 
 namespace cmake_parser {
 
@@ -281,15 +282,19 @@ VariablePtr CMakeModel::FindVariable(const std::string& name) const
 
 void CMakeModel::SetVariable(const std::string& name, const std::string& value, VariableAttribute attributes /*= {}*/, const std::string& type /*= {}*/, const std::string& description /*= {}*/)
 {
+    auto evaluatedName = Evaluate(utility::UnQuote(name));
+    auto evaluatedValue = Evaluate(utility::UnQuote(value));
+    auto evaluatedDescription = Evaluate(utility::UnQuote(description));
+
     if (attributes & VariableAttribute::Cache)
     {
-        auto var = m_cache.FindVariable(name);
+        auto var = m_cache.FindVariable(evaluatedName);
         if (var == nullptr)
         {
             auto varType = type.empty() ? "STRING" : type;
-            TRACE_DATA("Add new cache variable {}:{} = {} ({})", name, varType, value, description);
-            var = std::make_shared<TypedVariable>(name, varType, value, description);
-            m_cache.AddVariable(name, var);
+            TRACE_DATA("Add new cache variable {}:{} = {} ({})", evaluatedName, varType, evaluatedValue, evaluatedDescription);
+            var = std::make_shared<TypedVariable>(evaluatedName, varType, evaluatedValue, evaluatedDescription);
+            m_cache.AddVariable(evaluatedName, var);
         }
         else
         {
@@ -297,37 +302,37 @@ void CMakeModel::SetVariable(const std::string& name, const std::string& value, 
             {
                 if (type.empty())
                 {
-                    TRACE_DATA("Update cache variable {} = {} ({})", name, value, description);
-                    var->SetValue(value);
-                    var->SetDescription(description);
+                    TRACE_DATA("Update cache variable {} = {} ({})", evaluatedName, evaluatedValue, evaluatedDescription);
+                    var->SetValue(evaluatedValue);
+                    var->SetDescription(evaluatedDescription);
                 }
                 else
                 {
-                    TRACE_DATA("Update cache variable {}:{} = {} ({})", name, type, value, description);
-                    var->SetValue(type, value);
-                    var->SetDescription(description);
+                    TRACE_DATA("Update cache variable {}:{} = {} ({})", evaluatedName, type, evaluatedValue, evaluatedDescription);
+                    var->SetValue(type, evaluatedValue);
+                    var->SetDescription(evaluatedDescription);
                 }
             }
             else
             {
-                TRACE_DATA("Not updating cache variable, already set {} = {}", name, value);
+                TRACE_DATA("Not updating cache variable, already set {} = {}", evaluatedName, evaluatedValue);
             }
         }
     }
     else
     {
         assert(IsSourceRootSet());
-        auto var = m_scopeVariables->FindVariable(name);
+        auto var = m_scopeVariables->FindVariable(evaluatedName);
         if (var == nullptr)
         {
-            TRACE_DATA("Add new variable {} = {}", name, value);
-            var = std::make_shared<Variable>(name, value);
-            m_scopeVariables->AddVariable(name, var);
+            TRACE_DATA("Add new variable {} = {}", evaluatedName, evaluatedValue);
+            var = std::make_shared<Variable>(evaluatedName, evaluatedValue);
+            m_scopeVariables->AddVariable(evaluatedName, var);
         }
         else
         {
-            TRACE_DATA("Update variable {} = {}", name, value);
-            var->SetValue(value);
+            TRACE_DATA("Update variable {} = {}", evaluatedName, evaluatedValue);
+            var->SetValue(evaluatedValue);
         }
     }
 }
@@ -349,8 +354,11 @@ void CMakeModel::UnsetVariable(const std::string& name, VariableAttribute attrib
 
 void CMakeModel::SetEnvironmentVariable(const std::string& name, const std::string& value)
 {
-    TRACE_DATA("Set environment variable {} = {}", name, value);
-    m_environment.SetVariable(name, value);
+    auto evaluatedName = Evaluate(utility::UnQuote(name));
+    auto evaluatedValue = Evaluate(utility::UnQuote(value));
+
+    TRACE_DATA("Set environment variable {} = {}", evaluatedName, evaluatedValue);
+    m_environment.SetVariable(evaluatedName, evaluatedValue);
 }
 
 void CMakeModel::UnsetEnvironmentVariable(const std::string& name)
@@ -391,7 +399,14 @@ DirectoryPtr CMakeModel::GetCurrentDirectory() const
 
 void CMakeModel::AddMessage(const std::string& messageMode, const std::string& message)
 {
-    TRACE_INFO("Message({} {})", messageMode, message);
+    auto evaluatedValue = Evaluate(message);
+
+    TRACE_INFO("Message({} {})", messageMode, evaluatedValue);
+}
+
+std::string CMakeModel::Evaluate(const std::string& value)
+{
+    return expression::Expression::EvaluateString(*this, value);
 }
 
 } // namespace cmake_parser

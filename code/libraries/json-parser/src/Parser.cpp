@@ -74,7 +74,7 @@ JSONValuePtr Parser::ParseValue()
             case TokenTypes::SquareBracketOpen:
                 m_lexer.UngetToken(token);
                 return ParseArray();
-            case TokenTypes::CurlyBracketOpen:
+            case TokenTypes::CurlyBraceOpen:
                 m_lexer.UngetToken(token);
                 return ParseObject();
             default:
@@ -91,7 +91,7 @@ JSONValuePtr Parser::ParseArray()
     Token<TokenTypes> token{};
     if (!Expect(TokenTypes::SquareBracketOpen, token))
         return nullptr;
-    while (Expect({ TokenTypes::SquareBracketClose, TokenTypes::Null, TokenTypes::False, TokenTypes::True, TokenTypes::Number, TokenTypes::String, TokenTypes::SquareBracketOpen, TokenTypes::CurlyBracketOpen }, token))
+    while (Expect({ TokenTypes::SquareBracketClose, TokenTypes::Null, TokenTypes::False, TokenTypes::True, TokenTypes::Number, TokenTypes::String, TokenTypes::SquareBracketOpen, TokenTypes::CurlyBraceOpen }, token))
     {
         if (token.Type() != TokenTypes::SquareBracketClose)
         {
@@ -115,16 +115,16 @@ JSONValuePtr Parser::ParseObject()
 {
     auto result = CreateObject();
     Token<TokenTypes> token{};
-    if (!Expect(TokenTypes::CurlyBracketOpen, token))
+    if (!Expect(TokenTypes::CurlyBraceOpen, token))
         return nullptr;
-    while (Expect({ TokenTypes::CurlyBracketClose, TokenTypes::String }, token))
+    while (Expect({ TokenTypes::CurlyBraceClose, TokenTypes::String }, token))
     {
-        if (token.Type() != TokenTypes::CurlyBracketClose)
+        if (token.Type() != TokenTypes::CurlyBraceClose)
         {
             auto key = utility::UnQuote(token.Value());
             if (!Expect(TokenTypes::Colon, token))
                 break;
-            if (!Expect({ TokenTypes::Null, TokenTypes::False, TokenTypes::True, TokenTypes::Number, TokenTypes::String, TokenTypes::SquareBracketOpen, TokenTypes::CurlyBracketOpen }, token))
+            if (!Expect({ TokenTypes::Null, TokenTypes::False, TokenTypes::True, TokenTypes::Number, TokenTypes::String, TokenTypes::SquareBracketOpen, TokenTypes::CurlyBraceOpen }, token))
                 break;
             m_lexer.UngetToken(token);
             auto value = ParseValue();
@@ -132,10 +132,10 @@ JSONValuePtr Parser::ParseObject()
                 break;
             JSONKVPair kvPair{ key, value };
             result->AsObject()->AddPair(kvPair);
-            if (!Expect({ TokenTypes::CurlyBracketClose, TokenTypes::Comma }, token))
+            if (!Expect({ TokenTypes::CurlyBraceClose, TokenTypes::Comma }, token))
                 return result;
         }
-        if (token.Type() == TokenTypes::CurlyBracketClose)
+        if (token.Type() == TokenTypes::CurlyBraceClose)
         {
             return result;
         }

@@ -93,7 +93,7 @@ TEST_F(CMakeCacheTest, SetVariable)
     EXPECT_EQ("", cache.GetVariable("DUMMY"));
     EXPECT_NULL(cache.FindVariable("DUMMY"));
 
-    cache.SetVariable("x", "STRING", "y", "\"var x\"");
+    cache.SetVariable("x", "STRING", "y", "var x");
 
     EXPECT_EQ(size_t{ 1 }, cache.GetVariables().size());
     EXPECT_EQ("", cache.GetVariable("DUMMY"));
@@ -103,7 +103,7 @@ TEST_F(CMakeCacheTest, SetVariable)
     EXPECT_EQ("x", cache.FindVariable("x")->Name());
     EXPECT_EQ("STRING", cache.FindVariable("x")->Type());
     EXPECT_EQ("y", cache.FindVariable("x")->Value());
-    EXPECT_EQ("\"var x\"", cache.FindVariable("x")->Description());
+    EXPECT_EQ("var x", cache.FindVariable("x")->Description());
 }
 
 TEST_F(CMakeCacheTest, UnsetVariable)
@@ -147,7 +147,7 @@ TEST_F(CMakeCacheTest, AddVariable)
     EXPECT_EQ("", cache.GetVariable("DUMMY"));
     EXPECT_NULL(cache.FindVariable("DUMMY"));
 
-    cache.AddVariable("x", std::make_shared<TypedVariable>("x", "STRING", "y", "\"var x\""));
+    cache.AddVariable("x", std::make_shared<TypedVariable>("x", "STRING", "y", "var x"));
 
     EXPECT_EQ(size_t{ 1 }, cache.GetVariables().size());
     EXPECT_EQ("", cache.GetVariable("DUMMY"));
@@ -157,7 +157,7 @@ TEST_F(CMakeCacheTest, AddVariable)
     EXPECT_EQ("x", cache.FindVariable("x")->Name());
     EXPECT_EQ("STRING", cache.FindVariable("x")->Type());
     EXPECT_EQ("y", cache.FindVariable("x")->Value());
-    EXPECT_EQ("\"var x\"", cache.FindVariable("x")->Description());
+    EXPECT_EQ("var x", cache.FindVariable("x")->Description());
 }
 
 TEST_F(CMakeCacheTest, StreamInsertion)

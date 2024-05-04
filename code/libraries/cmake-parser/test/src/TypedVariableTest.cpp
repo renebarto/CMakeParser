@@ -33,7 +33,7 @@ TEST_F(TypedVariableTest, ConstructNameTypeValue)
     std::string name = "variable";
     std::string type = "STRING";
     std::string value = "value";
-    std::string description = "\"description\"";
+    std::string description = "description";
     TypedVariable variable(name, type, value, description);
 
     EXPECT_EQ(name, variable.Name());
@@ -49,7 +49,7 @@ TEST_F(TypedVariableTest, SetValue)
     std::string type = "STRING";
     std::string value = "value";
     std::string valueNew = "valueNew";
-    std::string description = "\"description\"";
+    std::string description = "description";
     TypedVariable variable(name, type, value, description);
 
     EXPECT_EQ(name, variable.Name());
@@ -68,7 +68,7 @@ TEST_F(TypedVariableTest, SetTypeValue)
     std::string value = "value";
     std::string typeNew = "FILEPATH";
     std::string valueNew = "valueNew";
-    std::string description = "\"description\"";
+    std::string description = "description";
     TypedVariable variable(name, type, value, description);
 
     EXPECT_EQ(name, variable.Name());
@@ -88,8 +88,8 @@ TEST_F(TypedVariableTest, SetDescription)
     std::string type = "STRING";
     std::string value = "value";
     std::string typeNew = "FILEPATH";
-    std::string description = "\"description\"";
-    std::string descriptionNew = "\"description new\"";
+    std::string description = "description";
+    std::string descriptionNew = "description new";
     TypedVariable variable(name, type, value, description);
 
     EXPECT_EQ(name, variable.Name());
@@ -108,7 +108,7 @@ TEST_F(TypedVariableTest, StreamInsertion)
     std::string name = "variable";
     std::string type = "STRING";
     std::string value = "value";
-    std::string description = "\"description\"";
+    std::string description = "description";
     TypedVariable variable(name, type, value, description);
 
     EXPECT_EQ(name, variable.Name());
@@ -125,7 +125,7 @@ TEST_F(TypedVariableTest, StreamInsertionPtr)
     std::string name = "variable";
     std::string type = "STRING";
     std::string value = "value";
-    std::string description = "\"description\"";
+    std::string description = "description";
     auto variable = std::make_shared<TypedVariable>(name, type, value, description);
 
     EXPECT_EQ(name, variable->Name());

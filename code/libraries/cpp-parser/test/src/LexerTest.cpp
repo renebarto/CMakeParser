@@ -72,8 +72,8 @@ TEST_F(LexerTest, PunctationMarks)
     EXPECT_EQ(Token(TokenType(BackQuote),           "`", SourceLocation("ABC", 1, 13), SourceLocation("ABC", 1, 14)), lexer.GetTokens()[12]);
     EXPECT_EQ(Token(TokenType(Minus),               "-", SourceLocation("ABC", 1, 14), SourceLocation("ABC", 1, 15)), lexer.GetTokens()[13]);
     EXPECT_EQ(Token(TokenType(Equals),              "=", SourceLocation("ABC", 1, 15), SourceLocation("ABC", 1, 16)), lexer.GetTokens()[14]);
-    EXPECT_EQ(Token(TokenType(CurlyBracketOpen),    "{", SourceLocation("ABC", 1, 16), SourceLocation("ABC", 1, 17)), lexer.GetTokens()[15]);
-    EXPECT_EQ(Token(TokenType(CurlyBracketClose),   "}", SourceLocation("ABC", 1, 17), SourceLocation("ABC", 1, 18)), lexer.GetTokens()[16]);
+    EXPECT_EQ(Token(TokenType(CurlyBraceOpen),    "{", SourceLocation("ABC", 1, 16), SourceLocation("ABC", 1, 17)), lexer.GetTokens()[15]);
+    EXPECT_EQ(Token(TokenType(CurlyBraceClose),   "}", SourceLocation("ABC", 1, 17), SourceLocation("ABC", 1, 18)), lexer.GetTokens()[16]);
     EXPECT_EQ(Token(TokenType(Pipe),                "|", SourceLocation("ABC", 1, 18), SourceLocation("ABC", 1, 19)), lexer.GetTokens()[17]);
     EXPECT_EQ(Token(TokenType(SquareBracketOpen),   "[", SourceLocation("ABC", 1, 19), SourceLocation("ABC", 1, 20)), lexer.GetTokens()[18]);
     EXPECT_EQ(Token(TokenType(SquareBracketClose),  "]", SourceLocation("ABC", 1, 20), SourceLocation("ABC", 1, 21)), lexer.GetTokens()[19]);

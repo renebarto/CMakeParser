@@ -23,8 +23,8 @@ enum TokenTypes
     Identifier,
     ParenthesisOpen,
     ParenthesisClose,
-    CurlyBracketOpen,
-    CurlyBracketClose,
+    CurlyBraceOpen,
+    CurlyBraceClose,
 };
 
 class ParserExecutorTest
@@ -130,8 +130,8 @@ TEST_F(ParserExecutorTest, ParseComplex)
         { Identifier, "Identifier" },
         { ParenthesisOpen, "ParenthesisOpen" },
         { ParenthesisClose, "ParenthesisClose" },
-        { CurlyBracketOpen, "CurlyBracketOpen" },
-        { CurlyBracketClose, "CurlyBracketClose" },
+        { CurlyBraceOpen, "CurlyBraceOpen" },
+        { CurlyBraceClose, "CurlyBraceClose" },
         });
     SetTokenizerRules<TokenTypes>({
         { "[ \t]+", Whitespace },
@@ -141,8 +141,8 @@ TEST_F(ParserExecutorTest, ParseComplex)
         { "[_a-zA-Z][_a-zA-Z0-9]*", Identifier },
         { "\\(", ParenthesisOpen },
         { "\\)", ParenthesisClose },
-        { "\\{", CurlyBracketOpen},
-        { "\\}", CurlyBracketClose },
+        { "\\{", CurlyBraceOpen},
+        { "\\}", CurlyBraceClose },
         });
 
     EXPECT_CALL(callback, OnToken(_, _))
@@ -192,13 +192,13 @@ TEST_F(ParserExecutorTest, ParseComplex)
     EXPECT_EQ(TokenType<TokenTypes>{ Whitespace }, token9.Type());
     EXPECT_EQ(" ", token9.Value());
 
-    EXPECT_EQ(TokenType<TokenTypes>{ CurlyBracketOpen }, token10.Type());
+    EXPECT_EQ(TokenType<TokenTypes>{ CurlyBraceOpen }, token10.Type());
     EXPECT_EQ("{", token10.Value());
 
     EXPECT_EQ(TokenType<TokenTypes>{ BlockComment }, token11.Type());
     EXPECT_EQ("/* Do something*/", token11.Value());
 
-    EXPECT_EQ(TokenType<TokenTypes>{ CurlyBracketClose }, token12.Type());
+    EXPECT_EQ(TokenType<TokenTypes>{ CurlyBraceClose }, token12.Type());
     EXPECT_EQ("}", token12.Value());
 }
 

@@ -119,6 +119,9 @@ public:
     DirectoryPtr GetCurrentDirectory() const;
 
     void AddMessage(const std::string& messageMode, const std::string& message);
+
+private:
+    std::string Evaluate(const std::string& value);
 };
 
 } // namespace cmake_parser

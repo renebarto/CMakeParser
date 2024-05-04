@@ -16,53 +16,39 @@ namespace cmake_parser {
 
 using Data = Token<Terminal>;
 
-// Project attributes
-static const std::string VersionKeyword{ "version" };
-static const std::string DescriptionKeyword{ "description" };
-static const std::string LanguagesKeyword{ "languages" };
-
-// Message types
-static const std::string MessageModeFatalError{ "FATAL_ERROR" };
-static const std::string MessageModeSendError{ "SEND_ERROR" };
-static const std::string MessageModeWarning{ "WARNING" };
-static const std::string MessageModeAuthorWarning{ "AUTHOR_WARNING" };
-static const std::string MessageModeDeprecation{ "DEPRECATION" };
-static const std::string MessageModeNotice{ "NOTICE" };
-static const std::string MessageModeStatus{ "STATUS" };
-static const std::string MessageModeVerbose{ "VERBOSE" };
-static const std::string MessageModeDebug{ "DEBUG" };
-static const std::string MessageModeTrace{ "TRACE" };
-
-// Variable attributes
-static const std::string EnvironmentPrefix{ "ENV" };
-static const std::string KeywordCache{ "CACHE" };
-static const std::string KeywordParentScope{ "PARENT_SCOPE" };
-static const std::string KeywordForce{ "FORCE" };
-
 enum class Keyword {
+    AddExecutable,
+    AddLibrary,
     AddSubDirectory,
-    Cache,
     CMakeMinimumRequired,
     Else,
     EndForEach,
     EndFunction,
     EndIf,
+    EndMacro,
     FindPackage,
     Force,
     ForEach,
     Function,
     GetCMakeProperty,
+    GetTargetProperties,
     If,
     Include,
+    LinkDirectories,
     List,
+    Macro,
     Message,
     Option,
-    ParentScope,
     Project,
     Set,
+    SetProperty,
+    SetTargetProperties,
     String,
+    TargetCompileDefinitions,
+    TargetCompileOptions,
+    TargetIncludeDirectories,
+    TargetLinkLibraries,
     Unset,
-    Version,
 };
 
 } // cmake_parser
@@ -72,29 +58,38 @@ namespace serialization {
 template<>
 const BidirectionalMap<cmake_parser::Keyword, std::string> EnumSerializationMap<cmake_parser::Keyword>::ConversionMap =
 {
+    { cmake_parser::Keyword::AddExecutable, "add_executable" },
+    { cmake_parser::Keyword::AddLibrary, "add_library" },
     { cmake_parser::Keyword::AddSubDirectory, "add_subdirectory" },
-    { cmake_parser::Keyword::Cache, "cache" },
     { cmake_parser::Keyword::CMakeMinimumRequired, "cmake_minimum_required" },
     { cmake_parser::Keyword::Else, "else" },
     { cmake_parser::Keyword::EndForEach, "endforeach" },
     { cmake_parser::Keyword::EndFunction, "endfunction" },
     { cmake_parser::Keyword::EndIf, "endif" },
+    { cmake_parser::Keyword::EndMacro, "endmacro" },
     { cmake_parser::Keyword::FindPackage, "find_package" },
     { cmake_parser::Keyword::Force, "force" },
     { cmake_parser::Keyword::ForEach, "foreach" },
     { cmake_parser::Keyword::Function, "function" },
     { cmake_parser::Keyword::GetCMakeProperty, "get_cmake_property" },
+    { cmake_parser::Keyword::GetTargetProperties, "get_target_properties" },
     { cmake_parser::Keyword::If, "if" },
     { cmake_parser::Keyword::Include, "include" },
+    { cmake_parser::Keyword::LinkDirectories, "link_directories" },
     { cmake_parser::Keyword::List, "list" },
+    { cmake_parser::Keyword::Macro, "macro" },
     { cmake_parser::Keyword::Message, "message" },
     { cmake_parser::Keyword::Option, "option" },
-    { cmake_parser::Keyword::ParentScope, "parent_scope" },
     { cmake_parser::Keyword::Project, "project" },
     { cmake_parser::Keyword::Set, "set" },
+    { cmake_parser::Keyword::SetProperty, "set_property" },
+    { cmake_parser::Keyword::SetTargetProperties, "set_target_properties" },
     { cmake_parser::Keyword::String, "string" },
+    { cmake_parser::Keyword::TargetCompileDefinitions, "target_compile_definitions" },
+    { cmake_parser::Keyword::TargetCompileOptions, "target_compile_options" },
+    { cmake_parser::Keyword::TargetIncludeDirectories, "target_include_directories" },
+    { cmake_parser::Keyword::TargetLinkLibraries, "target_link_libraries" },
     { cmake_parser::Keyword::Unset, "unset" },
-    { cmake_parser::Keyword::Version, cmake_parser::VersionKeyword },
 };
 
 } // namespace serialization
@@ -183,7 +178,7 @@ std::string ScriptParser::ParseDescription()
     {
         NextToken();
         SkipWhitespace();
-        description = Expect(Terminal::String);
+        description = utility::UnQuote(Expect(Terminal::String));
     }
     catch (std::exception&)
     {
@@ -293,9 +288,9 @@ std::string ScriptParser::ExpectVariable()
 {
     std::string result;
 
-    Expect(Terminal::CurlyBracketOpen);
+    Expect(Terminal::CurlyBraceOpen);
     result = Expect(Terminal::Identifier);
-    Expect(Terminal::CurlyBracketClose);
+    Expect(Terminal::CurlyBraceClose);
 
     return result;
 }
@@ -331,9 +326,9 @@ std::string ScriptParser::ExpectExpressionPart()
     {
     case Terminal::Dollar:
         result = Expect(Terminal::Dollar);
-        result += Expect(Terminal::CurlyBracketOpen);
+        result += Expect(Terminal::CurlyBraceOpen);
         result += Expect(Terminal::Identifier);
-        result += Expect(Terminal::CurlyBracketClose);
+        result += Expect(Terminal::CurlyBraceClose);
         return result;
     default:
         break;
@@ -352,6 +347,9 @@ std::string ScriptParser::Evaluate(const std::string& expression) const
 
 bool ScriptParser::HandleCMakeMinimumRequired()
 {
+    // Attributes
+    static const std::string VersionKeyword{ "version" };
+
     Expect_SkipWhitespace(Terminal::ParenthesisOpen);
     std::string str = Expect_SkipWhitespace(Terminal::Identifier);
     if (!utility::IsEqualIgnoreCase(VersionKeyword, str))
@@ -366,6 +364,11 @@ bool ScriptParser::HandleCMakeMinimumRequired()
 
 bool ScriptParser::HandleProject()
 {
+    // Attributes
+    static const std::string VersionKeyword{ "version" };
+    static const std::string DescriptionKeyword{ "description" };
+    static const std::string LanguagesKeyword{ "languages" };
+
     Expect_SkipWhitespace(Terminal::ParenthesisOpen);
     auto projectName = Expect_SkipWhitespace({ Terminal::Name, Terminal::Identifier });
     auto result = projectName.Value();
@@ -409,6 +412,18 @@ bool ScriptParser::HandleProject()
     return true;
 }
 
+// Message types
+static const std::string MessageModeFatalError{ "FATAL_ERROR" };
+static const std::string MessageModeSendError{ "SEND_ERROR" };
+static const std::string MessageModeWarning{ "WARNING" };
+static const std::string MessageModeAuthorWarning{ "AUTHOR_WARNING" };
+static const std::string MessageModeDeprecation{ "DEPRECATION" };
+static const std::string MessageModeNotice{ "NOTICE" };
+static const std::string MessageModeStatus{ "STATUS" };
+static const std::string MessageModeVerbose{ "VERBOSE" };
+static const std::string MessageModeDebug{ "DEBUG" };
+static const std::string MessageModeTrace{ "TRACE" };
+
 bool ScriptParser::HandleMessage()
 {
     Expect_SkipWhitespace(Terminal::ParenthesisOpen);
@@ -449,6 +464,12 @@ bool ScriptParser::IsValidMessageMode(const std::string& mode)
         IsEqualIgnoreCase(MessageModeTrace, mode);
 }
 
+// Variable attributes
+static const std::string EnvironmentPrefix{ "ENV" };
+static const std::string KeywordCache{ "CACHE" };
+static const std::string KeywordParentScope{ "PARENT_SCOPE" };
+static const std::string KeywordForce{ "FORCE" };
+
 bool ScriptParser::HandleSet()
 {
     std::set<Terminal> finalizers = { Terminal::Whitespace , Terminal::NewLine, Terminal::ParenthesisClose };
@@ -474,7 +495,7 @@ bool ScriptParser::HandleSet()
     {
         if (CurrentToken().Type() == Terminal::Identifier)
         {
-            std::string variableName = Expect(Terminal::Identifier);
+            std::string variableName = ExpectExpression(finalizers);
             std::string variableType{};
             std::string description{};
             std::string value{};
@@ -637,19 +658,31 @@ bool ScriptParser::OnToken(const parser::Token<Terminal>& token, bool& done)
     case Keyword::AddSubDirectory:
         result = HandleAddSubdirectory();
         break;
+    case Keyword::AddExecutable:
+    case Keyword::AddLibrary:
     case Keyword::Else:
     case Keyword::EndForEach:
     case Keyword::EndFunction:
     case Keyword::EndIf:
+    case Keyword::EndMacro:
     case Keyword::FindPackage:
     case Keyword::ForEach:
     case Keyword::Function:
     case Keyword::GetCMakeProperty:
+    case Keyword::GetTargetProperties:
     case Keyword::If:
     case Keyword::Include:
+    case Keyword::LinkDirectories:
     case Keyword::List:
+    case Keyword::Macro:
     case Keyword::Option:
+    case Keyword::SetProperty:
+    case Keyword::SetTargetProperties:
     case Keyword::String:
+    case Keyword::TargetCompileDefinitions:
+    case Keyword::TargetCompileOptions:
+    case Keyword::TargetIncludeDirectories:
+    case Keyword::TargetLinkLibraries:
         TRACE_WARNING("Skipping unsupported keyword {}", keyword);
         result = HandleUnsupported();
         break;

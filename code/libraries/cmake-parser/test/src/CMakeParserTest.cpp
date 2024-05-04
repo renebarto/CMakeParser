@@ -30,7 +30,7 @@ public:
     {
         Tracing::SetTraceWriter(&m_traceWriter);
         m_savedTraceFilter = Tracing::GetDefaultTraceFilter();
-        Tracing::SetDefaultTraceFilter(TraceCategory::Error | TraceCategory::Warning | TraceCategory::Information | TraceCategory::Data | TraceCategory::Debug);
+        Tracing::SetDefaultTraceFilter(TraceCategory::Error | TraceCategory::Warning | TraceCategory::Information/* | TraceCategory::Data | TraceCategory::Debug*/);
     }
     void TearDown() override
     {
@@ -112,8 +112,22 @@ TEST_F(CMakeParserTest, Construct)
     CMakeParser parser(rootDirectory, buildDir, stream);
 
     EXPECT_TRUE(parser.Parse());
+    const std::filesystem::path serializationTestSourceDir{ rootDirectory / "code" / "libraries" / "serialization" / "test" };
     EXPECT_EQ(size_t{ 0 }, parser.GetModel().GetEnvironmentVariables().size());
     EXPECT_EQ(size_t{ 2 }, parser.GetModel().GetCacheVariables().size());
+    EXPECT_EQ((rootDirectory / "cmake").generic_string(), parser.GetModel().GetCacheVariable("SCRIPTS_DIR"));
+    EXPECT_EQ("STRING", parser.GetModel().FindCacheVariable("SCRIPTS_DIR")->Type());
+    EXPECT_EQ("CMake scripts path", parser.GetModel().FindCacheVariable("SCRIPTS_DIR")->Description());
+    EXPECT_EQ(
+        (serializationTestSourceDir / "src" / "main.cpp").generic_string() + ";" +
+        (serializationTestSourceDir / "src" / "BidirectionalMapTest.cpp").generic_string() + ";" +
+        (serializationTestSourceDir / "src" / "EnumSerializationTest.cpp").generic_string() + ";" +
+        (serializationTestSourceDir / "src" / "MapUtilitiesTest.cpp").generic_string() + ";" +
+        (serializationTestSourceDir / "src" / "SerializationTest.cpp").generic_string(),
+        parser.GetModel().GetCacheVariable("PROJECT_SOURCES_serialization-test"));
+    ASSERT_NOT_NULL(parser.GetModel().FindCacheVariable("PROJECT_SOURCES_serialization-test"));
+    EXPECT_EQ("STRING", parser.GetModel().FindCacheVariable("PROJECT_SOURCES_serialization-test")->Type());
+    EXPECT_EQ("serialization-test", parser.GetModel().FindCacheVariable("PROJECT_SOURCES_serialization-test")->Description());
     EXPECT_EQ(size_t{ 72 }, parser.GetModel().GetVariables().size());
     EXPECT_EQ(ARGC, parser.GetModel().GetVariable("ARGC"));
     EXPECT_EQ(ARGN, parser.GetModel().GetVariable("ARGN"));
@@ -150,18 +164,20 @@ TEST_F(CMakeParserTest, Construct)
 
     EXPECT_EQ("3.5.1", parser.GetModel().GetVariable("CMAKE_MINIMUM_REQUIRED_VERSION"));
 
+    const std::string platformName{ "windows" };
     EXPECT_EQ("1.2.3.4", parser.GetModel().GetVariable("MSI_NUMBER"));
     EXPECT_EQ("TRUE", parser.GetModel().GetVariable("PLATFORM_WINDOWS"));
-    EXPECT_EQ("windows", parser.GetModel().GetVariable("PLATFORM_NAME"));
+    EXPECT_EQ(platformName, parser.GetModel().GetVariable("PLATFORM_NAME"));
     EXPECT_EQ("ON", parser.GetModel().GetVariable("CMAKE_EXPORT_COMPILE_COMMANDS"));
     EXPECT_EQ("OFF", parser.GetModel().GetVariable("CMAKE_COLOR_MAKEFILE"));
     EXPECT_EQ("ON", parser.GetModel().GetVariable("CMAKE_BUILD_WITH_INSTALL_RPATH"));
     EXPECT_EQ("OFF", parser.GetModel().GetVariable("CMAKE_VERBOSE_MAKEFILE"));
-    EXPECT_EQ("${CMAKE_SOURCE_DIR}/output/${PLATFORM_NAME}", parser.GetModel().GetVariable("OUTPUT_BASE_DIR"));
-    EXPECT_EQ("${CMAKE_SOURCE_DIR}/testdata", parser.GetModel().GetVariable("TEST_DATA_DIR"));
+    EXPECT_EQ(CMAKE_SOURCE_DIR / "output" / platformName, parser.GetModel().GetVariable("OUTPUT_BASE_DIR"));
+    EXPECT_EQ(CMAKE_SOURCE_DIR / "testdata", parser.GetModel().GetVariable("TEST_DATA_DIR"));
     EXPECT_EQ("CMAKE_CXX_FLAGS;CMAKE_CXX_FLAGS_DEBUG;CMAKE_CXX_FLAGS_RELEASE;CMAKE_C_FLAGS;CMAKE_C_FLAGS_DEBUG;CMAKE_C_FLAGS_RELEASE", parser.GetModel().GetVariable("CompilerFlags"));
     EXPECT_EQ("17", parser.GetModel().GetVariable("SUPPORTED_CPP_STANDARD"));
-    EXPECT_EQ("/Wall;/wd4061;/wd4239;/wd4251;/wd4275;/wd4435;/wd4505;/wd4514;/wd4548;/wd4571;/wd4592;/wd4625;/wd4626;/wd4628;/wd4710;/wd4711;/wd4774;/wd4668;/wd5045;/wd4820;/wd5026;/wd5027;/WX-;/EHsc;/Gd;/GR;/sdl-;/Zc:wchar_t;/Zc:inline;/fp:precise;/bigobj;/std:c++${SUPPORTED_CPP_STANDARD}", parser.GetModel().GetVariable("FLAGS_CXX"));
+    EXPECT_EQ("/Wall;/wd4061;/wd4239;/wd4251;/wd4275;/wd4435;/wd4505;/wd4514;/wd4548;/wd4571;/wd4592;/wd4625;/wd4626;/wd4628;/wd4710;/wd4711;/wd4774;/wd4668;/wd5045;/wd4820;/wd5026;/wd5027;/WX-;/EHsc;/Gd;/GR;/sdl-;/Zc:wchar_t;/Zc:inline;/fp:precise;/bigobj;/std:c++17", 
+        parser.GetModel().GetVariable("FLAGS_CXX"));
     EXPECT_EQ("/Od;/Gm-;/Zi;/RTC1;/MTd", parser.GetModel().GetVariable("FLAGS_CXX_DEBUG"));
     EXPECT_EQ("/Ox;/GL;/GS;/Gy;/Oi;/MT", parser.GetModel().GetVariable("FLAGS_CXX_RELEASE"));
     EXPECT_EQ("/O1;/GL;/GS;/Gy;/Oi;/MT", parser.GetModel().GetVariable("FLAGS_CXX_MINSIZEREL"));
@@ -171,7 +187,8 @@ TEST_F(CMakeParserTest, Construct)
     EXPECT_EQ("/Ox;/GL;/GS;/Gy;/Oi;/MT", parser.GetModel().GetVariable("FLAGS_C_RELEASE"));
     EXPECT_EQ("/O1;/GL;/GS;/Gy;/Oi;/MT", parser.GetModel().GetVariable("FLAGS_C_MINSIZEREL"));
     EXPECT_EQ("/O2;/GL;/GS;/Gy;/Oi;/Zi;/MT", parser.GetModel().GetVariable("FLAGS_C_RELWITHDEBINFO"));
-    EXPECT_EQ("${DEFINES};_X86_", parser.GetModel().GetVariable("DEFINES"));
+    EXPECT_EQ("_UNICODE;UNICODE;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;WINVER=0x0A00;_WIN32_WINNT=0x0A00;PLATFORM_WINDOWS;TEST_DATA_DIR=\"D:/Projects/CPPParser/testdata/testdata\";_AMD64_;_X86_", 
+        parser.GetModel().GetVariable("DEFINES"));
     EXPECT_EQ("_DEBUG", parser.GetModel().GetVariable("DEFINES_DEBUG"));
     EXPECT_EQ("NDEBUG", parser.GetModel().GetVariable("DEFINES_RELEASE"));
     EXPECT_EQ("NDEBUG", parser.GetModel().GetVariable("DEFINES_MINSIZEREL"));
