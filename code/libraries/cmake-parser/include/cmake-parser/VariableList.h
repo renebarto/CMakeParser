@@ -25,7 +25,7 @@ public:
     VariablePtr FindVariable(const std::string& name) const;
     void AddVariable(const std::string& name, VariablePtr variable);
 
-    std::string Serialize() const;
+    std::string Serialize(SerializationFormat format = SerializationFormat::Text, unsigned indent = 0) const;
 };
 
 inline std::ostream& operator << (std::ostream& stream, const VariableList& value)

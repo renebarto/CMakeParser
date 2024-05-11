@@ -61,6 +61,8 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Project.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ProjectList.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ScriptParser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Target.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetList.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TypedVariable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TypedVariableList.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Variable.cpp
@@ -80,6 +82,9 @@ set(PROJECT_INCLUDES_PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/Project.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/ProjectList.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/ScriptParser.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/Serialization.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/Target.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/TargetList.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/TypedVariable.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/TypedVariableList.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/Variable.h

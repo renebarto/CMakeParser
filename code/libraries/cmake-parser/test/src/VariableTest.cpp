@@ -51,6 +51,35 @@ TEST_F(VariableTest, SetValue)
     EXPECT_EQ("Variable " + name + " = " + valueNew, variable.Serialize());
 }
 
+TEST_F(VariableTest, SerializeJSONEmpty)
+{
+    std::string name = "variable";
+    Variable variable(name);
+
+    std::ostringstream stream;
+    stream << variable.Serialize(SerializationFormat::JSON, 0);
+    EXPECT_EQ(
+        "{\n"
+        "    \"name\": \"" + name + "\",\n"
+        "    \"value\": null\n"
+        "}", stream.str());
+}
+
+TEST_F(VariableTest, SerializeJSON)
+{
+    std::string name = "variable";
+    std::string value = "value";
+    Variable variable(name, value);
+
+    std::ostringstream stream;
+    stream << variable.Serialize(SerializationFormat::JSON, 0);
+    EXPECT_EQ(
+        "{\n"
+        "    \"name\": \"" + name + "\",\n"
+        "    \"value\": \"" + value + "\"\n"
+        "}", stream.str());
+}
+
 TEST_F(VariableTest, StreamInsertion)
 {
     std::string name = "variable";

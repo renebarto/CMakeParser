@@ -120,8 +120,15 @@ public:
 
     void AddMessage(const std::string& messageMode, const std::string& message);
 
+    std::string Serialize(SerializationFormat format = SerializationFormat::Text, unsigned indent = 0) const;
+
 private:
     std::string Evaluate(const std::string& value);
 };
+
+inline std::ostream& operator << (std::ostream& stream, const CMakeModel& value)
+{
+    return stream << value.Serialize();
+}
 
 } // namespace cmake_parser

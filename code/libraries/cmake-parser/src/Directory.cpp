@@ -35,15 +35,39 @@ Directory::~Directory()
 std::string Directory::SerializeShort() const
 {
     std::ostringstream stream;
-    stream << "Directory sourcePath = " << m_sourcePath << ", binaryPath = " << m_binaryPath;
+    stream << "Directory sourcePath = " << m_sourcePath.generic_string() << ", binaryPath = " << m_binaryPath.generic_string();
     return stream.str();
 }
 
-std::string Directory::Serialize() const
+std::string Directory::Serialize(SerializationFormat format, unsigned indent) const
 {
     std::ostringstream stream;
     auto parent = m_parentDirectory.lock();
-    stream << "Directory sourcePath = " << m_sourcePath << ", binaryPath = " << m_binaryPath << ", parent = (" << ((parent != nullptr) ? parent->SerializeShort() : "none") << ")";
+    stream << std::string(indent, ' ');
+    switch (format)
+    {
+    case SerializationFormat::Text:
+        stream << "Directory sourcePath = " << m_sourcePath.generic_string() << ", binaryPath = " << m_binaryPath.generic_string() << ", parent = (" << ((parent != nullptr) ? parent->SerializeShort() : "none") << ")";
+        break;
+    case SerializationFormat::JSON:
+        stream << "{" << std::endl;
+        stream << std::string(indent + 4, ' ') << "\"sourcePath\": " << SerializeString(format, SourcePath().generic_string()) << "," << std::endl;
+        stream << std::string(indent + 4, ' ') << "\"binaryPath\": " << SerializeString(format, BinaryPath().generic_string()) << "," << std::endl;
+        stream << std::string(indent + 4, ' ') << "\"parent\": ";
+        if (parent)
+        {
+            stream << SerializeString(format, parent->SourcePath().generic_string());
+        }
+        else
+        {
+            stream << "null";
+        }
+        stream << std::endl;
+        stream << std::string(indent, ' ') << "}";
+        break;
+    default:
+        break;
+    }
     return stream.str();
 }
 

@@ -137,6 +137,7 @@ ScriptParser::ScriptParser(CMakeModel& model, const std::filesystem::path& rootD
     , m_model{ model }
     , m_mainProject{}
     , m_currentProject{}
+    , m_currentTarget{}
 {
 }
 
@@ -373,6 +374,7 @@ bool ScriptParser::HandleProject()
     auto projectName = Expect_SkipWhitespace({ Terminal::Name, Terminal::Identifier });
     auto result = projectName.Value();
     m_currentProject = std::make_shared<Project>(result);
+    m_currentTarget = {};
     SkipWhitespace();
     while (CurrentTokenType() == Terminal::Identifier)
     {
@@ -610,6 +612,86 @@ bool ScriptParser::HandleAddSubdirectory()
     return result;
 }
 
+bool ScriptParser::HandleAddExecutable()
+{
+    static const std::string KeywordWin32{ "WIN32" };
+    static const std::string KeywordMacOSXBundle{ "MACOSX_BUNDLE" };
+    static const std::string KeywordExcludeFromAll{ "EXCLUDE_FROM_ALL" };
+    static const std::string KeywordImported{ "IMPORTED" };
+    static const std::string KeywordGlobal{ "GLOBAL" };
+    static const std::string KeywordAlias{ "ALIAS" };
+
+    Expect_SkipWhitespace(Terminal::ParenthesisOpen);
+    auto token = Expect_SkipWhitespace({ Terminal::Name, Terminal::Identifier });
+    auto targetName = token.Value();
+    TargetAttribute targetAttributes{};
+    std::string targetAlias;
+    SkipWhitespace();
+    while (CurrentToken().Type() == Terminal::Identifier)
+    {
+        if (IsEqualIgnoreCase(KeywordWin32, CurrentToken().Value()))
+        {
+            Expect(Terminal::Identifier);
+            targetAttributes = targetAttributes | TargetAttribute::Win32Exe;
+            SkipWhitespace();
+        }
+        else if (IsEqualIgnoreCase(KeywordMacOSXBundle, CurrentToken().Value()))
+        {
+            Expect(Terminal::Identifier);
+            targetAttributes = targetAttributes | TargetAttribute::MacOSXBundle;
+            SkipWhitespace();
+        }
+        else if (IsEqualIgnoreCase(KeywordExcludeFromAll, CurrentToken().Value()))
+        {
+            Expect(Terminal::Identifier);
+            targetAttributes = targetAttributes | TargetAttribute::ExcludeFromAll;
+            SkipWhitespace();
+        }
+        else if (IsEqualIgnoreCase(KeywordExcludeFromAll, CurrentToken().Value()))
+        {
+            Expect(Terminal::Identifier);
+            targetAttributes = targetAttributes | TargetAttribute::ExcludeFromAll;
+            SkipWhitespace();
+        }
+        else if (IsEqualIgnoreCase(KeywordImported, CurrentToken().Value()))
+        {
+            Expect(Terminal::Identifier);
+            targetAttributes = targetAttributes | TargetAttribute::Imported;
+            SkipWhitespace();
+            if (CurrentToken().Type() == Terminal::Identifier)
+            {
+                if (IsEqualIgnoreCase(KeywordCache, CurrentToken().Value()))
+                {
+                    Expect(Terminal::Identifier);
+                    targetAttributes = targetAttributes | TargetAttribute::Global;
+                    SkipWhitespace();
+                }
+                else
+                    throw UnexpectedToken(CurrentToken(), __FILE__, __LINE__);
+            }
+        }
+        else if (IsEqualIgnoreCase(KeywordAlias, CurrentToken().Value()))
+        {
+            Expect(Terminal::Identifier);
+            targetAttributes = targetAttributes | TargetAttribute::Alias;
+            SkipWhitespace();
+            targetAlias = Expect(Terminal::Identifier);
+        }
+        else
+            break;
+    }
+    std::set<Terminal> finalizers = { Terminal::Whitespace , Terminal::NewLine, Terminal::ParenthesisClose };
+    auto targetSources = ExpectExpression(finalizers);
+
+    m_currentTarget = std::make_shared<Target>(targetName, targetAttributes, targetSources, targetAlias);
+    if (m_currentProject != nullptr)
+    {
+        m_currentProject->AddTarget(m_currentTarget);
+    }
+
+    return true;
+}
+
 bool ScriptParser::HandleUnsupported()
 {
     Expect_SkipWhitespace(Terminal::ParenthesisOpen);
@@ -659,6 +741,8 @@ bool ScriptParser::OnToken(const parser::Token<Terminal>& token, bool& done)
         result = HandleAddSubdirectory();
         break;
     case Keyword::AddExecutable:
+        result = HandleAddExecutable();
+        break;
     case Keyword::AddLibrary:
     case Keyword::Else:
     case Keyword::EndForEach:

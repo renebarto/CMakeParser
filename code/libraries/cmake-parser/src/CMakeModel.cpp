@@ -409,4 +409,71 @@ std::string CMakeModel::Evaluate(const std::string& value)
     return expression::Expression::EvaluateString(*this, value);
 }
 
+std::string CMakeModel::Serialize(SerializationFormat format, unsigned indent) const
+{
+    std::ostringstream stream;
+    stream << std::string(indent, ' ');
+    switch (format)
+    {
+    case SerializationFormat::Text:
+        stream
+            << "Model sourceDir = " << m_rootSourceDirectory.generic_string()
+            << ", binaryDir = " << m_rootBinaryDirectory.generic_string();
+        break;
+    case SerializationFormat::JSON:
+        stream << "{" << std::endl;
+        stream << std::string(indent + 4, ' ') << "\"sourceRoot\": " << SerializeString(format, m_rootSourceDirectory.generic_string()) << "," << std::endl;
+        stream << std::string(indent + 4, ' ') << "\"binaryRoot\": " << SerializeString(format, m_rootBinaryDirectory.generic_string()) << "," << std::endl;
+        stream << std::string(indent + 4, ' ') << "\"cache\": " << std::endl << m_cache.Serialize(format, indent + 8) << "," << std::endl;
+        stream << std::string(indent + 4, ' ') << "\"environment\": " << std::endl << m_environment.Serialize(format, indent + 8) << "," << std::endl;
+        stream << std::string(indent + 4, ' ') << "\"projects\": " << std::endl << m_projects.Serialize(format, indent + 8) << "," << std::endl;
+        stream << std::string(indent + 4, ' ') << "\"directories\": " << std::endl << m_directories.Serialize(format, indent + 8) << "," << std::endl;
+        stream << std::string(indent + 4, ' ') << "\"rootDirectory\": ";
+        if (m_rootDirectory == nullptr)
+        {
+            stream << "null";
+        }
+        else
+        {
+            stream << SerializeString(format, m_rootDirectory->SourcePath().generic_string());
+        }
+        stream << "," << std::endl;
+        stream << std::string(indent + 4, ' ') << "\"rootProject\": ";
+        if (m_rootProject == nullptr)
+        {
+            stream << "null";
+        }
+        else
+        {
+            stream << SerializeString(format, m_rootProject->Name());
+        }
+        stream << "," << std::endl;
+        stream << std::string(indent + 4, ' ') << "\"currentProject\": ";
+        if (m_currentProject == nullptr)
+        {
+            stream << "null";
+        }
+        else
+        {
+            stream << SerializeString(format, m_currentProject->Name());
+        }
+        stream << "," << std::endl;
+        stream << std::string(indent + 4, ' ') << "\"currentVariables\": ";
+        if (m_scopeVariables == nullptr)
+        {
+            stream << "null";
+        }
+        else
+        {
+            stream << std::endl << m_scopeVariables->Serialize(format, indent + 8);
+        }
+        stream << std::endl;
+        stream << "}";
+        break;
+    default:
+        break;
+    }
+    return stream.str();
+}
+
 } // namespace cmake_parser

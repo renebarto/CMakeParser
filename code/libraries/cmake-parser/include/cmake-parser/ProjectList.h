@@ -24,7 +24,7 @@ public:
     const ProjectPtr GetParentProject(ProjectPtr project) const;
     const ProjectPtr GetMainProject() const { return m_mainProject; }
 
-    std::string Serialize() const;
+    std::string Serialize(SerializationFormat format = SerializationFormat::Text, unsigned indent = 0) const;
 
 private:
     ProjectPtr FindProject(const std::string& name) const;

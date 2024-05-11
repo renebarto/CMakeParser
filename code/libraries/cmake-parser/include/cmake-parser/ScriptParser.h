@@ -17,6 +17,7 @@ private:
     CMakeModel& m_model;
     ProjectPtr m_mainProject;
     ProjectPtr m_currentProject;
+    TargetPtr m_currentTarget;
 
 public:
     ScriptParser(CMakeModel& model, const std::filesystem::path& rootDirectory, std::istream& stream);
@@ -51,6 +52,7 @@ public:
     bool HandleSet();
     bool HandleUnset();
     bool HandleAddSubdirectory();
+    bool HandleAddExecutable();
     bool HandleUnsupported();
 
     bool OnToken(const parser::Token<Terminal>&, bool& done) override;

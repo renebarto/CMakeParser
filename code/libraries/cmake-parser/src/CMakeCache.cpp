@@ -51,14 +51,48 @@ void CMakeCache::AddVariable(const std::string& name, TypedVariablePtr variable)
     m_variables.AddVariable(name, variable);
 }
 
-std::string CMakeCache::Serialize() const
+std::string CMakeCache::Serialize(SerializationFormat format /*= SerializationFormat::Text*/, unsigned indent /*= 0*/) const
 {
     std::ostringstream stream;
-    stream << "CMakeCache:" << std::endl;
-    for (auto const& var : m_variables.GetVariables())
+    switch (format)
     {
-        if (var.second != nullptr)
-            stream << var.second->Serialize() << std::endl;
+    case SerializationFormat::Text:
+        stream << "CMakeCache:" << std::endl;
+        for (auto const& var : m_variables.GetVariables())
+        {
+            if (var.second != nullptr)
+                stream << var.second->Serialize() << std::endl;
+        }
+        break;
+    case SerializationFormat::JSON:
+        {
+            stream << std::string(indent, ' ') << "[";
+            bool first = true;
+            for (auto const& dir : m_variables.GetVariables())
+            {
+                if (first)
+                {
+                    stream << std::endl;
+                }
+                else
+                {
+                    stream << "," << std::endl;
+                }
+                first = false;
+                if (dir.second != nullptr)
+                    stream << dir.second->Serialize(format, indent + 4);
+                else
+                    stream << "null";
+            }
+            if (!first)
+            {
+                stream << std::endl << std::string(indent, ' ');
+            }
+            stream << "]";
+        }
+        break;
+    default:
+        break;
     }
     return stream.str();
 }

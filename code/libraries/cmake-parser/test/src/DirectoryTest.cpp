@@ -26,7 +26,7 @@ TEST_F(DirectoryTest, Construct)
     EXPECT_EQ(binaryPath, directory.BinaryPath());
     EXPECT_EQ(size_t{ 0 }, directory.GetVariables().size());
     EXPECT_EQ(nullptr, directory.Parent());
-    EXPECT_EQ("Directory sourcePath = \"" + sourcePath.string() + "\", binaryPath = \"" + binaryPath.string() + "\", parent = (none)", directory.Serialize());
+    EXPECT_EQ("Directory sourcePath = " + sourcePath.string() + ", binaryPath = " + binaryPath.string() + ", parent = (none)", directory.Serialize());
 }
 
 TEST_F(DirectoryTest, ConstructWithParent)
@@ -42,8 +42,8 @@ TEST_F(DirectoryTest, ConstructWithParent)
     EXPECT_EQ(binaryPath, directory.BinaryPath());
     EXPECT_EQ(size_t{ 0 }, directory.GetVariables().size());
     EXPECT_EQ(parent, directory.Parent());
-    EXPECT_EQ("Directory sourcePath = \"" + sourcePath.string() + "\", binaryPath = \"" + binaryPath.string() + "\", parent = (Directory sourcePath = \"" + 
-        parentSourcePath.string() + "\", binaryPath = \"" + parentBinaryPath.string() + "\")", directory.Serialize());
+    EXPECT_EQ("Directory sourcePath = " + sourcePath.string() + ", binaryPath = " + binaryPath.string() + ", parent = (Directory sourcePath = " + 
+        parentSourcePath.string() + ", binaryPath = " + parentBinaryPath.string() + ")", directory.Serialize());
 }
 
 TEST_F(DirectoryTest, InheritVariablesFromParent)
@@ -63,8 +63,8 @@ TEST_F(DirectoryTest, InheritVariablesFromParent)
     EXPECT_EQ("x", var->Name());
     EXPECT_EQ("y", var->Value());
     EXPECT_EQ(parent, directory.Parent());
-    EXPECT_EQ("Directory sourcePath = \"" + sourcePath.string() + "\", binaryPath = \"" + binaryPath.string() + "\", parent = (Directory sourcePath = \"" + 
-        parentSourcePath.string() + "\", binaryPath = \"" + parentBinaryPath.string() + "\")", directory.Serialize());
+    EXPECT_EQ("Directory sourcePath = " + sourcePath.string() + ", binaryPath = " + binaryPath.string() + ", parent = (Directory sourcePath = " + 
+        parentSourcePath.string() + ", binaryPath = " + parentBinaryPath.string() + ")", directory.Serialize());
 }
 
 TEST_F(DirectoryTest, SetVariable)
@@ -90,8 +90,8 @@ TEST_F(DirectoryTest, SetVariable)
     EXPECT_EQ("x", var->Name());
     EXPECT_EQ("y", var->Value());
     EXPECT_EQ(parent, directory.Parent());
-    EXPECT_EQ("Directory sourcePath = \"" + sourcePath.string() + "\", binaryPath = \"" + binaryPath.string() + "\", parent = (Directory sourcePath = \"" + 
-        parentSourcePath.string() + "\", binaryPath = \"" + parentBinaryPath.string() + "\")", directory.Serialize());
+    EXPECT_EQ("Directory sourcePath = " + sourcePath.string() + ", binaryPath = " + binaryPath.string() + ", parent = (Directory sourcePath = " + 
+        parentSourcePath.string() + ", binaryPath = " + parentBinaryPath.string() + ")", directory.Serialize());
 }
 
 TEST_F(DirectoryTest, UnsetVariable)
@@ -109,8 +109,85 @@ TEST_F(DirectoryTest, UnsetVariable)
     EXPECT_EQ(binaryPath, directory.BinaryPath());
     EXPECT_EQ(size_t{ 0 }, directory.GetVariables().size());
     EXPECT_EQ(parent, directory.Parent());
-    EXPECT_EQ("Directory sourcePath = \"" + sourcePath.string() + "\", binaryPath = \"" + binaryPath.string() + "\", parent = (Directory sourcePath = \"" + 
-        parentSourcePath.string() + "\", binaryPath = \"" + parentBinaryPath.string() + "\")", directory.Serialize());
+    EXPECT_EQ("Directory sourcePath = " + sourcePath.string() + ", binaryPath = " + binaryPath.string() + ", parent = (Directory sourcePath = " + 
+        parentSourcePath.string() + ", binaryPath = " + parentBinaryPath.string() + ")", directory.Serialize());
+}
+
+TEST_F(DirectoryTest, SerializeJSONEmpty)
+{
+    std::string sourcePath = "dir/src";
+    std::string binaryPath = "dir/bin";
+    Directory directory(sourcePath, binaryPath);
+
+    std::ostringstream stream;
+    stream << directory.Serialize(SerializationFormat::JSON, 0);
+    EXPECT_EQ(
+        "{\n"
+        "    \"sourcePath\": \"" + directory.SourcePath().generic_string() + "\",\n"
+        "    \"binaryPath\": \"" + directory.BinaryPath().generic_string() + "\",\n"
+        "    \"parent\": null\n"
+        "}", stream.str());
+}
+
+TEST_F(DirectoryTest, SerializeJSON)
+{
+    std::string parentSourcePath = "parent/src";
+    std::string parentBinaryPath = "parent/bin";
+    auto parent = std::make_shared<Directory>(parentSourcePath, parentBinaryPath);
+    std::string sourcePath = "dir/src";
+    std::string binaryPath = "dir/bin";
+    Directory directory(sourcePath, binaryPath, parent);
+
+    std::ostringstream stream;
+    stream << parent->Serialize(SerializationFormat::JSON, 0);
+    EXPECT_EQ(
+        "{\n"
+        "    \"sourcePath\": \"" + parent->SourcePath().generic_string() + "\",\n"
+        "    \"binaryPath\": \"" + parent->BinaryPath().generic_string() + "\",\n"
+        "    \"parent\": null\n"
+        "}", stream.str());
+    stream.str("");
+    stream << directory.Serialize(SerializationFormat::JSON, 0);
+    EXPECT_EQ(
+        "{\n"
+        "    \"sourcePath\": \"" + directory.SourcePath().generic_string() + "\",\n"
+        "    \"binaryPath\": \"" + directory.BinaryPath().generic_string() + "\",\n"
+        "    \"parent\": \"" + parent->SourcePath().generic_string() + "\"\n"
+        "}", stream.str());
+}
+
+TEST_F(DirectoryTest, StreamInsertion)
+{
+    std::string parentSourcePath = "parent/src";
+    std::string parentBinaryPath = "parent/bin";
+    auto parent = std::make_shared<Directory>(parentSourcePath, parentBinaryPath);
+    std::string sourcePath = "dir/src";
+    std::string binaryPath = "dir/bin";
+    Directory directory(sourcePath, binaryPath, parent);
+
+    std::ostringstream stream;
+    stream << *parent;
+    EXPECT_EQ("Directory sourcePath = " + parentSourcePath + ", binaryPath = " + parentBinaryPath + ", parent = (none)", stream.str());
+    stream.str("");
+    stream << directory;
+    EXPECT_EQ("Directory sourcePath = " + sourcePath + ", binaryPath = " + binaryPath + ", parent = (" + parent->SerializeShort() + ")", stream.str());
+}
+
+TEST_F(DirectoryTest, StreamInsertionPtr)
+{
+    std::string parentSourcePath = "parent/src";
+    std::string parentBinaryPath = "parent/bin";
+    auto parent = std::make_shared<Directory>(parentSourcePath, parentBinaryPath);
+    std::string sourcePath = "dir/src";
+    std::string binaryPath = "dir/bin";
+    auto directory = std::make_shared<Directory>(sourcePath, binaryPath, parent);
+
+    std::ostringstream stream;
+    stream << parent;
+    EXPECT_EQ("Directory sourcePath = " + parentSourcePath + ", binaryPath = " + parentBinaryPath + ", parent = (none)", stream.str());
+    stream.str("");
+    stream << directory;
+    EXPECT_EQ("Directory sourcePath = " + sourcePath + ", binaryPath = " + binaryPath + ", parent = (" + parent->SerializeShort() + ")", stream.str());
 }
 
 } // namespace cmake_parser

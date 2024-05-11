@@ -103,6 +103,41 @@ TEST_F(TypedVariableTest, SetDescription)
     EXPECT_EQ("TypedVariable " + name + ":" + type + " = " + value +" (" + descriptionNew + ")", variable.Serialize());
 }
 
+TEST_F(TypedVariableTest, SerializeJSONEmpty)
+{
+    std::string name = "variable";
+    TypedVariable variable(name);
+
+    std::ostringstream stream;
+    stream << variable.Serialize(SerializationFormat::JSON, 0);
+    EXPECT_EQ(
+        "{\n"
+        "    \"name\": \"" + name + "\",\n"
+        "    \"type\": null,\n"
+        "    \"value\": null,\n"
+        "    \"description\": null\n"
+        "}", stream.str());
+}
+
+TEST_F(TypedVariableTest, SerializeJSON)
+{
+    std::string name = "variable";
+    std::string type = "STRING";
+    std::string value = "value";
+    std::string description = "description";
+    TypedVariable variable(name, type, value, description);
+
+    std::ostringstream stream;
+    stream << variable.Serialize(SerializationFormat::JSON, 0);
+    EXPECT_EQ(
+        "{\n"
+        "    \"name\": \"" + name + "\",\n"
+        "    \"type\": \"" + type + "\",\n"
+        "    \"value\": \"" + value + "\",\n"
+        "    \"description\": \"" + description + "\"\n"
+        "}", stream.str());
+}
+
 TEST_F(TypedVariableTest, StreamInsertion)
 {
     std::string name = "variable";

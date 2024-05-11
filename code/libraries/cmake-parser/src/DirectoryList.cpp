@@ -27,7 +27,6 @@ DirectoryPtr DirectoryList::FindDirectory(const std::filesystem::path& path) con
 
 bool DirectoryList::AddDirectory(DirectoryPtr directory)
 {
-    bool result{};
     if (directory == nullptr)
         return false;
     if (FindDirectory(directory->SourcePath()) != nullptr)
@@ -79,14 +78,48 @@ DirectoryPtr DirectoryList::GetParentDirectory(DirectoryPtr directory) const
     return directory->Parent();
 }
 
-std::string DirectoryList::Serialize() const
+std::string DirectoryList::Serialize(SerializationFormat format, unsigned indent) const
 {
     std::ostringstream stream;
-    stream << "DirectoryList:" << std::endl;
-    for (auto const& dir : m_directories)
+    switch (format)
     {
-        if (dir.second != nullptr)
-            stream << dir.second->Serialize() << std::endl;
+    case SerializationFormat::Text:
+        stream << "DirectoryList:" << std::endl;
+        for (auto const& dir : m_directories)
+        {
+            if (dir.second != nullptr)
+                stream << dir.second->Serialize() << std::endl;
+        }
+        break;
+    case SerializationFormat::JSON:
+        {
+            stream << std::string(indent, ' ') << "[";
+            bool first = true;
+            for (auto const& dir : m_directories)
+            {
+                if (first)
+                {
+                    stream << std::endl;
+                }
+                else
+                {
+                    stream << "," << std::endl;
+                }
+                first = false;
+                if (dir.second != nullptr)
+                    stream << dir.second->Serialize(format, indent + 4);
+                else
+                    stream << "null";
+            }
+            if (!first)
+            {
+                stream << std::endl << std::string(indent, ' ');
+            }
+            stream << "]";
+        }
+        break;
+    default:
+        break;
     }
     return stream.str();
 }

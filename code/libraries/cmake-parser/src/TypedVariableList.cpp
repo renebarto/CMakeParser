@@ -69,14 +69,48 @@ void TypedVariableList::AddVariable(const std::string& name, TypedVariablePtr va
     m_variables.insert(std::pair(name, variable));
 }
 
-std::string TypedVariableList::Serialize() const
+std::string TypedVariableList::Serialize(SerializationFormat format, unsigned indent) const
 {
     std::ostringstream stream;
-    stream << "TypedVariableList:" << std::endl;
-    for (auto const& var : m_variables)
+    switch (format)
     {
-        if (var.second != nullptr)
-            stream << var.second->Serialize() << std::endl;
+    case SerializationFormat::Text:
+        stream << "TypedVariableList:" << std::endl;
+        for (auto const& var : m_variables)
+        {
+            if (var.second != nullptr)
+                stream << var.second->Serialize() << std::endl;
+        }
+        break;
+    case SerializationFormat::JSON:
+        {
+            stream << std::string(indent, ' ') << "[";
+            bool first = true;
+            for (auto const& var : m_variables)
+            {
+                if (first)
+                {
+                    stream << std::endl;
+                }
+                else
+                {
+                    stream << "," << std::endl;
+                }
+                first = false;
+                if (var.second != nullptr)
+                    stream << var.second->Serialize(format, indent + 4);
+                else
+                    stream << "null";
+            }
+            if (!first)
+            {
+                stream << std::endl << std::string(indent, ' ');
+            }
+            stream << "]";
+    }
+        break;
+    default:
+        break;
     }
     return stream.str();
 }

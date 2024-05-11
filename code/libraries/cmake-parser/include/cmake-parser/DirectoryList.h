@@ -25,7 +25,7 @@ public:
     DirectoryPtr GetParentDirectory(DirectoryPtr directory) const;
     DirectoryPtr GetRootDirectory() const { return m_rootDirectory; }
 
-    std::string Serialize() const;
+    std::string Serialize(SerializationFormat format = SerializationFormat::Text, unsigned indent = 0) const;
 };
 
 inline std::ostream& operator << (std::ostream& stream, const DirectoryList& value)

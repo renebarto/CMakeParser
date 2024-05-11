@@ -79,14 +79,48 @@ void ProjectList::AddProject(const std::string& name, ProjectPtr project)
     m_projects.insert(std::make_pair(name, project));
 }
 
-std::string ProjectList::Serialize() const
+std::string ProjectList::Serialize(SerializationFormat format, unsigned indent) const
 {
     std::ostringstream stream;
-    stream << "ProjectList:" << std::endl;
-    for (auto const& proj : m_projects)
+    switch (format)
     {
-        if (proj.second != nullptr)
-            stream << proj.second->Serialize() << std::endl;
+    case SerializationFormat::Text:
+        stream << "ProjectList:" << std::endl;
+        for (auto const& proj : m_projects)
+        {
+            if (proj.second != nullptr)
+                stream << proj.second->Serialize() << std::endl;
+        }
+        break;
+    case SerializationFormat::JSON:
+        {
+            stream << std::string(indent, ' ') << "[";
+            bool first = true;
+            for (auto const& proj : m_projects)
+            {
+                if (first)
+                {
+                    stream << std::endl;
+                }
+                else
+                {
+                    stream << "," << std::endl;
+                }
+                first = false;
+                if (proj.second != nullptr)
+                    stream << proj.second->Serialize(format, indent + 4);
+                else
+                    stream << "null";
+            }
+            if (!first)
+            {
+                stream << std::endl << std::string(indent, ' ');
+            }
+            stream << "]";
+        }
+        break;
+    default:
+        break;
     }
     return stream.str();
 }

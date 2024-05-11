@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include "cmake-parser/TargetList.h"
 
 namespace cmake_parser {
 
@@ -13,6 +14,7 @@ private:
     std::string m_description;
     std::string m_languages;
     std::weak_ptr<Project> m_parentProject;
+    TargetList m_targets;
 
 public:
     Project() = default;
@@ -28,8 +30,10 @@ public:
     void SetVersion(const std::string& version) { m_version = version; }
     void SetDescription(const std::string& description) { m_description = description; }
     void SetLanguages(const std::string& languages) { m_languages = languages; }
+    Targets GetTargets(TargetPtr target) { m_targets.GetTargets(); }
+    void AddTarget(TargetPtr target) { m_targets.AddTarget(target->Name(), target); }
 
-    std::string Serialize() const;
+    std::string Serialize(SerializationFormat format = SerializationFormat::Text, unsigned indent = 0) const;
 };
 using ProjectPtr = std::shared_ptr<Project>;
 

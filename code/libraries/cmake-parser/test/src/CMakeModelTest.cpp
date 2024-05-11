@@ -836,4 +836,313 @@ TEST_F(CMakeModelTest, AddMessage)
     EXPECT_TRUE(utility::VerifyMatch(lineWriter.GetResult()[0], utility::FormatString("Info \\|CMakeModel.cpp:\\d+\\|AddMessage\\|Message\\({} {}\\)", messageMode, message)));
 }
 
+TEST_F(CMakeModelTest, SerializeJSONEmpty)
+{
+    CMakeModel model;
+
+    std::ostringstream stream;
+    stream << model.Serialize(SerializationFormat::JSON, 0);
+    EXPECT_EQ(
+        "{\n"
+        "    \"sourceRoot\": null,\n"
+        "    \"binaryRoot\": null,\n"
+        "    \"cache\": \n"
+        "        [],\n"
+        "    \"environment\": \n"
+        "        [],\n"
+        "    \"projects\": \n"
+        "        [],\n"
+        "    \"directories\": \n"
+        "        [],\n"
+        "    \"rootDirectory\": null,\n"
+        "    \"rootProject\": null,\n"
+        "    \"currentProject\": null,\n"
+        "    \"currentVariables\": null\n"
+        "}", stream.str());
+}
+
+TEST_F(CMakeModelTest, SerializeJSON)
+{
+    CMakeModel model;
+
+    model.SetupSourceRoot(TEST_DATA_DIR, BuildDir);
+    model.SetupCMakePath(FindCMake(), GetCMakeVersion());
+    model.SetupNinjaPath(FindNinja());
+    EXPECT_TRUE(model.IsSourceRootSet());
+
+    std::string projectName1 = "project1";
+    std::string version1 = "1.2.3.4";
+    std::string description1 = "blablabla";
+    std::string languages1 = "C CXX";
+    auto project1 = std::make_shared<Project>(projectName1);
+    project1->SetVersion(version1);
+    project1->SetDescription(description1);
+    project1->SetLanguages(languages1);
+
+    EXPECT_TRUE(model.AddProject(project1));
+
+    std::string projectName2 = "project2";
+    std::string version2 = "1.2.3.5";
+    std::string description2 = "blabla";
+    std::string languages2 = "CXX ASM";
+    auto project2 = std::make_shared<Project>(projectName2, project1);
+    project2->SetVersion(version2);
+    project2->SetDescription(description2);
+    project2->SetLanguages(languages2);
+
+    EXPECT_TRUE(model.AddProject(project2));
+
+    std::ostringstream stream;
+    stream << model.Serialize(SerializationFormat::JSON, 0);
+    EXPECT_EQ(
+        "{\n"
+        "    \"sourceRoot\": \"D:/Projects/CPPParser/testdata\",\n"
+        "    \"binaryRoot\": \"D:/Projects/CPPParser/testdata/cmake-x64-Debug\",\n"
+        "    \"cache\": \n"
+        "        [],\n"
+        "    \"environment\": \n"
+        "        [],\n"
+        "    \"projects\": \n"
+        "        [\n"
+        "            {\n"
+        "                \"name\": \"project1\",\n"
+        "                \"version\": \"1.2.3.4\",\n"
+        "                \"description\": \"blablabla\",\n"
+        "                \"languages\": \"C CXX\",\n"
+        "                \"parent\": null,\n"
+        "                \"targets\": \n"
+        "                    []\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"project2\",\n"
+        "                \"version\": \"1.2.3.5\",\n"
+        "                \"description\": \"blabla\",\n"
+        "                \"languages\": \"CXX ASM\",\n"
+        "                \"parent\": \"project1\",\n"
+        "                \"targets\": \n"
+        "                    []\n"
+        "            }\n"
+        "        ],\n"
+        "    \"directories\": \n"
+        "        [\n"
+        "            {\n"
+        "                \"sourcePath\": \"D:/Projects/CPPParser/testdata\",\n"
+        "                \"binaryPath\": \"D:/Projects/CPPParser/testdata/cmake-x64-Debug\",\n"
+        "                \"parent\": null\n"
+        "            }\n"
+        "        ],\n"
+        "    \"rootDirectory\": \"D:/Projects/CPPParser/testdata\",\n"
+        "    \"rootProject\": null,\n"
+        "    \"currentProject\": null,\n"
+        "    \"currentVariables\": \n"
+        "        [\n"
+        "            {\n"
+        "                \"name\": \"ARGC\",\n"
+        "                \"value\": \"0\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"ARGN\",\n"
+        "                \"value\": null\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"ARGV\",\n"
+        "                \"value\": null\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_BINARY_DIR\",\n"
+        "                \"value\": \"D:/Projects/CPPParser/testdata/cmake-x64-Debug\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_BUILD_TYPE\",\n"
+        "                \"value\": \"Debug\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_COMMAND\",\n"
+        "                \"value\": \"C:/Program Files/CMake/bin/cmake.exe\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_CPACK_COMMAND\",\n"
+        "                \"value\": \"C:/Program Files/CMake/bin/cpack.exe\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_CTEST_COMMAND\",\n"
+        "                \"value\": \"C:/Program Files/CMake/bin/ctest.exe\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_CURRENT_BINARY_DIR\",\n"
+        "                \"value\": \"D:/Projects/CPPParser/testdata/cmake-x64-Debug\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_CURRENT_LIST_DIR\",\n"
+        "                \"value\": \"D:/Projects/CPPParser/testdata\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_CURRENT_LIST_FILE\",\n"
+        "                \"value\": \"D:/Projects/CPPParser/testdata/CMakeLists.txt\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_CURRENT_SOURCE_DIR\",\n"
+        "                \"value\": \"D:/Projects/CPPParser/testdata\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_CXX_COMPILER\",\n"
+        "                \"value\": \"C:/Program Files(x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_C_COMPILER\",\n"
+        "                \"value\": \"C:/Program Files(x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_FILES_DIRECTORY\",\n"
+        "                \"value\": \"/CMakeFiles\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_GENERATOR\",\n"
+        "                \"value\": \"Ninja\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_GENERATOR_INSTANCE\",\n"
+        "                \"value\": null\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_GENERATOR_PLATFORM\",\n"
+        "                \"value\": null\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_GENERATOR_TOOLSET\",\n"
+        "                \"value\": null\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_HOME_DIRECTORY\",\n"
+        "                \"value\": null\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_HOST_SYSTEM_NAME\",\n"
+        "                \"value\": \"Windows\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_HOST_WIN32\",\n"
+        "                \"value\": \"1\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_MAJOR_VERSION\",\n"
+        "                \"value\": \"3\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_MAKE_PROGRAM\",\n"
+        "                \"value\": \"C:\\Program Files\\Ninja\\ninja.exe\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_MINOR_VERSION\",\n"
+        "                \"value\": \"27\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_PARENT_LIST_FILE\",\n"
+        "                \"value\": \"D:/Projects/CPPParser/testdata/CMakeLists.txt\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_PATCH_VERSION\",\n"
+        "                \"value\": \"8\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_ROOT\",\n"
+        "                \"value\": \"C:/Program Files/CMake/share/cmake-3.27\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_SOURCE_DIR\",\n"
+        "                \"value\": \"D:/Projects/CPPParser/testdata\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_TWEAK_VERSION\",\n"
+        "                \"value\": \"0\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_VERSION\",\n"
+        "                \"value\": \"3.27.8\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"PROJECT_BINARY_DIR\",\n"
+        "                \"value\": \"D:/Projects/CPPParser/testdata/cmake-x64-Debug\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"PROJECT_DESCRIPTION\",\n"
+        "                \"value\": \"blabla\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"PROJECT_HOMEPAGE_URL\",\n"
+        "                \"value\": null\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"PROJECT_NAME\",\n"
+        "                \"value\": \"project2\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"PROJECT_SOURCE_DIR\",\n"
+        "                \"value\": \"D:/Projects/CPPParser/testdata\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"PROJECT_VERSION\",\n"
+        "                \"value\": \"1.2.3.5\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"PROJECT_VERSION_MAJOR\",\n"
+        "                \"value\": \"1\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"PROJECT_VERSION_MINOR\",\n"
+        "                \"value\": \"2\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"PROJECT_VERSION_PATCH\",\n"
+        "                \"value\": \"3\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"PROJECT_VERSION_TWEAK\",\n"
+        "                \"value\": \"5\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"WIN32\",\n"
+        "                \"value\": \"1\"\n"
+        "            }\n"
+        "        ]\n"
+        "}", stream.str());
+}
+
+TEST_F(CMakeModelTest, StreamInsertion)
+{
+    CMakeModel model;
+
+    model.SetupSourceRoot(TEST_DATA_DIR, BuildDir);
+    model.SetupCMakePath(FindCMake(), GetCMakeVersion());
+    model.SetupNinjaPath(FindNinja());
+    EXPECT_TRUE(model.IsSourceRootSet());
+
+    std::string projectName1 = "project1";
+    std::string version1 = "1.2.3.4";
+    std::string description1 = "blablabla";
+    std::string languages1 = "C CXX";
+    auto project1 = std::make_shared<Project>(projectName1);
+    project1->SetVersion(version1);
+    project1->SetDescription(description1);
+    project1->SetLanguages(languages1);
+
+    EXPECT_TRUE(model.AddProject(project1));
+
+    std::string projectName2 = "project2";
+    std::string version2 = "1.2.3.5";
+    std::string description2 = "blabla";
+    std::string languages2 = "CXX ASM";
+    auto project2 = std::make_shared<Project>(projectName2, project1);
+    project2->SetVersion(version2);
+    project2->SetDescription(description2);
+    project2->SetLanguages(languages2);
+
+    EXPECT_TRUE(model.AddProject(project2));
+
+    std::ostringstream stream;
+    stream << model;
+    EXPECT_EQ(
+        "Model sourceDir = D:/Projects/CPPParser/testdata, binaryDir = D:/Projects/CPPParser/testdata/cmake-x64-Debug", stream.str());
+}
+
 } // namespace cmake_parser

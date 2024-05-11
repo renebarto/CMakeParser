@@ -24,7 +24,7 @@ struct Directory
     void UnsetVariable(const std::string& name) { m_variables.UnsetVariable(name); }
 
     std::string SerializeShort() const;
-    std::string Serialize() const;
+    std::string Serialize(SerializationFormat format = SerializationFormat::Text, unsigned indent = 0) const;
 
     const VariableList& GetVariableList() const { return m_variables; }
     VariableList& GetVariableList() { return m_variables; }

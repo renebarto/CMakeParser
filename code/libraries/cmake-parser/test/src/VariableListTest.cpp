@@ -156,24 +156,68 @@ TEST_F(VariableListTest, AddVariable)
     EXPECT_EQ("y", variables.FindVariable("x")->Value());
 }
 
+TEST_F(VariableListTest, SerializeJSONEmpty)
+{
+    VariableList variables;
+
+    std::ostringstream stream;
+    stream << variables.Serialize(SerializationFormat::JSON, 0);
+    EXPECT_EQ(
+        "[]", stream.str());
+}
+
+TEST_F(VariableListTest, SerializeJSON)
+{
+    VariableList variables;
+    std::string name1{ "a" };
+    std::string name2{ "b" };
+    std::string name3{ "c" };
+    std::string value1{ "x" };
+    std::string value2{ "y" };
+    std::string value3{ "z" };
+    variables.SetVariable(name1, value1);
+    variables.SetVariable(name2, value2);
+    variables.SetVariable(name3, value3);
+
+    std::ostringstream stream;
+    stream << variables.Serialize(SerializationFormat::JSON, 0);
+    EXPECT_EQ(
+        "[\n"
+        "    {\n"
+        "        \"name\": \"" + name1 + "\",\n"
+        "        \"value\": \"" + value1 + "\"\n"
+        "    },\n"
+        "    {\n"
+        "        \"name\": \"" + name2 + "\",\n"
+        "        \"value\": \"" + value2 + "\"\n"
+        "    },\n"
+        "    {\n"
+        "        \"name\": \"" + name3 + "\",\n"
+        "        \"value\": \"" + value3 + "\"\n"
+        "    }\n"
+        "]", stream.str());
+}
+
 TEST_F(VariableListTest, StreamInsertion)
 {
     VariableList variables;
-    variables.SetVariable("a", "x");
-    variables.SetVariable("b", "y");
-    variables.SetVariable("c", "z");
-
-    EXPECT_EQ(size_t{ 3 }, variables.GetVariables().size());
-    EXPECT_EQ("x", variables.GetVariable("a"));
-    EXPECT_NOT_NULL(variables.FindVariable("a"));
-    EXPECT_EQ("y", variables.GetVariable("b"));
-    EXPECT_NOT_NULL(variables.FindVariable("b"));
-    EXPECT_EQ("z", variables.GetVariable("c"));
-    EXPECT_NOT_NULL(variables.FindVariable("c"));
+    std::string name1{ "a" };
+    std::string name2{ "b" };
+    std::string name3{ "c" };
+    std::string value1{ "x" };
+    std::string value2{ "y" };
+    std::string value3{ "z" };
+    variables.SetVariable(name1, value1);
+    variables.SetVariable(name2, value2);
+    variables.SetVariable(name3, value3);
 
     std::ostringstream stream;
     stream << variables;
-    EXPECT_EQ("VariableList:\nVariable a = x\nVariable b = y\nVariable c = z\n", stream.str());
+    EXPECT_EQ(
+        "VariableList:\n"
+        "Variable " + name1 + " = " + value1 + "\n"
+        "Variable " + name2 + " = " + value2 + "\n"
+        "Variable " + name3 + " = " + value3 + "\n", stream.str());
 }
 
 } // namespace cmake_parser

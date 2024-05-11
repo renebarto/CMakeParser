@@ -3,6 +3,7 @@
 #include <ostream>
 #include <memory>
 #include <string>
+#include "cmake-parser/Serialization.h"
 
 namespace cmake_parser {
 
@@ -35,7 +36,7 @@ struct TypedVariable
     void SetValue(const std::string& type, const std::string& value) { m_type = type; m_value = value; }
     void SetDescription(const std::string& description) { m_description = description; }
 
-    std::string Serialize() const;
+    std::string Serialize(SerializationFormat format = SerializationFormat::Text, unsigned indent = 0) const;
 };
 using TypedVariablePtr = std::shared_ptr<TypedVariable>;
 
