@@ -54,6 +54,8 @@ namespace cmake_parser {
 const std::string VarMinimumRequiredVersion{ "CMAKE_MINIMUM_REQUIRED_VERSION" };
 const std::string VarMainSourceDirectory{ "CMAKE_SOURCE_DIR" };
 const std::string VarMainBinaryDirectory{ "CMAKE_BINARY_DIR" };
+const std::string VarMainProjectHomePageURL{ "CMAKE_PROJECT_HOMEPAGE_URL" };
+const std::string VarMainProjectDescription{ "CMAKE_PROJECT_DESCRIPTION" };
 const std::string VarCurrentSourceDirectory{ "CMAKE_CURRENT_SOURCE_DIR" };
 const std::string VarCurrentBinaryDirectory{ "CMAKE_CURRENT_BINARY_DIR" };
 const std::string VarCurrentScriptDirectory{ "CMAKE_CURRENT_LIST_DIR" };
@@ -71,9 +73,10 @@ const std::string VarCMakeVersionTweak{ "CMAKE_TWEAK_VERSION" };
 const std::string VarMakeProgramPath{ "CMAKE_MAKE_PROGRAM" };
 const std::string VarCMakeGenerator{ "CMAKE_GENERATOR" };
 const std::string VarProjectBinaryDir{ "PROJECT_BINARY_DIR" };
-const std::string VarProjectHomepageURL{ "PROJECT_HOMEPAGE_URL" };
-const std::string VarProjectName{ "PROJECT_NAME" };
 const std::string VarProjectDescription{ "PROJECT_DESCRIPTION" };
+const std::string VarProjectHomepageURL{ "PROJECT_HOMEPAGE_URL" };
+const std::string VarProjectIsTopLevel{ "PROJECT_IS_TOP_LEVEL" };
+const std::string VarProjectName{ "PROJECT_NAME" };
 const std::string VarProjectSourceDirectory{ "PROJECT_SOURCE_DIR" };
 const std::string VarProjectVersion{ "PROJECT_VERSION" };
 const std::string VarProjectVersionMajor{ "PROJECT_VERSION_MAJOR" };
@@ -81,6 +84,16 @@ const std::string VarProjectVersionMinor{ "PROJECT_VERSION_MINOR" };
 const std::string VarProjectVersionPatch{ "PROJECT_VERSION_PATCH" };
 const std::string VarProjectVersionTweak{ "PROJECT_VERSION_TWEAK" };
 const std::string CMakeScriptFileName{ "CMakeLists.txt" };
+const std::string VarSuffixBinaryDir{ "_BINARY_DIR" };
+const std::string VarSuffixDescription{ "_DESCRIPTION" };
+const std::string VarSuffixHomepageURL{ "_HOMEPAGE_URL" };
+const std::string VarSuffixIsTopLevel{ "_IS_TOP_LEVEL" };
+const std::string VarSuffixSourceDirectory{ "_SOURCE_DIR" };
+const std::string VarSuffixVersion{ "_VERSION" };
+const std::string VarSuffixVersionMajor{ "_VERSION_MAJOR" };
+const std::string VarSuffixVersionMinor{ "_VERSION_MINOR" };
+const std::string VarSuffixVersionPatch{ "_VERSION_PATCH" };
+const std::string VarSuffixVersionTweak{ "_VERSION_TWEAK" };
 
 #define VAR(name, value) { #name, value }
 
@@ -280,10 +293,29 @@ VariablePtr CMakeModel::FindVariable(const std::string& name) const
     return m_scopeVariables->FindVariable(name);
 }
 
+static std::string ReplaceQuotesExceptEscapedOnes(const std::string& text)
+{
+    std::string result;
+    static const char* escapedQuote = "\\\"";
+    for (auto i = 0; i < text.length(); ++i)
+    {
+        if ((i < text.length() - 1) && (text.substr(i, 2) == escapedQuote))
+        {
+            result += escapedQuote;
+            ++i;
+        }
+        else if (text[i] != '"')
+        {
+            result += text[i];
+        }
+    }
+    return result;
+}
+
 void CMakeModel::SetVariable(const std::string& name, const std::string& value, VariableAttribute attributes /*= {}*/, const std::string& type /*= {}*/, const std::string& description /*= {}*/)
 {
     auto evaluatedName = Evaluate(utility::UnQuote(name));
-    auto evaluatedValue = Evaluate(utility::UnQuote(value));
+    auto evaluatedValue = ReplaceQuotesExceptEscapedOnes(Evaluate(utility::UnQuote(value)));
     auto evaluatedDescription = Evaluate(utility::UnQuote(description));
 
     if (attributes & VariableAttribute::Cache)
@@ -373,13 +405,21 @@ bool CMakeModel::AddProject(ProjectPtr project)
         TRACE_DATA("Add project {}", project->Name());
     else
         TRACE_ERROR("Adding null project!");
+    bool isTopLevel = m_rootProject == nullptr;
     auto result = m_projects.AddProject(project);
     if (result)
     {
-        SetVariable(VarProjectBinaryDir, GetVariable("CMAKE_CURRENT_BINARY_DIR"));
-        SetVariable(VarProjectHomepageURL, "");
-        SetVariable(VarProjectName, project->Name());
+        project->SetParent(m_rootProject);
+        if (isTopLevel)
+        {
+            SetVariable(VarMainProjectDescription, project->Description());
+            SetVariable(VarMainProjectHomePageURL, project->HomePageURL());
+        }
+        SetVariable(VarProjectBinaryDir, GetVariable(VarCurrentBinaryDirectory));
         SetVariable(VarProjectDescription, project->Description());
+        SetVariable(VarProjectIsTopLevel, isTopLevel ? "TRUE" : "FALSE");
+        SetVariable(VarProjectHomepageURL, project->HomePageURL());
+        SetVariable(VarProjectName, project->Name());
         SetVariable(VarProjectSourceDirectory, GetVariable(VarCurrentSourceDirectory));
         SetVariable(VarProjectVersion, project->Version());
         auto version = SplitVersion(project->Version());
@@ -387,6 +427,23 @@ bool CMakeModel::AddProject(ProjectPtr project)
         SetVariable(VarProjectVersionMinor, version.minor);
         SetVariable(VarProjectVersionPatch, version.patch);
         SetVariable(VarProjectVersionTweak, version.tweak);
+
+        SetVariable(project->Name() + VarSuffixBinaryDir, GetVariable(VarCurrentBinaryDirectory));
+        SetVariable(project->Name() + VarSuffixDescription, project->Description());
+        SetVariable(project->Name() + VarSuffixHomepageURL, project->HomePageURL());
+        SetVariable(project->Name() + VarSuffixIsTopLevel, isTopLevel ? "TRUE" : "FALSE");
+        SetVariable(project->Name() + VarSuffixSourceDirectory, GetVariable(VarCurrentSourceDirectory));
+        SetVariable(project->Name() + VarSuffixVersion, project->Version());
+        SetVariable(project->Name() + VarSuffixVersionMajor, version.major);
+        SetVariable(project->Name() + VarSuffixVersionMinor, version.minor);
+        SetVariable(project->Name() + VarSuffixVersionPatch, version.patch);
+        SetVariable(project->Name() + VarSuffixVersionTweak, version.tweak);
+
+        m_currentProject = project;
+        if (m_rootProject == nullptr)
+        {
+            m_rootProject = m_currentProject;
+        }
     }
 
     return result;

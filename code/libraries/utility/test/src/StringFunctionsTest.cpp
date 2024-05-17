@@ -146,4 +146,20 @@ TEST(StringFunctionsTest, SplitBySemicolonsLastEmpty)
     EXPECT_EQ(expected, actual);
 }
 
+TEST(StringFunctionsTest, Replace)
+{
+    std::string input("ABBA");
+    std::string expected{ "ACCA" };
+    auto actual = Replace(input, "B", "C");
+    EXPECT_EQ(expected, actual);
+}
+
+TEST(StringFunctionsTest, ReplaceWithLonger)
+{
+    std::string input("ABBA");
+    std::string expected{ "ACDCDA" };
+    auto actual = Replace(input, "B", "CD");
+    EXPECT_EQ(expected, actual);
+}
+
 } // namespace utility

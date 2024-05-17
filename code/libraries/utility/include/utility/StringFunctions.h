@@ -41,4 +41,6 @@ std::string Quote(const std::string& text);
 
 std::string UnQuote(const std::string& text);
 
+std::string Replace(const std::string input, const std::string& search, const std::string& replace);
+
 } // namespace utility

@@ -1,6 +1,6 @@
-project(cmake-parser-test
+project(cmake-parser-app
     VERSION ${MSI_NUMBER}
-    DESCRIPTION "CMake parser test"
+    DESCRIPTION "CMake parser"
     LANGUAGES CXX)
 
 message(STATUS "\n**********************************************************************************\n")
@@ -22,7 +22,7 @@ set(PROJECT_COMPILER_DEFINITIONS_PUBLIC
 
 set(PROJECT_COMPILER_OPTIONS_PRIVATE
     ${COMPILER_OPTIONS_CXX}
-    )
+    /wd4191 /wd4706)
 
 set(PROJECT_COMPILER_OPTIONS_PUBLIC
     )
@@ -41,7 +41,7 @@ set(PROJECT_LINK_OPTIONS
 
 set(PROJECT_DEPENDENCIES
     cmake-parser
-    test-platform
+    parser
     )
 
 set(PROJECT_LIBS
@@ -50,31 +50,11 @@ set(PROJECT_LIBS
     )
 
 set(PROJECT_SOURCES 
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/CMakeCacheTest.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/CMakeModelTest.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/CMakeParserTest.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/DirectoryListTest.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/DirectoryStackTest.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/DirectoryTest.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/ExpressionTest.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/LexerTest.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/ListTest.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/ProjectListTest.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/ProjectTest.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/ScriptParserTest.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetListTest.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetTest.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/TypedVariableListTest.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/TypedVariableTest.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/VariableListTest.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/VariableTest.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
     )
-set(PROJECT_SOURCES_${PROJECT_NAME}
-    ${PROJECT_SOURCES}
-    CACHE STRING "${PROJECT_NAME}" FORCE)
 
 set(PROJECT_INCLUDES_PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/getopt.h
     )
 
 set(PROJECT_INCLUDES_PUBLIC

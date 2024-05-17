@@ -6,6 +6,7 @@
 #include "utility/StringFunctions.h"
 #include "tracing/Tracing.h"
 #include "cmake-parser/Expression.h"
+#include "cmake-parser/List.h"
 #include "cmake-parser/ParserExceptions.h"
 
 using namespace utility;
@@ -214,6 +215,24 @@ std::string ScriptParser::ParseLanguages(const TerminalSet& endTerminals)
     return languages;
 }
 
+std::string ScriptParser::ParseURL()
+{
+    std::string url;
+
+    try
+    {
+        NextToken();
+        SkipWhitespace();
+        url = utility::UnQuote(Expect(Terminal::String));
+    }
+    catch (std::exception&)
+    {
+        return {};
+    }
+
+    return url;
+}
+
 void ScriptParser::NextToken()
 {
     m_currentToken = m_lexer.GetToken();
@@ -369,11 +388,12 @@ bool ScriptParser::HandleProject()
     static const std::string VersionKeyword{ "version" };
     static const std::string DescriptionKeyword{ "description" };
     static const std::string LanguagesKeyword{ "languages" };
+    static const std::string HomePageURLKeyword{ "homepage_url" };
 
     Expect_SkipWhitespace(Terminal::ParenthesisOpen);
     auto projectName = Expect_SkipWhitespace({ Terminal::Name, Terminal::Identifier });
     auto result = projectName.Value();
-    m_currentProject = std::make_shared<Project>(result);
+    m_currentProject = std::make_shared<Project>(m_model.GetCurrentDirectory(), result);
     m_currentTarget = {};
     SkipWhitespace();
     while (CurrentTokenType() == Terminal::Identifier)
@@ -401,6 +421,14 @@ bool ScriptParser::HandleProject()
             if (!result.empty())
             {
                 m_currentProject->SetLanguages(result);
+            }
+        }
+        else if (utility::IsEqualIgnoreCase(HomePageURLKeyword, result))
+        {
+            result = ParseURL();
+            if (!result.empty())
+            {
+                m_currentProject->SetHomePageURL(result);
             }
         }
         else
@@ -500,7 +528,7 @@ bool ScriptParser::HandleSet()
             std::string variableName = ExpectExpression(finalizers);
             std::string variableType{};
             std::string description{};
-            std::string value{};
+            List value;
             VariableAttribute variableAttributes{};
             SkipWhitespace();
             while (CurrentToken().Type() != Terminal::ParenthesisClose)
@@ -532,19 +560,16 @@ bool ScriptParser::HandleSet()
                         break;
                     }
                 }
-                if (!value.empty())
-                    value += ";";
-
-                value += ExpectExpression(finalizers);
+                value.Append(ExpectExpression(finalizers));
                 SkipWhitespace();
             }
-            if (value.empty())
+            if (value.Empty())
             {
                 m_model.UnsetVariable(variableName, variableAttributes);
             }
             else
             {
-                m_model.SetVariable(variableName, value, variableAttributes, variableType, description);
+                m_model.SetVariable(variableName, value.ToString(), variableAttributes, variableType, description);
             }
         }
         else
@@ -583,7 +608,12 @@ bool ScriptParser::HandleUnset()
                 }
                 else if (IsEqualIgnoreCase(KeywordParentScope, CurrentToken().Value()))
                 {
+                    Expect(Terminal::Identifier);
                     variableAttributes = variableAttributes | VariableAttribute::ParentScope;
+                }
+                else
+                {
+                    throw UnexpectedToken(CurrentToken(), __FILE__, __LINE__);
                 }
                 m_model.UnsetVariable(variableName, variableAttributes);
             }
@@ -612,18 +642,26 @@ bool ScriptParser::HandleAddSubdirectory()
     return result;
 }
 
+static const std::string KeywordWin32{ "WIN32" };
+static const std::string KeywordMacOSXBundle{ "MACOSX_BUNDLE" };
+static const std::string KeywordExcludeFromAll{ "EXCLUDE_FROM_ALL" };
+static const std::string KeywordImported{ "IMPORTED" };
+static const std::string KeywordGlobal{ "GLOBAL" };
+static const std::string KeywordAlias{ "ALIAS" };
+static const std::string KeywordStatic{ "STATIC" };
+static const std::string KeywordShared{ "SHARED" };
+static const std::string KeywordModule{ "MODULE" };
+static const std::string KeywordObject{ "OBJECT" };
+static const std::string KeywordInterface{ "INTERFACE" };
+
 bool ScriptParser::HandleAddExecutable()
 {
-    static const std::string KeywordWin32{ "WIN32" };
-    static const std::string KeywordMacOSXBundle{ "MACOSX_BUNDLE" };
-    static const std::string KeywordExcludeFromAll{ "EXCLUDE_FROM_ALL" };
-    static const std::string KeywordImported{ "IMPORTED" };
-    static const std::string KeywordGlobal{ "GLOBAL" };
-    static const std::string KeywordAlias{ "ALIAS" };
+    std::set<Terminal> finalizers = { Terminal::Whitespace , Terminal::NewLine, Terminal::ParenthesisClose };
 
     Expect_SkipWhitespace(Terminal::ParenthesisOpen);
-    auto token = Expect_SkipWhitespace({ Terminal::Name, Terminal::Identifier });
-    auto targetName = token.Value();
+    auto expressionText = ExpectExpression(finalizers);
+    expression::Expression expressionTargetName(m_model, expressionText);
+    auto targetName = expressionTargetName.Evaluate();
     TargetAttribute targetAttributes{};
     std::string targetAlias;
     SkipWhitespace();
@@ -647,12 +685,6 @@ bool ScriptParser::HandleAddExecutable()
             targetAttributes = targetAttributes | TargetAttribute::ExcludeFromAll;
             SkipWhitespace();
         }
-        else if (IsEqualIgnoreCase(KeywordExcludeFromAll, CurrentToken().Value()))
-        {
-            Expect(Terminal::Identifier);
-            targetAttributes = targetAttributes | TargetAttribute::ExcludeFromAll;
-            SkipWhitespace();
-        }
         else if (IsEqualIgnoreCase(KeywordImported, CurrentToken().Value()))
         {
             Expect(Terminal::Identifier);
@@ -660,7 +692,7 @@ bool ScriptParser::HandleAddExecutable()
             SkipWhitespace();
             if (CurrentToken().Type() == Terminal::Identifier)
             {
-                if (IsEqualIgnoreCase(KeywordCache, CurrentToken().Value()))
+                if (IsEqualIgnoreCase(KeywordGlobal, CurrentToken().Value()))
                 {
                     Expect(Terminal::Identifier);
                     targetAttributes = targetAttributes | TargetAttribute::Global;
@@ -680,14 +712,351 @@ bool ScriptParser::HandleAddExecutable()
         else
             break;
     }
-    std::set<Terminal> finalizers = { Terminal::Whitespace , Terminal::NewLine, Terminal::ParenthesisClose };
-    auto targetSources = ExpectExpression(finalizers);
+    List targetSources;
+    SkipWhitespace();
+    while (CurrentToken().Type() != Terminal::ParenthesisClose)
+    {
+        expressionText = ExpectExpression(finalizers);
+        expression::Expression expressionTargetSources(m_model, expressionText);
+        auto sources = expressionTargetSources.Evaluate();
+        targetSources.Append(sources);
+        SkipWhitespace();
+    }
 
-    m_currentTarget = std::make_shared<Target>(targetName, targetAttributes, targetSources, targetAlias);
+    m_currentTarget = std::make_shared<Target>(m_currentProject, targetName, TargetType::Executable, targetAttributes, targetSources.ToString(), targetAlias);
     if (m_currentProject != nullptr)
     {
         m_currentProject->AddTarget(m_currentTarget);
     }
+    m_currentTarget->SetProperty(TargetPropertyOutputName, ExecutableTargetName(targetName));
+
+    Expect_SkipWhitespace(Terminal::ParenthesisClose);
+    return true;
+}
+
+bool ScriptParser::HandleAddLibrary()
+{
+    std::set<Terminal> finalizers = { Terminal::Whitespace , Terminal::NewLine, Terminal::ParenthesisClose };
+
+    Expect_SkipWhitespace(Terminal::ParenthesisOpen);
+    auto expressionText = ExpectExpression(finalizers);
+    expression::Expression expressionTargetName(m_model, expressionText);
+    auto targetName = expressionTargetName.Evaluate();
+    TargetType type{};
+    TargetAttribute targetAttributes{};
+    std::string targetAlias;
+    SkipWhitespace();
+    while (CurrentToken().Type() == Terminal::Identifier)
+    {
+        if (IsEqualIgnoreCase(KeywordStatic, CurrentToken().Value()))
+        {
+            Expect(Terminal::Identifier);
+            type = TargetType::StaticLibrary;
+            targetAttributes = targetAttributes | TargetAttribute::Static;
+            SkipWhitespace();
+        }
+        else if (IsEqualIgnoreCase(KeywordShared, CurrentToken().Value()))
+        {
+            Expect(Terminal::Identifier);
+            type = TargetType::SharedLibrary;
+            targetAttributes = targetAttributes | TargetAttribute::Shared;
+            SkipWhitespace();
+        }
+        else if (IsEqualIgnoreCase(KeywordModule, CurrentToken().Value()))
+        {
+            Expect(Terminal::Identifier);
+            type = TargetType::SharedLibrary;
+            targetAttributes = targetAttributes | TargetAttribute::Module;
+            SkipWhitespace();
+        }
+        else if (IsEqualIgnoreCase(KeywordObject, CurrentToken().Value()))
+        {
+            Expect(Terminal::Identifier);
+            type = TargetType::Object;
+            targetAttributes = targetAttributes | TargetAttribute::Object;
+            SkipWhitespace();
+        }
+        else if (IsEqualIgnoreCase(KeywordInterface, CurrentToken().Value()))
+        {
+            Expect(Terminal::Identifier);
+            type = TargetType::Object;
+            targetAttributes = targetAttributes | TargetAttribute::Interface;
+            SkipWhitespace();
+        }
+        else if (IsEqualIgnoreCase(KeywordExcludeFromAll, CurrentToken().Value()))
+        {
+            Expect(Terminal::Identifier);
+            targetAttributes = targetAttributes | TargetAttribute::ExcludeFromAll;
+            SkipWhitespace();
+        }
+        else if (IsEqualIgnoreCase(KeywordImported, CurrentToken().Value()))
+        {
+            Expect(Terminal::Identifier);
+            targetAttributes = targetAttributes | TargetAttribute::Imported;
+            SkipWhitespace();
+            if (CurrentToken().Type() == Terminal::Identifier)
+            {
+                if (IsEqualIgnoreCase(KeywordGlobal, CurrentToken().Value()))
+                {
+                    Expect(Terminal::Identifier);
+                    targetAttributes = targetAttributes | TargetAttribute::Global;
+                    SkipWhitespace();
+                }
+                else
+                    throw UnexpectedToken(CurrentToken(), __FILE__, __LINE__);
+            }
+        }
+        else if (IsEqualIgnoreCase(KeywordAlias, CurrentToken().Value()))
+        {
+            Expect(Terminal::Identifier);
+            targetAttributes = targetAttributes | TargetAttribute::Alias;
+            SkipWhitespace();
+            targetAlias = Expect(Terminal::Identifier);
+        }
+        else
+            break;
+    }
+    List targetSources;
+    SkipWhitespace();
+    while (CurrentToken().Type() != Terminal::ParenthesisClose)
+    {
+        expressionText = ExpectExpression(finalizers);
+        expression::Expression expressionTargetSources(m_model, expressionText);
+        auto sources = expressionTargetSources.Evaluate();
+        targetSources.Append(sources);
+        SkipWhitespace();
+    }
+
+    m_currentTarget = std::make_shared<Target>(m_currentProject, targetName, type, targetAttributes, targetSources.ToString(), targetAlias);
+    if (m_currentProject != nullptr)
+    {
+        m_currentProject->AddTarget(m_currentTarget);
+    }
+    switch (type)
+    {
+    case TargetType::StaticLibrary:
+        m_currentTarget->SetProperty(TargetPropertyOutputName, StaticLibraryTargetName(targetName));
+        break;
+    case TargetType::SharedLibrary:
+        m_currentTarget->SetProperty(TargetPropertyOutputName, SharedLibraryTargetName(targetName));
+        break;
+    case TargetType::Object:
+        m_currentTarget->SetProperty(TargetPropertyOutputName, ObjectLibraryTargetName(targetName));
+        break;
+    default:
+        break;
+    }
+
+    Expect_SkipWhitespace(Terminal::ParenthesisClose);
+    return true;
+}
+
+static const std::string KeywordSystem{ "SYSTEM" };
+static const std::string KeywordAfter{ "AFTER" };
+static const std::string KeywordBefore{ "BEFORE" };
+static const std::string KeywordPrivate{ "PRIVATE" };
+static const std::string KeywordPublic{ "PUBLIC" };
+
+bool ScriptParser::HandleTargetIncludeDirectories()
+{
+    std::set<Terminal> finalizers = { Terminal::Whitespace , Terminal::NewLine, Terminal::ParenthesisClose };
+
+    if (m_currentTarget == nullptr)
+    {
+        UngetCurrentToken();
+        throw UnexpectedToken(CurrentToken(), __FILE__, __LINE__);
+    }
+
+    Expect_SkipWhitespace(Terminal::ParenthesisOpen);
+    auto expressionText = ExpectExpression(finalizers);
+    expression::Expression expressionTargetName(m_model, expressionText);
+    auto targetName = expressionTargetName.Evaluate();
+    SkipWhitespace();
+    bool systemFound{};
+    if (CurrentToken().Type() == Terminal::Identifier)
+    {
+        if (IsEqualIgnoreCase(KeywordSystem, CurrentToken().Value()))
+        {
+            Expect(Terminal::Identifier);
+            systemFound = true;
+            SkipWhitespace();
+        }
+    }
+    bool beforeFound{};
+    bool afterFound{};
+    if (CurrentToken().Type() == Terminal::Identifier)
+    {
+        if (IsEqualIgnoreCase(KeywordAfter, CurrentToken().Value()))
+        {
+            Expect(Terminal::Identifier);
+            afterFound = true;
+            SkipWhitespace();
+        }
+        else if (IsEqualIgnoreCase(KeywordBefore, CurrentToken().Value()))
+        {
+            Expect(Terminal::Identifier);
+            beforeFound = true;
+            SkipWhitespace();
+        }
+    }
+
+    while (CurrentToken().Type() == Terminal::Identifier)
+    {
+        std::string scope = CurrentToken().Value();
+
+        if (IsEqualIgnoreCase(KeywordPrivate, scope))
+        {
+            Expect(Terminal::Identifier);
+            SkipWhitespace();
+            auto arguments = ReadScopedArguments();
+            List value(m_currentTarget->GetProperty(TargetPropertyIncludeDirectories));
+            value.Append(arguments);
+            m_currentTarget->SetProperty(TargetPropertyIncludeDirectories, value.ToString());
+        }
+        else if (IsEqualIgnoreCase(KeywordPublic, scope))
+        {
+            Expect(Terminal::Identifier);
+            SkipWhitespace();
+            auto arguments = ReadScopedArguments();
+            List value(m_currentTarget->GetProperty(TargetPropertyIncludeDirectories));
+            value.Append(arguments);
+            m_currentTarget->SetProperty(TargetPropertyIncludeDirectories, value.ToString());
+            List value2(m_currentTarget->GetProperty(TargetPropertyInterfaceIncludeDirectories));
+            value2.Append(arguments);
+            m_currentTarget->SetProperty(TargetPropertyInterfaceIncludeDirectories, value2.ToString());
+        }
+        else if (IsEqualIgnoreCase(KeywordInterface, scope))
+        {
+            Expect(Terminal::Identifier);
+            SkipWhitespace();
+            auto arguments = ReadScopedArguments();
+            List value(m_currentTarget->GetProperty(TargetPropertyInterfaceIncludeDirectories));
+            value.Append(arguments);
+            m_currentTarget->SetProperty(TargetPropertyInterfaceIncludeDirectories, value.ToString());
+        }
+        else
+            throw UnexpectedToken(CurrentToken(), __FILE__, __LINE__);
+    }
+
+    Expect_SkipWhitespace(Terminal::ParenthesisClose);
+
+    return true;
+}
+
+bool ScriptParser::HandleTargetCompileDefinitions()
+{
+    std::set<Terminal> finalizers = { Terminal::Whitespace , Terminal::NewLine, Terminal::ParenthesisClose };
+
+    if (m_currentTarget == nullptr)
+    {
+        UngetCurrentToken();
+        throw UnexpectedToken(CurrentToken(), __FILE__, __LINE__);
+    }
+
+    Expect_SkipWhitespace(Terminal::ParenthesisOpen);
+    auto expressionText = ExpectExpression(finalizers);
+    expression::Expression expressionTargetName(m_model, expressionText);
+    auto targetName = expressionTargetName.Evaluate();
+    SkipWhitespace();
+
+    while (CurrentToken().Type() == Terminal::Identifier)
+    {
+        std::string scope = CurrentToken().Value();
+
+        if (IsEqualIgnoreCase(KeywordPrivate, scope))
+        {
+            Expect(Terminal::Identifier);
+            SkipWhitespace();
+            auto arguments = ReadScopedArguments();
+            List value(m_currentTarget->GetProperty(TargetPropertyCompileDefinitions));
+            value.Append(arguments);
+            m_currentTarget->SetProperty(TargetPropertyCompileDefinitions, value.ToString());
+        }
+        else if (IsEqualIgnoreCase(KeywordPublic, scope))
+        {
+            Expect(Terminal::Identifier);
+            SkipWhitespace();
+            auto arguments = ReadScopedArguments();
+            List value(m_currentTarget->GetProperty(TargetPropertyCompileDefinitions));
+            value.Append(arguments);
+            m_currentTarget->SetProperty(TargetPropertyCompileDefinitions, value.ToString());
+            List value2(m_currentTarget->GetProperty(TargetPropertyInterfaceCompileDefinitions));
+            value2.Append(arguments);
+            m_currentTarget->SetProperty(TargetPropertyInterfaceCompileDefinitions, value2.ToString());
+        }
+        else if (IsEqualIgnoreCase(KeywordInterface, scope))
+        {
+            Expect(Terminal::Identifier);
+            SkipWhitespace();
+            auto arguments = ReadScopedArguments();
+            List value(m_currentTarget->GetProperty(TargetPropertyInterfaceCompileDefinitions));
+            value.Append(arguments);
+            m_currentTarget->SetProperty(TargetPropertyInterfaceCompileDefinitions, value.ToString());
+        }
+        else
+            throw UnexpectedToken(CurrentToken(), __FILE__, __LINE__);
+    }
+
+    Expect_SkipWhitespace(Terminal::ParenthesisClose);
+
+    return true;
+}
+
+bool ScriptParser::HandleTargetCompileOptions()
+{
+    std::set<Terminal> finalizers = { Terminal::Whitespace , Terminal::NewLine, Terminal::ParenthesisClose };
+
+    if (m_currentTarget == nullptr)
+    {
+        UngetCurrentToken();
+        throw UnexpectedToken(CurrentToken(), __FILE__, __LINE__);
+    }
+
+    Expect_SkipWhitespace(Terminal::ParenthesisOpen);
+    auto expressionText = ExpectExpression(finalizers);
+    expression::Expression expressionTargetName(m_model, expressionText);
+    auto targetName = expressionTargetName.Evaluate();
+    SkipWhitespace();
+
+    while (CurrentToken().Type() == Terminal::Identifier)
+    {
+        std::string scope = CurrentToken().Value();
+
+        if (IsEqualIgnoreCase(KeywordPrivate, scope))
+        {
+            Expect(Terminal::Identifier);
+            SkipWhitespace();
+            auto arguments = ReadScopedArguments();
+            List value(m_currentTarget->GetProperty(TargetPropertyCompileOptions));
+            value.Append(arguments);
+            m_currentTarget->SetProperty(TargetPropertyCompileOptions, value.ToString());
+        }
+        else if (IsEqualIgnoreCase(KeywordPublic, scope))
+        {
+            Expect(Terminal::Identifier);
+            SkipWhitespace();
+            auto arguments = ReadScopedArguments();
+            List value(m_currentTarget->GetProperty(TargetPropertyCompileOptions));
+            value.Append(arguments);
+            m_currentTarget->SetProperty(TargetPropertyCompileOptions, value.ToString());
+            List value2(m_currentTarget->GetProperty(TargetPropertyInterfaceCompileOptions));
+            value2.Append(arguments);
+            m_currentTarget->SetProperty(TargetPropertyInterfaceCompileOptions, value2.ToString());
+        }
+        else if (IsEqualIgnoreCase(KeywordInterface, scope))
+        {
+            Expect(Terminal::Identifier);
+            SkipWhitespace();
+            auto arguments = ReadScopedArguments();
+            List value(m_currentTarget->GetProperty(TargetPropertyInterfaceCompileOptions));
+            value.Append(arguments);
+            m_currentTarget->SetProperty(TargetPropertyInterfaceCompileOptions, value.ToString());
+        }
+        else
+            throw UnexpectedToken(CurrentToken(), __FILE__, __LINE__);
+    }
+
+    Expect_SkipWhitespace(Terminal::ParenthesisClose);
 
     return true;
 }
@@ -744,6 +1113,17 @@ bool ScriptParser::OnToken(const parser::Token<Terminal>& token, bool& done)
         result = HandleAddExecutable();
         break;
     case Keyword::AddLibrary:
+        result = HandleAddLibrary();
+        break;
+    case Keyword::TargetIncludeDirectories:
+        result = HandleTargetIncludeDirectories();
+        break;
+    case Keyword::TargetCompileDefinitions:
+        result = HandleTargetCompileDefinitions();
+        break;
+    case Keyword::TargetCompileOptions:
+        result = HandleTargetCompileOptions();
+        break;
     case Keyword::Else:
     case Keyword::EndForEach:
     case Keyword::EndFunction:
@@ -763,9 +1143,6 @@ bool ScriptParser::OnToken(const parser::Token<Terminal>& token, bool& done)
     case Keyword::SetProperty:
     case Keyword::SetTargetProperties:
     case Keyword::String:
-    case Keyword::TargetCompileDefinitions:
-    case Keyword::TargetCompileOptions:
-    case Keyword::TargetIncludeDirectories:
     case Keyword::TargetLinkLibraries:
         TRACE_WARNING("Skipping unsupported keyword {}", keyword);
         result = HandleUnsupported();
@@ -793,6 +1170,32 @@ void ScriptParser::OnParseError(const parser::Token<Terminal>& token)
 {
     m_errorCount++;
     TRACE_ERROR("Parse error: unexpected token {}", token);
+}
+
+std::string ScriptParser::Serialize() const
+{
+    return m_model.Serialize(SerializationFormat::JSON, 0);
+}
+
+std::string ScriptParser::ReadScopedArguments()
+{
+    std::set<Terminal> finalizers = { Terminal::ParenthesisClose, Terminal::Identifier };
+    List arguments{};
+    bool haveNormalIdentifier{};
+    do
+    {
+        auto expr = ExpectExpression(finalizers);
+        expression::Expression expressionDirs(m_model, expr);
+        arguments.Append(expressionDirs.Evaluate());
+        SkipWhitespace();
+        haveNormalIdentifier = ((CurrentToken().Type() == Terminal::Identifier) &&
+            (!IsEqualIgnoreCase(KeywordPrivate, CurrentToken().Value()) && !IsEqualIgnoreCase(KeywordPublic, CurrentToken().Value()) && !IsEqualIgnoreCase(KeywordInterface, CurrentToken().Value())));
+        if (haveNormalIdentifier)
+        {
+            arguments.Append(Expect(Terminal::Identifier));
+        }
+    } while (haveNormalIdentifier);
+    return arguments.ToString();
 }
 
 } // namespace cmake_parser

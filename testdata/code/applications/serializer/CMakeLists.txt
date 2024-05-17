@@ -53,9 +53,11 @@ set(PROJECT_SOURCES
     )
 
 set(PROJECT_INCLUDES_PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/private_header.h
     )
 
 set(PROJECT_INCLUDES_PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/public_header.h
     )
 
 if (CMAKE_VERBOSE_MAKEFILE)

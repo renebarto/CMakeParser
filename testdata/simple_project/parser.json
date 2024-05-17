@@ -1,0 +1,448 @@
+{
+    "sourceRoot": "D:/Projects/CPPParser/testdata/simple_project",
+    "binaryRoot": "D:/Projects/CPPParser/testdata/simple_project/cmake-x64-Debug",
+    "cache": 
+        [],
+    "environment": 
+        [],
+    "projects": 
+        [
+            {
+                "name": "main-project",
+                "version": "4.3.2.1",
+                "description": "This is the main project",
+                "languages": "CXX",
+                "homepage_url": null,
+                "parent": null,
+                "targets": 
+                    []
+            },
+            {
+                "name": "myexe",
+                "version": "4.3.2.1",
+                "description": "This is the executable project",
+                "languages": "CXX",
+                "homepage_url": null,
+                "parent": "main-project",
+                "targets": 
+                    [
+                        {
+                            "name": "myexe",
+                            "type": "Executable",
+                            "attributes": "None",
+                            "sources": 
+                                [
+                                    "D:/Projects/CPPParser/testdata/simple_project/src/main.cpp",
+                                    "D:/Projects/CPPParser/testdata/simple_project/include/public_header.h",
+                                    "D:/Projects/CPPParser/testdata/simple_project/include/private_header.h"
+                                ],
+                            "properties": 
+                                [
+                                    {
+                                        "name": "COMPILE_DEFINITIONS",
+                                        "value": "PACKAGE_NAME=\\"mylib\\""
+                                    },
+                                    {
+                                        "name": "COMPILE_OPTIONS",
+                                        "value": "/wd4191;/wd4706"
+                                    },
+                                    {
+                                        "name": "INCLUDE_DIRECTORIES",
+                                        "value": "include"
+                                    },
+                                    {
+                                        "name": "INTERFACE_COMPILE_DEFINITIONS",
+                                        "value": null
+                                    },
+                                    {
+                                        "name": "INTERFACE_COMPILE_OPTIONS",
+                                        "value": null
+                                    },
+                                    {
+                                        "name": "INTERFACE_INCLUDE_DIRECTORIES",
+                                        "value": null
+                                    },
+                                    {
+                                        "name": "OUTPUT_NAME",
+                                        "value": "myexe.exe"
+                                    }
+                                ]
+                        }
+                    ]
+            },
+            {
+                "name": "mylib",
+                "version": "4.3.2.1",
+                "description": "This is the library project",
+                "languages": "CXX",
+                "homepage_url": null,
+                "parent": "main-project",
+                "targets": 
+                    [
+                        {
+                            "name": "mylib",
+                            "type": "StaticLibrary",
+                            "attributes": "",
+                            "sources": 
+                                [
+                                    "src/lib.cpp",
+                                    "include/lib.h"
+                                ],
+                            "properties": 
+                                [
+                                    {
+                                        "name": "INCLUDE_DIRECTORIES",
+                                        "value": null
+                                    },
+                                    {
+                                        "name": "INTERFACE_INCLUDE_DIRECTORIES",
+                                        "value": "include;include2;include3"
+                                    },
+                                    {
+                                        "name": "OUTPUT_NAME",
+                                        "value": "mylib.lib"
+                                    }
+                                ]
+                        }
+                    ]
+            }
+        ],
+    "directories": 
+        [
+            {
+                "sourcePath": "D:/Projects/CPPParser/testdata/simple_project",
+                "binaryPath": "D:/Projects/CPPParser/testdata/simple_project/cmake-x64-Debug",
+                "parent": null
+            }
+        ],
+    "rootDirectory": "D:/Projects/CPPParser/testdata/simple_project",
+    "rootProject": "main-project",
+    "currentProject": "myexe",
+    "currentVariables": 
+        [
+            {
+                "name": "ARGC",
+                "value": "0"
+            },
+            {
+                "name": "ARGN",
+                "value": null
+            },
+            {
+                "name": "ARGV",
+                "value": null
+            },
+            {
+                "name": "CMAKE_BINARY_DIR",
+                "value": "D:/Projects/CPPParser/testdata/simple_project/cmake-x64-Debug"
+            },
+            {
+                "name": "CMAKE_BUILD_TYPE",
+                "value": "Debug"
+            },
+            {
+                "name": "CMAKE_COMMAND",
+                "value": "C:/Program Files/CMake/bin/cmake.exe"
+            },
+            {
+                "name": "CMAKE_CPACK_COMMAND",
+                "value": "C:/Program Files/CMake/bin/cpack.exe"
+            },
+            {
+                "name": "CMAKE_CTEST_COMMAND",
+                "value": "C:/Program Files/CMake/bin/ctest.exe"
+            },
+            {
+                "name": "CMAKE_CURRENT_BINARY_DIR",
+                "value": "D:/Projects/CPPParser/testdata/simple_project/cmake-x64-Debug"
+            },
+            {
+                "name": "CMAKE_CURRENT_LIST_DIR",
+                "value": "D:/Projects/CPPParser/testdata/simple_project"
+            },
+            {
+                "name": "CMAKE_CURRENT_LIST_FILE",
+                "value": "D:/Projects/CPPParser/testdata/simple_project/CMakeLists.txt"
+            },
+            {
+                "name": "CMAKE_CURRENT_SOURCE_DIR",
+                "value": "D:/Projects/CPPParser/testdata/simple_project"
+            },
+            {
+                "name": "CMAKE_CXX_COMPILER",
+                "value": "C:/Program Files(x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe"
+            },
+            {
+                "name": "CMAKE_C_COMPILER",
+                "value": "C:/Program Files(x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe"
+            },
+            {
+                "name": "CMAKE_FILES_DIRECTORY",
+                "value": "/CMakeFiles"
+            },
+            {
+                "name": "CMAKE_GENERATOR",
+                "value": "Ninja"
+            },
+            {
+                "name": "CMAKE_GENERATOR_INSTANCE",
+                "value": null
+            },
+            {
+                "name": "CMAKE_GENERATOR_PLATFORM",
+                "value": null
+            },
+            {
+                "name": "CMAKE_GENERATOR_TOOLSET",
+                "value": null
+            },
+            {
+                "name": "CMAKE_HOME_DIRECTORY",
+                "value": null
+            },
+            {
+                "name": "CMAKE_HOST_SYSTEM_NAME",
+                "value": "Windows"
+            },
+            {
+                "name": "CMAKE_HOST_WIN32",
+                "value": "1"
+            },
+            {
+                "name": "CMAKE_MAJOR_VERSION",
+                "value": "3"
+            },
+            {
+                "name": "CMAKE_MAKE_PROGRAM",
+                "value": "C:\\Program Files\\Ninja\\ninja.exe"
+            },
+            {
+                "name": "CMAKE_MINIMUM_REQUIRED_VERSION",
+                "value": "3.5.1"
+            },
+            {
+                "name": "CMAKE_MINOR_VERSION",
+                "value": "27"
+            },
+            {
+                "name": "CMAKE_PARENT_LIST_FILE",
+                "value": "D:/Projects/CPPParser/testdata/simple_project/CMakeLists.txt"
+            },
+            {
+                "name": "CMAKE_PATCH_VERSION",
+                "value": "8"
+            },
+            {
+                "name": "CMAKE_PROJECT_DESCRIPTION",
+                "value": "This is the main project"
+            },
+            {
+                "name": "CMAKE_PROJECT_HOMEPAGE_URL",
+                "value": null
+            },
+            {
+                "name": "CMAKE_ROOT",
+                "value": "C:/Program Files/CMake/share/cmake-3.27"
+            },
+            {
+                "name": "CMAKE_SOURCE_DIR",
+                "value": "D:/Projects/CPPParser/testdata/simple_project"
+            },
+            {
+                "name": "CMAKE_TWEAK_VERSION",
+                "value": "0"
+            },
+            {
+                "name": "CMAKE_VERSION",
+                "value": "3.27.8"
+            },
+            {
+                "name": "PROJECT_BINARY_DIR",
+                "value": "D:/Projects/CPPParser/testdata/simple_project/cmake-x64-Debug"
+            },
+            {
+                "name": "PROJECT_COMPILER_DEFINITIONS_PRIVATE",
+                "value": "PACKAGE_NAME=\\"mylib\\";"
+            },
+            {
+                "name": "PROJECT_COMPILER_OPTIONS_PRIVATE",
+                "value": ";/wd4191;/wd4706"
+            },
+            {
+                "name": "PROJECT_DESCRIPTION",
+                "value": "This is the executable project"
+            },
+            {
+                "name": "PROJECT_HOMEPAGE_URL",
+                "value": null
+            },
+            {
+                "name": "PROJECT_INCLUDES_PRIVATE",
+                "value": "D:/Projects/CPPParser/testdata/simple_project/include/private_header.h"
+            },
+            {
+                "name": "PROJECT_INCLUDES_PUBLIC",
+                "value": "D:/Projects/CPPParser/testdata/simple_project/include/public_header.h"
+            },
+            {
+                "name": "PROJECT_IS_TOP_LEVEL",
+                "value": "FALSE"
+            },
+            {
+                "name": "PROJECT_NAME",
+                "value": "myexe"
+            },
+            {
+                "name": "PROJECT_SOURCES",
+                "value": "D:/Projects/CPPParser/testdata/simple_project/src/main.cpp"
+            },
+            {
+                "name": "PROJECT_SOURCE_DIR",
+                "value": "D:/Projects/CPPParser/testdata/simple_project"
+            },
+            {
+                "name": "PROJECT_VERSION",
+                "value": "4.3.2.1"
+            },
+            {
+                "name": "PROJECT_VERSION_MAJOR",
+                "value": "4"
+            },
+            {
+                "name": "PROJECT_VERSION_MINOR",
+                "value": "3"
+            },
+            {
+                "name": "PROJECT_VERSION_PATCH",
+                "value": "2"
+            },
+            {
+                "name": "PROJECT_VERSION_TWEAK",
+                "value": "1"
+            },
+            {
+                "name": "WIN32",
+                "value": "1"
+            },
+            {
+                "name": "main-project_BINARY_DIR",
+                "value": "D:/Projects/CPPParser/testdata/simple_project/cmake-x64-Debug"
+            },
+            {
+                "name": "main-project_DESCRIPTION",
+                "value": "This is the main project"
+            },
+            {
+                "name": "main-project_HOMEPAGE_URL",
+                "value": null
+            },
+            {
+                "name": "main-project_IS_TOP_LEVEL",
+                "value": "TRUE"
+            },
+            {
+                "name": "main-project_SOURCE_DIR",
+                "value": "D:/Projects/CPPParser/testdata/simple_project"
+            },
+            {
+                "name": "main-project_VERSION",
+                "value": "4.3.2.1"
+            },
+            {
+                "name": "main-project_VERSION_MAJOR",
+                "value": "4"
+            },
+            {
+                "name": "main-project_VERSION_MINOR",
+                "value": "3"
+            },
+            {
+                "name": "main-project_VERSION_PATCH",
+                "value": "2"
+            },
+            {
+                "name": "main-project_VERSION_TWEAK",
+                "value": "1"
+            },
+            {
+                "name": "myexe_BINARY_DIR",
+                "value": "D:/Projects/CPPParser/testdata/simple_project/cmake-x64-Debug"
+            },
+            {
+                "name": "myexe_DESCRIPTION",
+                "value": "This is the executable project"
+            },
+            {
+                "name": "myexe_HOMEPAGE_URL",
+                "value": null
+            },
+            {
+                "name": "myexe_IS_TOP_LEVEL",
+                "value": "FALSE"
+            },
+            {
+                "name": "myexe_SOURCE_DIR",
+                "value": "D:/Projects/CPPParser/testdata/simple_project"
+            },
+            {
+                "name": "myexe_VERSION",
+                "value": "4.3.2.1"
+            },
+            {
+                "name": "myexe_VERSION_MAJOR",
+                "value": "4"
+            },
+            {
+                "name": "myexe_VERSION_MINOR",
+                "value": "3"
+            },
+            {
+                "name": "myexe_VERSION_PATCH",
+                "value": "2"
+            },
+            {
+                "name": "myexe_VERSION_TWEAK",
+                "value": "1"
+            },
+            {
+                "name": "mylib_BINARY_DIR",
+                "value": "D:/Projects/CPPParser/testdata/simple_project/cmake-x64-Debug"
+            },
+            {
+                "name": "mylib_DESCRIPTION",
+                "value": "This is the library project"
+            },
+            {
+                "name": "mylib_HOMEPAGE_URL",
+                "value": null
+            },
+            {
+                "name": "mylib_IS_TOP_LEVEL",
+                "value": "FALSE"
+            },
+            {
+                "name": "mylib_SOURCE_DIR",
+                "value": "D:/Projects/CPPParser/testdata/simple_project"
+            },
+            {
+                "name": "mylib_VERSION",
+                "value": "4.3.2.1"
+            },
+            {
+                "name": "mylib_VERSION_MAJOR",
+                "value": "4"
+            },
+            {
+                "name": "mylib_VERSION_MINOR",
+                "value": "3"
+            },
+            {
+                "name": "mylib_VERSION_PATCH",
+                "value": "2"
+            },
+            {
+                "name": "mylib_VERSION_TWEAK",
+                "value": "1"
+            }
+        ]
+}

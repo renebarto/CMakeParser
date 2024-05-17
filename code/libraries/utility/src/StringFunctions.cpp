@@ -118,4 +118,16 @@ std::vector<std::string> Split(const std::string& text, char delimiter)
     return result;
 }
 
+std::string Replace(const std::string input, const std::string& search, const std::string& replace)
+{
+    std::string result = input;
+    size_t pos = 0;
+    while ((pos = result.find(search, pos)) != std::string::npos)
+    {
+        result.replace(pos, search.length(), replace);
+        pos += replace.length();
+    }
+    return result;
+}
+
 } // namespace utility

@@ -5,13 +5,14 @@
 
 namespace cmake_parser {
 
-struct Directory
+class Directory
 {
     std::filesystem::path m_sourcePath;
     std::filesystem::path m_binaryPath;
     VariableList m_variables;
     std::weak_ptr<Directory> m_parentDirectory;
 
+public:
     Directory(const std::filesystem::path& sourcePath, const std::filesystem::path& binaryPath);
     Directory(const std::filesystem::path& sourcePath, const std::filesystem::path& binaryPath, std::shared_ptr<Directory> parent);
     ~Directory();
@@ -30,6 +31,7 @@ struct Directory
     VariableList& GetVariableList() { return m_variables; }
 };
 using DirectoryPtr = std::shared_ptr<Directory>;
+using WeakDirectoryPtr = std::weak_ptr<Directory>;
 
 inline std::ostream& operator << (std::ostream& stream, const Directory& value)
 {

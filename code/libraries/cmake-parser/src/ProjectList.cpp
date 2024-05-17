@@ -93,31 +93,7 @@ std::string ProjectList::Serialize(SerializationFormat format, unsigned indent) 
         }
         break;
     case SerializationFormat::JSON:
-        {
-            stream << std::string(indent, ' ') << "[";
-            bool first = true;
-            for (auto const& proj : m_projects)
-            {
-                if (first)
-                {
-                    stream << std::endl;
-                }
-                else
-                {
-                    stream << "," << std::endl;
-                }
-                first = false;
-                if (proj.second != nullptr)
-                    stream << proj.second->Serialize(format, indent + 4);
-                else
-                    stream << "null";
-            }
-            if (!first)
-            {
-                stream << std::endl << std::string(indent, ' ');
-            }
-            stream << "]";
-        }
+        stream << SerializeList(format, indent, *this);
         break;
     default:
         break;

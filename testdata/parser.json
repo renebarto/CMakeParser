@@ -1,0 +1,462 @@
+{
+    "sourceRoot": "D:/Projects/CPPParser/testdata",
+    "binaryRoot": "D:/Projects/CPPParser/testdata/cmake-x64-Debug",
+    "cache": 
+        [
+            {
+                "name": "PROJECT_SOURCES_serialization-test",
+                "type": "STRING",
+                "value": "D:/Projects/CPPParser/testdata/code/libraries/serialization/test/src/main.cpp;D:/Projects/CPPParser/testdata/code/libraries/serialization/test/src/BidirectionalMapTest.cpp;D:/Projects/CPPParser/testdata/code/libraries/serialization/test/src/EnumSerializationTest.cpp;D:/Projects/CPPParser/testdata/code/libraries/serialization/test/src/MapUtilitiesTest.cpp;D:/Projects/CPPParser/testdata/code/libraries/serialization/test/src/SerializationTest.cpp",
+                "description": "serialization-test"
+            },
+            {
+                "name": "SCRIPTS_DIR",
+                "type": "STRING",
+                "value": "D:/Projects/CPPParser/testdata/cmake",
+                "description": "CMake scripts path"
+            }
+        ],
+    "environment": 
+        [],
+    "projects": 
+        [
+            {
+                "name": "CPP-Parser",
+                "version": "1.2.3.4",
+                "description": "This is the project for cpp-parser",
+                "languages": null,
+                "homepage_url": null,
+                "parent": null,
+                "targets": 
+                    []
+            },
+            {
+                "name": "serialization",
+                "version": "1.2.3.4",
+                "description": "Serialization library",
+                "languages": "CXX",
+                "homepage_url": null,
+                "parent": "CPP-Parser",
+                "targets": 
+                    []
+            },
+            {
+                "name": "serialization-test",
+                "version": "1.2.3.4",
+                "description": "Serialization Library Test",
+                "languages": "CXX",
+                "homepage_url": null,
+                "parent": "CPP-Parser",
+                "targets": 
+                    [
+                        {
+                            "name": "serialization-test",
+                            "type": "Executable",
+                            "attributes": "None",
+                            "sources": "D:/Projects/CPPParser/testdata/code/libraries/serialization/test/src/main.cpp;D:/Projects/CPPParser/testdata/code/libraries/serialization/test/src/BidirectionalMapTest.cpp;D:/Projects/CPPParser/testdata/code/libraries/serialization/test/src/EnumSerializationTest.cpp;D:/Projects/CPPParser/testdata/code/libraries/serialization/test/src/MapUtilitiesTest.cpp;D:/Projects/CPPParser/testdata/code/libraries/serialization/test/src/SerializationTest.cpp"
+                        }
+                    ]
+            },
+            {
+                "name": "serializer",
+                "version": "1.2.3.4",
+                "description": "CPP parser",
+                "languages": "CXX",
+                "homepage_url": null,
+                "parent": "CPP-Parser",
+                "targets": 
+                    [
+                        {
+                            "name": "serializer",
+                            "type": "Executable",
+                            "attributes": "None",
+                            "sources": "D:/Projects/CPPParser/testdata/code/applications/serializer/src/main.cpp D:/Projects/CPPParser/testdata/code/applications/serializer/include/public_header.h D:/Projects/CPPParser/testdata/code/applications/serializer/include/private_header.h"
+                        }
+                    ]
+            }
+        ],
+    "directories": 
+        [
+            {
+                "sourcePath": "D:/Projects/CPPParser/testdata",
+                "binaryPath": "D:/Projects/CPPParser/testdata/cmake-x64-Debug",
+                "parent": null
+            },
+            {
+                "sourcePath": "D:/Projects/CPPParser/testdata/code",
+                "binaryPath": "D:/Projects/CPPParser/testdata/cmake-x64-Debug/code",
+                "parent": "D:/Projects/CPPParser/testdata"
+            },
+            {
+                "sourcePath": "D:/Projects/CPPParser/testdata/code/applications",
+                "binaryPath": "D:/Projects/CPPParser/testdata/cmake-x64-Debug/code/applications",
+                "parent": "D:/Projects/CPPParser/testdata/code"
+            },
+            {
+                "sourcePath": "D:/Projects/CPPParser/testdata/code/applications/serializer",
+                "binaryPath": "D:/Projects/CPPParser/testdata/cmake-x64-Debug/code/applications/serializer",
+                "parent": "D:/Projects/CPPParser/testdata/code/applications"
+            },
+            {
+                "sourcePath": "D:/Projects/CPPParser/testdata/code/libraries",
+                "binaryPath": "D:/Projects/CPPParser/testdata/cmake-x64-Debug/code/libraries",
+                "parent": "D:/Projects/CPPParser/testdata/code"
+            },
+            {
+                "sourcePath": "D:/Projects/CPPParser/testdata/code/libraries/serialization",
+                "binaryPath": "D:/Projects/CPPParser/testdata/cmake-x64-Debug/code/libraries/serialization",
+                "parent": "D:/Projects/CPPParser/testdata/code/libraries"
+            },
+            {
+                "sourcePath": "D:/Projects/CPPParser/testdata/code/libraries/serialization/test",
+                "binaryPath": "D:/Projects/CPPParser/testdata/cmake-x64-Debug/code/libraries/serialization/test",
+                "parent": "D:/Projects/CPPParser/testdata/code/libraries/serialization"
+            }
+        ],
+    "rootDirectory": "D:/Projects/CPPParser/testdata",
+    "rootProject": "CPP-Parser",
+    "currentProject": "serialization-test",
+    "currentVariables": 
+        [
+            {
+                "name": "ARGC",
+                "value": "0"
+            },
+            {
+                "name": "ARGN",
+                "value": null
+            },
+            {
+                "name": "ARGV",
+                "value": null
+            },
+            {
+                "name": "CMAKE_BINARY_DIR",
+                "value": "D:/Projects/CPPParser/testdata/cmake-x64-Debug"
+            },
+            {
+                "name": "CMAKE_BUILD_TYPE",
+                "value": "Debug"
+            },
+            {
+                "name": "CMAKE_BUILD_WITH_INSTALL_RPATH",
+                "value": "ON"
+            },
+            {
+                "name": "CMAKE_COLOR_MAKEFILE",
+                "value": "OFF"
+            },
+            {
+                "name": "CMAKE_COMMAND",
+                "value": "C:/Program Files/CMake/bin/cmake.exe"
+            },
+            {
+                "name": "CMAKE_CPACK_COMMAND",
+                "value": "C:/Program Files/CMake/bin/cpack.exe"
+            },
+            {
+                "name": "CMAKE_CTEST_COMMAND",
+                "value": "C:/Program Files/CMake/bin/ctest.exe"
+            },
+            {
+                "name": "CMAKE_CURRENT_BINARY_DIR",
+                "value": "D:/Projects/CPPParser/testdata/cmake-x64-Debug"
+            },
+            {
+                "name": "CMAKE_CURRENT_LIST_DIR",
+                "value": "D:/Projects/CPPParser/testdata"
+            },
+            {
+                "name": "CMAKE_CURRENT_LIST_FILE",
+                "value": "D:/Projects/CPPParser/testdata/CMakeLists.txt"
+            },
+            {
+                "name": "CMAKE_CURRENT_SOURCE_DIR",
+                "value": "D:/Projects/CPPParser/testdata"
+            },
+            {
+                "name": "CMAKE_CXX_COMPILER",
+                "value": "C:/Program Files(x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe"
+            },
+            {
+                "name": "CMAKE_C_COMPILER",
+                "value": "C:/Program Files(x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe"
+            },
+            {
+                "name": "CMAKE_EXPORT_COMPILE_COMMANDS",
+                "value": "ON"
+            },
+            {
+                "name": "CMAKE_FILES_DIRECTORY",
+                "value": "/CMakeFiles"
+            },
+            {
+                "name": "CMAKE_GENERATOR",
+                "value": "Ninja"
+            },
+            {
+                "name": "CMAKE_GENERATOR_INSTANCE",
+                "value": null
+            },
+            {
+                "name": "CMAKE_GENERATOR_PLATFORM",
+                "value": null
+            },
+            {
+                "name": "CMAKE_GENERATOR_TOOLSET",
+                "value": null
+            },
+            {
+                "name": "CMAKE_HOME_DIRECTORY",
+                "value": null
+            },
+            {
+                "name": "CMAKE_HOST_SYSTEM_NAME",
+                "value": "Windows"
+            },
+            {
+                "name": "CMAKE_HOST_WIN32",
+                "value": "1"
+            },
+            {
+                "name": "CMAKE_MAJOR_VERSION",
+                "value": "3"
+            },
+            {
+                "name": "CMAKE_MAKE_PROGRAM",
+                "value": "C:\\Program Files\\Ninja\\ninja.exe"
+            },
+            {
+                "name": "CMAKE_MINIMUM_REQUIRED_VERSION",
+                "value": "3.5.1"
+            },
+            {
+                "name": "CMAKE_MINOR_VERSION",
+                "value": "27"
+            },
+            {
+                "name": "CMAKE_PARENT_LIST_FILE",
+                "value": "D:/Projects/CPPParser/testdata/CMakeLists.txt"
+            },
+            {
+                "name": "CMAKE_PATCH_VERSION",
+                "value": "8"
+            },
+            {
+                "name": "CMAKE_POLICY_DEFAULT_CMP0048",
+                "value": "NEW"
+            },
+            {
+                "name": "CMAKE_PROJECT_DESCRIPTION",
+                "value": "This is the project for cpp-parser"
+            },
+            {
+                "name": "CMAKE_PROJECT_HOMEPAGE_URL",
+                "value": null
+            },
+            {
+                "name": "CMAKE_ROOT",
+                "value": "C:/Program Files/CMake/share/cmake-3.27"
+            },
+            {
+                "name": "CMAKE_SOURCE_DIR",
+                "value": "D:/Projects/CPPParser/testdata"
+            },
+            {
+                "name": "CMAKE_TWEAK_VERSION",
+                "value": "0"
+            },
+            {
+                "name": "CMAKE_USE_WIN32_THREADS_INIT",
+                "value": "TRUE"
+            },
+            {
+                "name": "CMAKE_VERBOSE_MAKEFILE",
+                "value": "OFF"
+            },
+            {
+                "name": "CMAKE_VERSION",
+                "value": "3.27.8"
+            },
+            {
+                "name": "CPP-Parser_BINARY_DIR",
+                "value": "D:/Projects/CPPParser/testdata/cmake-x64-Debug"
+            },
+            {
+                "name": "CPP-Parser_DESCRIPTION",
+                "value": "This is the project for cpp-parser"
+            },
+            {
+                "name": "CPP-Parser_HOMEPAGE_URL",
+                "value": null
+            },
+            {
+                "name": "CPP-Parser_IS_TOP_LEVEL",
+                "value": "TRUE"
+            },
+            {
+                "name": "CPP-Parser_SOURCE_DIR",
+                "value": "D:/Projects/CPPParser/testdata"
+            },
+            {
+                "name": "CPP-Parser_VERSION",
+                "value": "1.2.3.4"
+            },
+            {
+                "name": "CPP-Parser_VERSION_MAJOR",
+                "value": "1"
+            },
+            {
+                "name": "CPP-Parser_VERSION_MINOR",
+                "value": "2"
+            },
+            {
+                "name": "CPP-Parser_VERSION_PATCH",
+                "value": "3"
+            },
+            {
+                "name": "CPP-Parser_VERSION_TWEAK",
+                "value": "4"
+            },
+            {
+                "name": "CompilerFlags",
+                "value": "CMAKE_CXX_FLAGS;CMAKE_CXX_FLAGS_DEBUG;CMAKE_CXX_FLAGS_RELEASE;CMAKE_C_FLAGS;CMAKE_C_FLAGS_DEBUG;CMAKE_C_FLAGS_RELEASE"
+            },
+            {
+                "name": "DEFINES",
+                "value": "_UNICODE;UNICODE;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;WINVER=0x0A00;_WIN32_WINNT=0x0A00;PLATFORM_WINDOWS;TEST_DATA_DIR=D:/Projects/CPPParser/testdata/testdata;_AMD64_;_X86_"
+            },
+            {
+                "name": "DEFINES_DEBUG",
+                "value": "_DEBUG"
+            },
+            {
+                "name": "DEFINES_MINSIZEREL",
+                "value": "NDEBUG"
+            },
+            {
+                "name": "DEFINES_RELEASE",
+                "value": "NDEBUG"
+            },
+            {
+                "name": "DEFINES_RELWITHDEBINFO",
+                "value": "NDEBUG"
+            },
+            {
+                "name": "FLAGS_C",
+                "value": "/Wall;/wd4061;/wd4251;/wd4275;/wd4505;/wd4514;/wd4548;/wd4571;/wd4625;/wd4626;/wd4710;/wd4774;/wd4820;/wd5026;/wd5027;/WX-;/EHsc;/Gd;/GR;/sdl-;/Zc:wchar_t;/Zc:inline;/fp:precise"
+            },
+            {
+                "name": "FLAGS_CXX",
+                "value": "/Wall;/wd4061;/wd4239;/wd4251;/wd4275;/wd4435;/wd4505;/wd4514;/wd4548;/wd4571;/wd4592;/wd4625;/wd4626;/wd4628;/wd4710;/wd4711;/wd4774;/wd4668;/wd5045;/wd4820;/wd5026;/wd5027;/WX-;/EHsc;/Gd;/GR;/sdl-;/Zc:wchar_t;/Zc:inline;/fp:precise;/bigobj;/std:c++17"
+            },
+            {
+                "name": "FLAGS_CXX_DEBUG",
+                "value": "/Od;/Gm-;/Zi;/RTC1;/MTd"
+            },
+            {
+                "name": "FLAGS_CXX_MINSIZEREL",
+                "value": "/O1;/GL;/GS;/Gy;/Oi;/MT"
+            },
+            {
+                "name": "FLAGS_CXX_RELEASE",
+                "value": "/Ox;/GL;/GS;/Gy;/Oi;/MT"
+            },
+            {
+                "name": "FLAGS_CXX_RELWITHDEBINFO",
+                "value": "/O2;/GL;/GS;/Gy;/Oi;/Zi;/MT"
+            },
+            {
+                "name": "FLAGS_C_DEBUG",
+                "value": "/Od;/Gm-;/ZI;/RTC1;/MTd"
+            },
+            {
+                "name": "FLAGS_C_MINSIZEREL",
+                "value": "/O1;/GL;/GS;/Gy;/Oi;/MT"
+            },
+            {
+                "name": "FLAGS_C_RELEASE",
+                "value": "/Ox;/GL;/GS;/Gy;/Oi;/MT"
+            },
+            {
+                "name": "FLAGS_C_RELWITHDEBINFO",
+                "value": "/O2;/GL;/GS;/Gy;/Oi;/Zi;/MT"
+            },
+            {
+                "name": "LINK_FLAGS",
+                "value": "/ignore:4217"
+            },
+            {
+                "name": "MSI_NUMBER",
+                "value": "1.2.3.4"
+            },
+            {
+                "name": "OUTPUT_BASE_DIR",
+                "value": "D:/Projects/CPPParser/testdata/output/windows"
+            },
+            {
+                "name": "PLATFORM_NAME",
+                "value": "windows"
+            },
+            {
+                "name": "PLATFORM_WINDOWS",
+                "value": "TRUE"
+            },
+            {
+                "name": "PROJECT_BINARY_DIR",
+                "value": "D:/Projects/CPPParser/testdata/cmake-x64-Debug"
+            },
+            {
+                "name": "PROJECT_DESCRIPTION",
+                "value": "This is the project for cpp-parser"
+            },
+            {
+                "name": "PROJECT_HOMEPAGE_URL",
+                "value": null
+            },
+            {
+                "name": "PROJECT_IS_TOP_LEVEL",
+                "value": "TRUE"
+            },
+            {
+                "name": "PROJECT_NAME",
+                "value": "CPP-Parser"
+            },
+            {
+                "name": "PROJECT_SOURCE_DIR",
+                "value": "D:/Projects/CPPParser/testdata"
+            },
+            {
+                "name": "PROJECT_VERSION",
+                "value": "1.2.3.4"
+            },
+            {
+                "name": "PROJECT_VERSION_MAJOR",
+                "value": "1"
+            },
+            {
+                "name": "PROJECT_VERSION_MINOR",
+                "value": "2"
+            },
+            {
+                "name": "PROJECT_VERSION_PATCH",
+                "value": "3"
+            },
+            {
+                "name": "PROJECT_VERSION_TWEAK",
+                "value": "4"
+            },
+            {
+                "name": "SUPPORTED_CPP_STANDARD",
+                "value": "17"
+            },
+            {
+                "name": "TEST_DATA_DIR",
+                "value": "D:/Projects/CPPParser/testdata/testdata"
+            },
+            {
+                "name": "WIN32",
+                "value": "1"
+            }
+        ]
+}

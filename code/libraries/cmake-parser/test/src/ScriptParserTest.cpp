@@ -31,7 +31,7 @@ public:
     {
         Tracing::SetTraceWriter(&m_traceWriter);
         m_savedTraceFilter = Tracing::GetDefaultTraceFilter();
-        Tracing::SetDefaultTraceFilter(TraceCategory::Error | TraceCategory::Warning | TraceCategory::Information | TraceCategory::Data/* | TraceCategory::Debug*/);
+        Tracing::SetDefaultTraceFilter(TraceCategory::Error | TraceCategory::Warning | TraceCategory::Information | TraceCategory::Data | TraceCategory::Debug);
     }
     void TearDown() override
     {
@@ -144,7 +144,7 @@ TEST_F(ScriptParserTest, MinimalCMakeProject)
     EXPECT_TRUE(parser.Parse());
     EXPECT_EQ(size_t{ 0 }, parser.GetModel().GetEnvironmentVariables().size());
     EXPECT_EQ(size_t{ 0 }, parser.GetModel().GetCacheVariables().size());
-    EXPECT_EQ(size_t{ 43 }, parser.GetModel().GetVariables().size());
+    EXPECT_EQ(size_t{ 56 }, parser.GetModel().GetVariables().size());
     EXPECT_EQ(CMAKE_BUILD_TYPE, parser.GetModel().GetVariable("CMAKE_BUILD_TYPE"));
     EXPECT_EQ(CMAKE_CXX_COMPILER, parser.GetModel().GetVariable("CMAKE_CXX_COMPILER"));
     EXPECT_EQ(CMAKE_C_COMPILER, parser.GetModel().GetVariable("CMAKE_C_COMPILER"));
@@ -174,16 +174,31 @@ TEST_F(ScriptParserTest, MinimalCMakeProject)
     EXPECT_EQ("This is the project for cpp-parser", project->Description());
     EXPECT_EQ("CXX", project->Languages());
     EXPECT_NULL(project->Parent());
+    EXPECT_EQ(project->Description(), parser.GetModel().GetVariable(VarMainProjectDescription));
+    EXPECT_EQ("", parser.GetModel().GetVariable(VarMainProjectHomePageURL));
+
     EXPECT_EQ(rootDirectory / buildDir, parser.GetModel().GetVariable(VarProjectBinaryDir));
-    EXPECT_EQ("", parser.GetModel().GetVariable(VarProjectHomepageURL));
-    EXPECT_EQ(project->Name(), parser.GetModel().GetVariable(VarProjectName));
     EXPECT_EQ(project->Description(), parser.GetModel().GetVariable(VarProjectDescription));
+    EXPECT_EQ("", parser.GetModel().GetVariable(VarProjectHomepageURL));
+    EXPECT_EQ("TRUE", parser.GetModel().GetVariable(VarProjectIsTopLevel));
+    EXPECT_EQ(project->Name(), parser.GetModel().GetVariable(VarProjectName));
     EXPECT_EQ(rootDirectory, parser.GetModel().GetVariable(VarProjectSourceDirectory));
     EXPECT_EQ(project->Version(), parser.GetModel().GetVariable(VarProjectVersion));
     EXPECT_EQ("4", parser.GetModel().GetVariable(VarProjectVersionMajor));
     EXPECT_EQ("3", parser.GetModel().GetVariable(VarProjectVersionMinor));
     EXPECT_EQ("2", parser.GetModel().GetVariable(VarProjectVersionPatch));
     EXPECT_EQ("1", parser.GetModel().GetVariable(VarProjectVersionTweak));
+
+    EXPECT_EQ(rootDirectory / buildDir, parser.GetModel().GetVariable(projectName + VarSuffixBinaryDir));
+    EXPECT_EQ(project->Description(), parser.GetModel().GetVariable(projectName + VarSuffixDescription));
+    EXPECT_EQ("", parser.GetModel().GetVariable(projectName + VarSuffixHomepageURL));
+    EXPECT_EQ("TRUE", parser.GetModel().GetVariable(projectName + VarSuffixIsTopLevel));
+    EXPECT_EQ(rootDirectory, parser.GetModel().GetVariable(projectName + VarSuffixSourceDirectory));
+    EXPECT_EQ(project->Version(), parser.GetModel().GetVariable(projectName + VarSuffixVersion));
+    EXPECT_EQ("4", parser.GetModel().GetVariable(projectName + VarSuffixVersionMajor));
+    EXPECT_EQ("3", parser.GetModel().GetVariable(projectName + VarSuffixVersionMinor));
+    EXPECT_EQ("2", parser.GetModel().GetVariable(projectName + VarSuffixVersionPatch));
+    EXPECT_EQ("1", parser.GetModel().GetVariable(projectName + VarSuffixVersionTweak));
 
     EXPECT_EQ(size_t{ 1 }, parser.GetModel().GetDirectories().size());
     EXPECT_NOT_NULL(parser.GetModel().FindDirectory(rootDirectory));
@@ -200,7 +215,7 @@ TEST_F(ScriptParserTest, MinimalCMakeProjectWithMessage)
     EXPECT_TRUE(parser.Parse());
     EXPECT_EQ(size_t{ 0 }, parser.GetModel().GetEnvironmentVariables().size());
     EXPECT_EQ(size_t{ 0 }, parser.GetModel().GetCacheVariables().size());
-    EXPECT_EQ(size_t{ 43 }, parser.GetModel().GetVariables().size());
+    EXPECT_EQ(size_t{ 56 }, parser.GetModel().GetVariables().size());
     EXPECT_EQ(CMAKE_BUILD_TYPE, parser.GetModel().GetVariable("CMAKE_BUILD_TYPE"));
     EXPECT_EQ(CMAKE_CXX_COMPILER, parser.GetModel().GetVariable("CMAKE_CXX_COMPILER"));
     EXPECT_EQ(CMAKE_C_COMPILER, parser.GetModel().GetVariable("CMAKE_C_COMPILER"));
@@ -230,16 +245,31 @@ TEST_F(ScriptParserTest, MinimalCMakeProjectWithMessage)
     EXPECT_EQ("My project", project->Description());
     EXPECT_EQ("", project->Languages());
     EXPECT_NULL(project->Parent());
+    EXPECT_EQ(project->Description(), parser.GetModel().GetVariable(VarMainProjectDescription));
+    EXPECT_EQ("", parser.GetModel().GetVariable(VarMainProjectHomePageURL));
+
     EXPECT_EQ(rootDirectory / buildDir, parser.GetModel().GetVariable(VarProjectBinaryDir));
-    EXPECT_EQ("", parser.GetModel().GetVariable(VarProjectHomepageURL));
-    EXPECT_EQ(project->Name(), parser.GetModel().GetVariable(VarProjectName));
     EXPECT_EQ(project->Description(), parser.GetModel().GetVariable(VarProjectDescription));
+    EXPECT_EQ("", parser.GetModel().GetVariable(VarProjectHomepageURL));
+    EXPECT_EQ("TRUE", parser.GetModel().GetVariable(VarProjectIsTopLevel));
+    EXPECT_EQ(project->Name(), parser.GetModel().GetVariable(VarProjectName));
     EXPECT_EQ(rootDirectory, parser.GetModel().GetVariable(VarProjectSourceDirectory));
     EXPECT_EQ(project->Version(), parser.GetModel().GetVariable(VarProjectVersion));
     EXPECT_EQ("0", parser.GetModel().GetVariable(VarProjectVersionMajor));
     EXPECT_EQ("0", parser.GetModel().GetVariable(VarProjectVersionMinor));
     EXPECT_EQ("0", parser.GetModel().GetVariable(VarProjectVersionPatch));
     EXPECT_EQ("0", parser.GetModel().GetVariable(VarProjectVersionTweak));
+
+    EXPECT_EQ(rootDirectory / buildDir, parser.GetModel().GetVariable(projectName + VarSuffixBinaryDir));
+    EXPECT_EQ(project->Description(), parser.GetModel().GetVariable(projectName + VarSuffixDescription));
+    EXPECT_EQ("", parser.GetModel().GetVariable(projectName + VarSuffixHomepageURL));
+    EXPECT_EQ("TRUE", parser.GetModel().GetVariable(projectName + VarSuffixIsTopLevel));
+    EXPECT_EQ(rootDirectory, parser.GetModel().GetVariable(projectName + VarSuffixSourceDirectory));
+    EXPECT_EQ(project->Version(), parser.GetModel().GetVariable(projectName + VarSuffixVersion));
+    EXPECT_EQ("0", parser.GetModel().GetVariable(projectName + VarSuffixVersionMajor));
+    EXPECT_EQ("0", parser.GetModel().GetVariable(projectName + VarSuffixVersionMinor));
+    EXPECT_EQ("0", parser.GetModel().GetVariable(projectName + VarSuffixVersionPatch));
+    EXPECT_EQ("0", parser.GetModel().GetVariable(projectName + VarSuffixVersionTweak));
 
     EXPECT_EQ(size_t{ 1 }, parser.GetModel().GetDirectories().size());
     EXPECT_NOT_NULL(parser.GetModel().FindDirectory(rootDirectory));
@@ -257,7 +287,7 @@ TEST_F(ScriptParserTest, MinimalCMakeProjectWithSet)
     EXPECT_EQ(size_t{ 1 }, parser.GetModel().GetEnvironmentVariables().size());
     EXPECT_EQ("Hello world", parser.GetModel().GetEnvironmentVariable("myvar"));
     EXPECT_EQ(size_t{ 0 }, parser.GetModel().GetCacheVariables().size());
-    EXPECT_EQ(size_t{ 59 }, parser.GetModel().GetVariables().size());
+    EXPECT_EQ(size_t{ 72 }, parser.GetModel().GetVariables().size());
     EXPECT_EQ(CMAKE_BUILD_TYPE, parser.GetModel().GetVariable("CMAKE_BUILD_TYPE"));
     EXPECT_EQ(CMAKE_CXX_COMPILER, parser.GetModel().GetVariable("CMAKE_CXX_COMPILER"));
     EXPECT_EQ(CMAKE_C_COMPILER, parser.GetModel().GetVariable("CMAKE_C_COMPILER"));
@@ -293,7 +323,7 @@ TEST_F(ScriptParserTest, MinimalCMakeProjectWithSet)
     EXPECT_EQ((rootDirectory / "output" / parser.GetModel().GetVariable("PLATFORM_NAME")).generic_string(), parser.GetModel().GetVariable("OUTPUT_BASE_DIR"));
     EXPECT_EQ("Debug", parser.GetModel().GetVariable("CONFIG_DIR"));
     EXPECT_EQ(projectName, parser.GetModel().GetVariable("TARGET_NAME"));
-    EXPECT_EQ("\"PACKAGE_NAME=\\\"" + projectName + "\\\"\";_DEF_", parser.GetModel().GetVariable("PROJECT_COMPILER_DEFINITIONS_PRIVATE"));
+    EXPECT_EQ("PACKAGE_NAME=\\" + projectName + "\\;_DEF_", parser.GetModel().GetVariable("PROJECT_COMPILER_DEFINITIONS_PRIVATE"));
     EXPECT_EQ("/wd0000;/wd4191;/wd4706", parser.GetModel().GetVariable("PROJECT_COMPILER_OPTIONS_PRIVATE"));
     EXPECT_EQ((rootDirectory / "include").generic_string() + ";" + (rootDirectory / "src").generic_string(), parser.GetModel().GetVariable("PROJECT_INCLUDE_DIRS_PRIVATE"));
     EXPECT_EQ(linkerOptions, parser.GetModel().GetVariable("PROJECT_LINK_OPTIONS"));
@@ -310,10 +340,14 @@ TEST_F(ScriptParserTest, MinimalCMakeProjectWithSet)
     EXPECT_EQ("My project", project->Description());
     EXPECT_EQ("", project->Languages());
     EXPECT_NULL(project->Parent());
+    EXPECT_EQ(project->Description(), parser.GetModel().GetVariable(VarMainProjectDescription));
+    EXPECT_EQ("", parser.GetModel().GetVariable(VarMainProjectHomePageURL));
+
     EXPECT_EQ(rootDirectory / buildDir, parser.GetModel().GetVariable(VarProjectBinaryDir));
-    EXPECT_EQ("", parser.GetModel().GetVariable(VarProjectHomepageURL));
-    EXPECT_EQ(project->Name(), parser.GetModel().GetVariable(VarProjectName));
     EXPECT_EQ(project->Description(), parser.GetModel().GetVariable(VarProjectDescription));
+    EXPECT_EQ("", parser.GetModel().GetVariable(VarProjectHomepageURL));
+    EXPECT_EQ("TRUE", parser.GetModel().GetVariable(VarProjectIsTopLevel));
+    EXPECT_EQ(project->Name(), parser.GetModel().GetVariable(VarProjectName));
     EXPECT_EQ(rootDirectory, parser.GetModel().GetVariable(VarProjectSourceDirectory));
     EXPECT_EQ(project->Version(), parser.GetModel().GetVariable(VarProjectVersion));
     EXPECT_EQ("0", parser.GetModel().GetVariable(VarProjectVersionMajor));
@@ -321,8 +355,49 @@ TEST_F(ScriptParserTest, MinimalCMakeProjectWithSet)
     EXPECT_EQ("0", parser.GetModel().GetVariable(VarProjectVersionPatch));
     EXPECT_EQ("0", parser.GetModel().GetVariable(VarProjectVersionTweak));
 
+    EXPECT_EQ(rootDirectory / buildDir, parser.GetModel().GetVariable(projectName + VarSuffixBinaryDir));
+    EXPECT_EQ(project->Description(), parser.GetModel().GetVariable(projectName + VarSuffixDescription));
+    EXPECT_EQ("", parser.GetModel().GetVariable(projectName + VarSuffixHomepageURL));
+    EXPECT_EQ("TRUE", parser.GetModel().GetVariable(projectName + VarSuffixIsTopLevel));
+    EXPECT_EQ(rootDirectory, parser.GetModel().GetVariable(projectName + VarSuffixSourceDirectory));
+    EXPECT_EQ(project->Version(), parser.GetModel().GetVariable(projectName + VarSuffixVersion));
+    EXPECT_EQ("0", parser.GetModel().GetVariable(projectName + VarSuffixVersionMajor));
+    EXPECT_EQ("0", parser.GetModel().GetVariable(projectName + VarSuffixVersionMinor));
+    EXPECT_EQ("0", parser.GetModel().GetVariable(projectName + VarSuffixVersionPatch));
+    EXPECT_EQ("0", parser.GetModel().GetVariable(projectName + VarSuffixVersionTweak));
+
     EXPECT_EQ(size_t{ 1 }, parser.GetModel().GetDirectories().size());
     EXPECT_NOT_NULL(parser.GetModel().FindDirectory(rootDirectory));
+}
+
+TEST_F(ScriptParserTest, SimpleProject)
+{
+    std::filesystem::path rootDirectory{ std::filesystem::path(TEST_DATA_DIR) / "simple_project" };
+    std::string buildDir{ "cmake-x64-Debug" };
+    std::ifstream stream(rootDirectory / CMakeScriptFileName);
+    CMakeParser topLevelParser(rootDirectory, buildDir, stream);
+    ScriptParser parser(topLevelParser.GetModel(), rootDirectory, stream);
+
+    EXPECT_TRUE(parser.Parse());
+
+    std::string actualOutput = parser.Serialize();
+    auto actualOutputPath = rootDirectory / "parser_out.json";
+    auto actualParserOutput = std::ofstream(actualOutputPath, std::ios_base::out);
+    actualParserOutput.write(actualOutput.c_str(), static_cast<std::streamsize>(actualOutput.size()));
+    actualParserOutput.close();
+
+    std::string expectedOutput;
+    auto expectedOutputPath = rootDirectory / "parser.json";
+    auto expectedParserOutput = std::ifstream(expectedOutputPath, std::ios_base::in);
+    const size_t BufferSize = 4096;
+    char buffer[BufferSize];
+    while (expectedParserOutput.read(buffer, BufferSize))
+    {
+        expectedOutput += std::string(buffer, static_cast<std::size_t>(expectedParserOutput.gcount()));
+    }
+    expectedOutput += std::string(buffer, static_cast<std::size_t>(expectedParserOutput.gcount()));
+    expectedParserOutput.close();
+    EXPECT_EQ(expectedOutput, actualOutput);
 }
 
 TEST_F(ScriptParserTest, CMakeProject)
@@ -351,7 +426,7 @@ TEST_F(ScriptParserTest, CMakeProject)
     ASSERT_NOT_NULL(parser.GetModel().FindCacheVariable("PROJECT_SOURCES_serialization-test"));
     EXPECT_EQ("STRING", parser.GetModel().FindCacheVariable("PROJECT_SOURCES_serialization-test")->Type());
     EXPECT_EQ("serialization-test", parser.GetModel().FindCacheVariable("PROJECT_SOURCES_serialization-test")->Description());
-    EXPECT_EQ(size_t{ 72 }, parser.GetModel().GetVariables().size());
+    EXPECT_EQ(size_t{ 85 }, parser.GetModel().GetVariables().size());
     EXPECT_EQ(CMAKE_BUILD_TYPE, parser.GetModel().GetVariable("CMAKE_BUILD_TYPE"));
     EXPECT_EQ(CMAKE_CXX_COMPILER, parser.GetModel().GetVariable("CMAKE_CXX_COMPILER"));
     EXPECT_EQ(CMAKE_C_COMPILER, parser.GetModel().GetVariable("CMAKE_C_COMPILER"));
@@ -375,21 +450,23 @@ TEST_F(ScriptParserTest, CMakeProject)
     EXPECT_EQ(size_t{ 4 }, parser.GetModel().GetProjects().size());
     std::string projectName{ "CPP-Parser" };
     std::string projectDescription{ "This is the project for cpp-parser" };
+    auto mainProject = parser.GetModel().GetProject(projectName);
+    EXPECT_EQ(projectName, mainProject->Name());
+    EXPECT_EQ("1.2.3.4", mainProject->Version());
+    EXPECT_EQ(projectDescription, mainProject->Description());
+    EXPECT_EQ("", mainProject->Languages());
+    EXPECT_EQ("", mainProject->HomePageURL());
+    EXPECT_NULL(mainProject->Parent());
+
+    projectName = { "serializer" };
+    projectDescription = { "CPP parser" };
     auto project = parser.GetModel().GetProject(projectName);
     EXPECT_EQ(projectName, project->Name());
     EXPECT_EQ("1.2.3.4", project->Version());
     EXPECT_EQ(projectDescription, project->Description());
-    EXPECT_EQ("", project->Languages());
-    EXPECT_NULL(project->Parent());
-
-    projectName = { "serializer" };
-    projectDescription = { "CPP parser" };
-    project = parser.GetModel().GetProject(projectName);
-    EXPECT_EQ(projectName, project->Name());
-    EXPECT_EQ("1.2.3.4", project->Version());
-    EXPECT_EQ(projectDescription, project->Description());
     EXPECT_EQ("CXX", project->Languages());
-    EXPECT_NULL(project->Parent());
+    EXPECT_EQ("", project->HomePageURL());
+    EXPECT_EQ(mainProject, project->Parent());
 
     projectName = { "serialization" };
     projectDescription = { "Serialization library" };
@@ -398,7 +475,8 @@ TEST_F(ScriptParserTest, CMakeProject)
     EXPECT_EQ("1.2.3.4", project->Version());
     EXPECT_EQ(projectDescription, project->Description());
     EXPECT_EQ("CXX", project->Languages());
-    EXPECT_NULL(project->Parent());
+    EXPECT_EQ("", project->HomePageURL());
+    EXPECT_EQ(mainProject, project->Parent());
 
     projectName = { "serialization-test" };
     projectDescription = { "Serialization Library Test" };
@@ -407,7 +485,8 @@ TEST_F(ScriptParserTest, CMakeProject)
     EXPECT_EQ("1.2.3.4", project->Version());
     EXPECT_EQ(projectDescription, project->Description());
     EXPECT_EQ("CXX", project->Languages());
-    EXPECT_NULL(project->Parent());
+    EXPECT_EQ("", project->HomePageURL());
+    EXPECT_EQ(mainProject, project->Parent());
 
     projectName = { "CPP-Parser" };
     project = parser.GetModel().GetProject(projectName);
@@ -445,7 +524,7 @@ TEST_F(ScriptParserTest, CMakeProject)
     EXPECT_EQ("/Ox;/GL;/GS;/Gy;/Oi;/MT", parser.GetModel().GetVariable("FLAGS_C_RELEASE"));
     EXPECT_EQ("/O1;/GL;/GS;/Gy;/Oi;/MT", parser.GetModel().GetVariable("FLAGS_C_MINSIZEREL"));
     EXPECT_EQ("/O2;/GL;/GS;/Gy;/Oi;/Zi;/MT", parser.GetModel().GetVariable("FLAGS_C_RELWITHDEBINFO"));
-    EXPECT_EQ("_UNICODE;UNICODE;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;WINVER=0x0A00;_WIN32_WINNT=0x0A00;PLATFORM_WINDOWS;TEST_DATA_DIR=\"D:/Projects/CPPParser/testdata/testdata\";_AMD64_;_X86_", 
+    EXPECT_EQ("_UNICODE;UNICODE;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;_WINSOCK_DEPRECATED_NO_WARNINGS;WINVER=0x0A00;_WIN32_WINNT=0x0A00;PLATFORM_WINDOWS;TEST_DATA_DIR=D:/Projects/CPPParser/testdata/testdata;_AMD64_;_X86_", 
         parser.GetModel().GetVariable("DEFINES"));
     EXPECT_EQ("_DEBUG", parser.GetModel().GetVariable("DEFINES_DEBUG"));
     EXPECT_EQ("NDEBUG", parser.GetModel().GetVariable("DEFINES_RELEASE"));
@@ -465,6 +544,25 @@ TEST_F(ScriptParserTest, CMakeProject)
     EXPECT_NOT_NULL(parser.GetModel().FindDirectory(rootDirectory / "code" / "libraries"));
     EXPECT_NOT_NULL(parser.GetModel().FindDirectory(rootDirectory / "code" / "libraries" / "serialization"));
     EXPECT_NOT_NULL(parser.GetModel().FindDirectory(rootDirectory / "code" / "libraries" / "serialization" / "test"));
+
+    std::string actualOutput = parser.Serialize();
+    auto actualOutputPath = rootDirectory / "parser_out.json";
+    auto actualParserOutput = std::ofstream(actualOutputPath, std::ios_base::out);
+    actualParserOutput.write(actualOutput.c_str(), static_cast<std::streamsize>(actualOutput.size()));
+    actualParserOutput.close();
+
+    std::string expectedOutput;
+    auto expectedOutputPath = rootDirectory / "parser.json";
+    auto expectedParserOutput = std::ifstream(expectedOutputPath, std::ios_base::in);
+    const size_t BufferSize = 4096;
+    char buffer[BufferSize];
+    while (expectedParserOutput.read(buffer, BufferSize))
+    {
+        expectedOutput += std::string(buffer, static_cast<std::size_t>(expectedParserOutput.gcount()));
+    }
+    expectedOutput += std::string(buffer, static_cast<std::size_t>(expectedParserOutput.gcount()));
+    expectedParserOutput.close();
+    EXPECT_EQ(expectedOutput, actualOutput);
 }
 
 } // namespace cmake_parser

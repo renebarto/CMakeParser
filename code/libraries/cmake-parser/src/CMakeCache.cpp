@@ -65,31 +65,7 @@ std::string CMakeCache::Serialize(SerializationFormat format /*= SerializationFo
         }
         break;
     case SerializationFormat::JSON:
-        {
-            stream << std::string(indent, ' ') << "[";
-            bool first = true;
-            for (auto const& dir : m_variables.GetVariables())
-            {
-                if (first)
-                {
-                    stream << std::endl;
-                }
-                else
-                {
-                    stream << "," << std::endl;
-                }
-                first = false;
-                if (dir.second != nullptr)
-                    stream << dir.second->Serialize(format, indent + 4);
-                else
-                    stream << "null";
-            }
-            if (!first)
-            {
-                stream << std::endl << std::string(indent, ' ');
-            }
-            stream << "]";
-        }
+        stream << SerializeList(format, indent, m_variables);
         break;
     default:
         break;

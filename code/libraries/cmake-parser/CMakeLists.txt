@@ -58,9 +58,11 @@ set(PROJECT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Expression.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ExpressionLexer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Lexer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/List.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Project.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ProjectList.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ScriptParser.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Serialization.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Target.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TargetList.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/TypedVariable.cpp
@@ -79,6 +81,7 @@ set(PROJECT_INCLUDES_PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/Expression.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/ExpressionLexer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/Lexer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/List.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/Project.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/ProjectList.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cmake-parser/ScriptParser.h

@@ -28,6 +28,7 @@ public:
     std::string ParseVersion(const TerminalSet& endTerminals);
     std::string ParseDescription();
     std::string ParseLanguages(const TerminalSet& endTerminals);
+    std::string ParseURL();
 
     void NextToken();
     const parser::Token<Terminal>& CurrentToken();
@@ -53,12 +54,21 @@ public:
     bool HandleUnset();
     bool HandleAddSubdirectory();
     bool HandleAddExecutable();
+    bool HandleAddLibrary();
+    bool HandleTargetIncludeDirectories();
+    bool HandleTargetCompileDefinitions();
+    bool HandleTargetCompileOptions();
     bool HandleUnsupported();
 
     bool OnToken(const parser::Token<Terminal>&, bool& done) override;
     bool OnNoMoreToken(const parser::SourceLocation& location) override;
     void OnSkipToken(const parser::Token<Terminal>& token) override;
     void OnParseError(const parser::Token<Terminal>& token) override;
+
+    std::string Serialize() const;
+
+private:
+    std::string ReadScopedArguments();
 };
 
 } // namespace cmake_parser

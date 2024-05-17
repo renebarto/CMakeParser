@@ -21,6 +21,7 @@ public:
     const CMakeModel& GetModel() const { return m_model; }
     CMakeModel& GetModel() { return m_model; }
     void Setup();
+    std::string Serialize() const;
 };
 
 } // namespace cmake_parser

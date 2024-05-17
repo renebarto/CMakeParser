@@ -619,7 +619,7 @@ TEST_F(CMakeModelTest, GetProjects)
     std::string version1 = "1.2.3.4";
     std::string description1 = "blablabla";
     std::string languages1 = "C CXX";
-    auto project1 = std::make_shared<Project>(projectName1);
+    auto project1 = std::make_shared<Project>(model.GetCurrentDirectory(), projectName1);
     project1->SetVersion(version1);
     project1->SetDescription(description1);
     project1->SetLanguages(languages1);
@@ -630,7 +630,7 @@ TEST_F(CMakeModelTest, GetProjects)
     std::string version2 = "1.2.3.5";
     std::string description2 = "blabla";
     std::string languages2 = "CXX ASM";
-    auto project2 = std::make_shared<Project>(projectName2, project1);
+    auto project2 = std::make_shared<Project>(model.GetCurrentDirectory(), projectName2, project1);
     project2->SetVersion(version2);
     project2->SetDescription(description2);
     project2->SetLanguages(languages2);
@@ -661,7 +661,7 @@ TEST_F(CMakeModelTest, GetProject)
     std::string version1 = "1.2.3.4";
     std::string description1 = "blablabla";
     std::string languages1 = "C CXX";
-    auto project1 = std::make_shared<Project>(projectName1);
+    auto project1 = std::make_shared<Project>(model.GetCurrentDirectory(), projectName1);
     project1->SetVersion(version1);
     project1->SetDescription(description1);
     project1->SetLanguages(languages1);
@@ -672,7 +672,7 @@ TEST_F(CMakeModelTest, GetProject)
     std::string version2 = "1.2.3.5";
     std::string description2 = "blabla";
     std::string languages2 = "CXX ASM";
-    auto project2 = std::make_shared<Project>(projectName2, project1);
+    auto project2 = std::make_shared<Project>(model.GetCurrentDirectory(), projectName2, project1);
     project2->SetVersion(version2);
     project2->SetDescription(description2);
     project2->SetLanguages(languages2);
@@ -698,7 +698,7 @@ TEST_F(CMakeModelTest, AddProject)
     std::string version1 = "1.2.3.4";
     std::string description1 = "blablabla";
     std::string languages1 = "C CXX";
-    auto project1 = std::make_shared<Project>(projectName1);
+    auto project1 = std::make_shared<Project>(model.GetCurrentDirectory(), projectName1);
     project1->SetVersion(version1);
     project1->SetDescription(description1);
     project1->SetLanguages(languages1);
@@ -709,7 +709,7 @@ TEST_F(CMakeModelTest, AddProject)
     std::string version2 = "1.2.3.5";
     std::string description2 = "blabla";
     std::string languages2 = "CXX ASM";
-    auto project2 = std::make_shared<Project>(projectName2, project1);
+    auto project2 = std::make_shared<Project>(model.GetCurrentDirectory(), projectName2, project1);
     project2->SetVersion(version2);
     project2->SetDescription(description2);
     project2->SetLanguages(languages2);
@@ -874,7 +874,7 @@ TEST_F(CMakeModelTest, SerializeJSON)
     std::string version1 = "1.2.3.4";
     std::string description1 = "blablabla";
     std::string languages1 = "C CXX";
-    auto project1 = std::make_shared<Project>(projectName1);
+    auto project1 = std::make_shared<Project>(model.GetCurrentDirectory(), projectName1);
     project1->SetVersion(version1);
     project1->SetDescription(description1);
     project1->SetLanguages(languages1);
@@ -885,7 +885,7 @@ TEST_F(CMakeModelTest, SerializeJSON)
     std::string version2 = "1.2.3.5";
     std::string description2 = "blabla";
     std::string languages2 = "CXX ASM";
-    auto project2 = std::make_shared<Project>(projectName2, project1);
+    auto project2 = std::make_shared<Project>(model.GetCurrentDirectory(), projectName2, project1);
     project2->SetVersion(version2);
     project2->SetDescription(description2);
     project2->SetLanguages(languages2);
@@ -909,6 +909,7 @@ TEST_F(CMakeModelTest, SerializeJSON)
         "                \"version\": \"1.2.3.4\",\n"
         "                \"description\": \"blablabla\",\n"
         "                \"languages\": \"C CXX\",\n"
+        "                \"homepage_url\": null,\n"
         "                \"parent\": null,\n"
         "                \"targets\": \n"
         "                    []\n"
@@ -918,6 +919,7 @@ TEST_F(CMakeModelTest, SerializeJSON)
         "                \"version\": \"1.2.3.5\",\n"
         "                \"description\": \"blabla\",\n"
         "                \"languages\": \"CXX ASM\",\n"
+        "                \"homepage_url\": null,\n"
         "                \"parent\": \"project1\",\n"
         "                \"targets\": \n"
         "                    []\n"
@@ -932,8 +934,8 @@ TEST_F(CMakeModelTest, SerializeJSON)
         "            }\n"
         "        ],\n"
         "    \"rootDirectory\": \"D:/Projects/CPPParser/testdata\",\n"
-        "    \"rootProject\": null,\n"
-        "    \"currentProject\": null,\n"
+        "    \"rootProject\": \"project1\",\n"
+        "    \"currentProject\": \"project2\",\n"
         "    \"currentVariables\": \n"
         "        [\n"
         "            {\n"
@@ -1030,7 +1032,7 @@ TEST_F(CMakeModelTest, SerializeJSON)
         "            },\n"
         "            {\n"
         "                \"name\": \"CMAKE_MAKE_PROGRAM\",\n"
-        "                \"value\": \"C:\\Program Files\\Ninja\\ninja.exe\"\n"
+        "                \"value\": \"C:\\\\Program Files\\\\Ninja\\\\ninja.exe\"\n"
         "            },\n"
         "            {\n"
         "                \"name\": \"CMAKE_MINOR_VERSION\",\n"
@@ -1043,6 +1045,14 @@ TEST_F(CMakeModelTest, SerializeJSON)
         "            {\n"
         "                \"name\": \"CMAKE_PATCH_VERSION\",\n"
         "                \"value\": \"8\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_PROJECT_DESCRIPTION\",\n"
+        "                \"value\": \"blablabla\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"CMAKE_PROJECT_HOMEPAGE_URL\",\n"
+        "                \"value\": null\n"
         "            },\n"
         "            {\n"
         "                \"name\": \"CMAKE_ROOT\",\n"
@@ -1071,6 +1081,10 @@ TEST_F(CMakeModelTest, SerializeJSON)
         "            {\n"
         "                \"name\": \"PROJECT_HOMEPAGE_URL\",\n"
         "                \"value\": null\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"PROJECT_IS_TOP_LEVEL\",\n"
+        "                \"value\": \"FALSE\"\n"
         "            },\n"
         "            {\n"
         "                \"name\": \"PROJECT_NAME\",\n"
@@ -1103,6 +1117,86 @@ TEST_F(CMakeModelTest, SerializeJSON)
         "            {\n"
         "                \"name\": \"WIN32\",\n"
         "                \"value\": \"1\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"project1_BINARY_DIR\",\n"
+        "                \"value\": \"D:/Projects/CPPParser/testdata/cmake-x64-Debug\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"project1_DESCRIPTION\",\n"
+        "                \"value\": \"blablabla\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"project1_HOMEPAGE_URL\",\n"
+        "                \"value\": null\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"project1_IS_TOP_LEVEL\",\n"
+        "                \"value\": \"TRUE\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"project1_SOURCE_DIR\",\n"
+        "                \"value\": \"D:/Projects/CPPParser/testdata\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"project1_VERSION\",\n"
+        "                \"value\": \"1.2.3.4\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"project1_VERSION_MAJOR\",\n"
+        "                \"value\": \"1\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"project1_VERSION_MINOR\",\n"
+        "                \"value\": \"2\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"project1_VERSION_PATCH\",\n"
+        "                \"value\": \"3\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"project1_VERSION_TWEAK\",\n"
+        "                \"value\": \"4\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"project2_BINARY_DIR\",\n"
+        "                \"value\": \"D:/Projects/CPPParser/testdata/cmake-x64-Debug\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"project2_DESCRIPTION\",\n"
+        "                \"value\": \"blabla\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"project2_HOMEPAGE_URL\",\n"
+        "                \"value\": null\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"project2_IS_TOP_LEVEL\",\n"
+        "                \"value\": \"FALSE\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"project2_SOURCE_DIR\",\n"
+        "                \"value\": \"D:/Projects/CPPParser/testdata\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"project2_VERSION\",\n"
+        "                \"value\": \"1.2.3.5\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"project2_VERSION_MAJOR\",\n"
+        "                \"value\": \"1\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"project2_VERSION_MINOR\",\n"
+        "                \"value\": \"2\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"project2_VERSION_PATCH\",\n"
+        "                \"value\": \"3\"\n"
+        "            },\n"
+        "            {\n"
+        "                \"name\": \"project2_VERSION_TWEAK\",\n"
+        "                \"value\": \"5\"\n"
         "            }\n"
         "        ]\n"
         "}", stream.str());
@@ -1121,7 +1215,7 @@ TEST_F(CMakeModelTest, StreamInsertion)
     std::string version1 = "1.2.3.4";
     std::string description1 = "blablabla";
     std::string languages1 = "C CXX";
-    auto project1 = std::make_shared<Project>(projectName1);
+    auto project1 = std::make_shared<Project>(model.GetCurrentDirectory(), projectName1);
     project1->SetVersion(version1);
     project1->SetDescription(description1);
     project1->SetLanguages(languages1);
@@ -1132,7 +1226,7 @@ TEST_F(CMakeModelTest, StreamInsertion)
     std::string version2 = "1.2.3.5";
     std::string description2 = "blabla";
     std::string languages2 = "CXX ASM";
-    auto project2 = std::make_shared<Project>(projectName2, project1);
+    auto project2 = std::make_shared<Project>(model.GetCurrentDirectory(), projectName2, project1);
     project2->SetVersion(version2);
     project2->SetDescription(description2);
     project2->SetLanguages(languages2);

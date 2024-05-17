@@ -65,4 +65,9 @@ void CMakeParser::Setup()
     m_model.SetupNinjaPath(FindNinja());
 }
 
+std::string CMakeParser::Serialize() const
+{
+    return m_model.Serialize(SerializationFormat::JSON, 0);
+}
+
 } // namespace cmake_parser

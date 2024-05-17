@@ -1,24 +1,37 @@
 #include "cmake-parser/Project.h"
 
 #include <sstream>
+#include "cmake-parser/Directory.h"
 
 using namespace cmake_parser;
 
-Project::Project(const std::string& name)
+Project::Project(DirectoryPtr directory)
+    : m_name{}
+    , m_version{}
+    , m_description{}
+    , m_languages{}
+    , m_parentProject{}
+    , m_directory{ directory }
+{
+}
+
+Project::Project(DirectoryPtr directory, const std::string& name)
     : m_name{ name }
     , m_version{}
     , m_description{}
     , m_languages{}
     , m_parentProject{}
+    , m_directory{ directory }
 {
 }
 
-Project::Project(const std::string& name, ProjectPtr parentProject)
+Project::Project(DirectoryPtr directory, const std::string& name, ProjectPtr parentProject)
     : m_name{ name }
     , m_version{}
     , m_description{}
     , m_languages{}
     , m_parentProject{ parentProject }
+    , m_directory{ directory }
 {
 }
 
@@ -44,6 +57,7 @@ std::string Project::Serialize(SerializationFormat format, unsigned indent) cons
             << ", version = " << m_version
             << ", description = " << m_description
             << ", languages = " << m_languages
+            << ", homepage_url = " << m_homePageURL
             << ", parent = " << parentName;
         break;
     case SerializationFormat::JSON:
@@ -52,6 +66,7 @@ std::string Project::Serialize(SerializationFormat format, unsigned indent) cons
         stream << std::string(indent + 4, ' ') << "\"version\": " << SerializeString(format, Version()) << "," << std::endl;
         stream << std::string(indent + 4, ' ') << "\"description\": " << SerializeString(format, Description()) << "," << std::endl;
         stream << std::string(indent + 4, ' ') << "\"languages\": " << SerializeString(format, Languages()) << "," << std::endl;
+        stream << std::string(indent + 4, ' ') << "\"homepage_url\": " << SerializeString(format, HomePageURL()) << "," << std::endl;
         stream << std::string(indent + 4, ' ') << "\"parent\": ";
         if (parent == nullptr)
         {

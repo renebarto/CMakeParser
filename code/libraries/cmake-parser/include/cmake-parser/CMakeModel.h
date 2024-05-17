@@ -31,6 +31,8 @@ inline bool operator &(VariableAttribute lhs, VariableAttribute rhs)
 extern const std::string VarMinimumRequiredVersion;
 extern const std::string VarMainSourceDirectory;
 extern const std::string VarMainBinaryDirectory;
+extern const std::string VarMainProjectHomePageURL;
+extern const std::string VarMainProjectDescription;
 extern const std::string VarCurrentSourceDirectory;
 extern const std::string VarCurrentBinaryDirectory;
 extern const std::string VarCurrentScriptDirectory;
@@ -48,9 +50,10 @@ extern const std::string VarCMakeVersionTweak;
 extern const std::string VarMakeProgramPath;
 extern const std::string VarCMakeGenerator;
 extern const std::string VarProjectBinaryDir;
-extern const std::string VarProjectHomepageURL;
-extern const std::string VarProjectName;
 extern const std::string VarProjectDescription;
+extern const std::string VarProjectHomepageURL;
+extern const std::string VarProjectIsTopLevel;
+extern const std::string VarProjectName;
 extern const std::string VarProjectSourceDirectory;
 extern const std::string VarProjectVersion;
 extern const std::string VarProjectVersionMajor;
@@ -58,6 +61,16 @@ extern const std::string VarProjectVersionMinor;
 extern const std::string VarProjectVersionPatch;
 extern const std::string VarProjectVersionTweak;
 extern const std::string CMakeScriptFileName;
+extern const std::string VarSuffixBinaryDir;
+extern const std::string VarSuffixDescription;
+extern const std::string VarSuffixHomepageURL;
+extern const std::string VarSuffixIsTopLevel;
+extern const std::string VarSuffixSourceDirectory;
+extern const std::string VarSuffixVersion;
+extern const std::string VarSuffixVersionMajor;
+extern const std::string VarSuffixVersionMinor;
+extern const std::string VarSuffixVersionPatch;
+extern const std::string VarSuffixVersionTweak;
 
 class CMakeModel
 {
